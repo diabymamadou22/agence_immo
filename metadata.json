@@ -1,0 +1,6 @@
+{
+  "name": "Mali Immo Prestige",
+  "description": "Plateforme immobilière et agence de gestion foncière au Mali - Vente de parcelles, locations de villas et gestion locative à Bamako et environs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

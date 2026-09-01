@@ -1,0 +1,207 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { AgencyConfig } from '../types';
+
+const LOCAL_STORAGE_AGENCY_KEY = 'mali_immo_agency_config';
+
+export const AGENCY_PRESETS: { id: string; label: string; city: string; config: AgencyConfig }[] = [
+  {
+    id: 'mali_immo_prestige',
+    label: 'Mali Immo Prestige (Bamako ACI 2000)',
+    city: 'Bamako',
+    config: {
+      name: 'Mali Immo Prestige',
+      slogan: 'L\'Excellence Foncière & Immobilière au Mali',
+      tagline: 'Vente de Parcelles avec Titre Foncier, Gestion Locative & Villas de Standing',
+      phone: '+223 76 00 11 22',
+      phoneDisplay: '+223 76 00 11 22 / 66 99 88 77',
+      whatsappNumber: '22376001122',
+      email: 'contact@mali-immoprestige.ml',
+      address: 'Hamdallaye ACI 2000, Rue 318, Face Immeuble BNDA, Bamako, Mali',
+      city: 'Bamako',
+      country: 'Mali',
+      rccm: 'MA-BKO-2022-B-12890',
+      nif: '0852147983X',
+      workingHours: 'Lun - Sam: 08h00 - 18h30',
+      currency: 'FCFA',
+      bankName: 'BDM-SA (Banque de Développement du Mali)',
+      bankRib: 'ML016 01201 02541289001 45',
+      bankAccountName: 'MALI IMMO PRESTIGE SARL',
+      orangeMoneyMerchant: 'OM-76001122',
+      moovMoneyMerchant: 'MOOV-66998877',
+      waveMerchant: 'WAVE-BKO-001',
+      defaultRentalCommissionPercent: 10,
+      defaultSaleCommissionPercent: 5,
+      themeColor: 'amber',
+      officialStampText: 'MALI IMMO PRESTIGE SARL • DIRECTION GÉNÉRALE • VISA & SCEAU OFFICIEL',
+      isCustomBranding: false,
+      adminPassword: '00223',
+    },
+  },
+  {
+    id: 'mande_habitat',
+    label: 'Mandé Habitat & Invest (Bamako Golf / Sotuba)',
+    city: 'Bamako',
+    config: {
+      name: 'Mandé Habitat & Terroirs',
+      slogan: 'Votre Partenaire Foncier de Confiance au Sahel',
+      tagline: 'Lotissements Viabilisés, Villas de Luxe & Conseil Juridique Foncier',
+      phone: '+223 70 88 44 22',
+      phoneDisplay: '+223 70 88 44 22 / 75 11 33 55',
+      whatsappNumber: '22370884422',
+      email: 'contact@mande-habitat.ml',
+      address: 'Zone du Golf, Près de l\'Hôtel Mandé, Baco-Djicoroni, Bamako, Mali',
+      city: 'Bamako',
+      country: 'Mali',
+      rccm: 'MA-BKO-2021-B-09412',
+      nif: '0714892301Y',
+      workingHours: 'Lun - Sam: 08h30 - 19h00',
+      currency: 'FCFA',
+      bankName: 'BOA Mali (Bank of Africa)',
+      bankRib: 'ML084 01100 00894127002 18',
+      bankAccountName: 'MANDE HABITAT & TERROIRS SAS',
+      orangeMoneyMerchant: 'OM-70884422',
+      moovMoneyMerchant: 'MOOV-75113355',
+      waveMerchant: 'WAVE-BKO-002',
+      defaultRentalCommissionPercent: 8,
+      defaultSaleCommissionPercent: 5,
+      themeColor: 'emerald',
+      officialStampText: 'MANDE HABITAT & TERROIRS SAS • DÉPARTEMENT JURIDIQUE & TRANSACTION',
+      isCustomBranding: true,
+      adminPassword: '00223',
+    },
+  },
+  {
+    id: 'koulikoro_foncier',
+    label: 'Koulikoro Foncier S.A.R.L. (Kati / Koulikoro)',
+    city: 'Koulikoro',
+    config: {
+      name: 'Koulikoro Foncier S.A.R.L.',
+      slogan: 'Le Spécialiste des Terrains Agricoles et Parcelles TF',
+      tagline: 'Grands Domaines, Parcelles Loties et Concessions Rurales',
+      phone: '+223 79 12 34 56',
+      phoneDisplay: '+223 79 12 34 56',
+      whatsappNumber: '22379123456',
+      email: 'infos@koulikoro-foncier.ml',
+      address: 'Avenue du 22 Septembre, Face Préfecture de Kati, Mali',
+      city: 'Kati / Koulikoro',
+      country: 'Mali',
+      rccm: 'MA-KTI-2023-B-03189',
+      nif: '0981245091Z',
+      workingHours: 'Lun - Ven: 08h00 - 17h30',
+      currency: 'FCFA',
+      bankName: 'BNDA (Banque Nationale de Développement Agricole)',
+      bankRib: 'ML042 01005 00019283746 88',
+      bankAccountName: 'KOULIKORO FONCIER SARL',
+      orangeMoneyMerchant: 'OM-79123456',
+      moovMoneyMerchant: 'MOOV-66002244',
+      waveMerchant: 'WAVE-KTI-001',
+      defaultRentalCommissionPercent: 10,
+      defaultSaleCommissionPercent: 6,
+      themeColor: 'blue',
+      officialStampText: 'KOULIKORO FONCIER SARL • SERVICE CONSERVATION & TRANSACTIONS',
+      isCustomBranding: true,
+      adminPassword: '00223',
+    },
+  },
+  {
+    id: 'sahel_immo',
+    label: 'Sahel Immobilier International (Hippodrome)',
+    city: 'Bamako',
+    config: {
+      name: 'Sahel Immobilier International',
+      slogan: 'L\'Immobilier Haut de Gamme & Gestion de Patrimoine',
+      tagline: 'Bureaux ACI 2000, Résidences Diplomatiques & Investissement Diaspora',
+      phone: '+223 66 55 44 33',
+      phoneDisplay: '+223 66 55 44 33 / 70 00 99 88',
+      whatsappNumber: '22366554433',
+      email: 'direction@sahel-immo.ml',
+      address: 'Hippodrome Rue 240, Porte 88, Bamako, Mali',
+      city: 'Bamako',
+      country: 'Mali',
+      rccm: 'MA-BKO-2020-B-07651',
+      nif: '0654129870W',
+      workingHours: 'Lun - Sam: 09h00 - 19h00',
+      currency: 'FCFA',
+      bankName: 'Ecobank Mali',
+      bankRib: 'ML091 01012 00192837465 12',
+      bankAccountName: 'SAHEL IMMOBILIER INTERNATIONAL',
+      orangeMoneyMerchant: 'OM-66554433',
+      moovMoneyMerchant: 'MOOV-70009988',
+      waveMerchant: 'WAVE-BKO-003',
+      defaultRentalCommissionPercent: 10,
+      defaultSaleCommissionPercent: 5,
+      themeColor: 'slate',
+      officialStampText: 'SAHEL IMMOBILIER INTERNATIONAL • CONSEIL D\'ADMINISTRATION',
+      isCustomBranding: true,
+      adminPassword: '00223',
+    },
+  },
+];
+
+const loadSavedAgencyConfig = (): AgencyConfig => {
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_AGENCY_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.name) {
+        return {
+          ...AGENCY_PRESETS[0].config,
+          ...parsed,
+          adminPassword: parsed.adminPassword || '00223',
+        };
+      }
+    }
+  } catch (e) {
+    console.error('Error loading agency config:', e);
+  }
+  return AGENCY_PRESETS[0].config;
+};
+
+const saveAgencyConfig = (config: AgencyConfig) => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_AGENCY_KEY, JSON.stringify(config));
+  } catch (e) {
+    console.error('Error saving agency config:', e);
+  }
+};
+
+interface AgencyState {
+  config: AgencyConfig;
+  selectedPresetId: string;
+}
+
+const initialState: AgencyState = {
+  config: loadSavedAgencyConfig(),
+  selectedPresetId: 'mali_immo_prestige',
+};
+
+export const agencySlice = createSlice({
+  name: 'agency',
+  initialState,
+  reducers: {
+    updateAgencyConfig: (state, action: PayloadAction<Partial<AgencyConfig>>) => {
+      state.config = {
+        ...state.config,
+        ...action.payload,
+        isCustomBranding: true,
+      };
+      saveAgencyConfig(state.config);
+    },
+    setAgencyPreset: (state, action: PayloadAction<string>) => {
+      const preset = AGENCY_PRESETS.find((p) => p.id === action.payload);
+      if (preset) {
+        state.selectedPresetId = preset.id;
+        state.config = { ...preset.config };
+        saveAgencyConfig(state.config);
+      }
+    },
+    resetAgencyConfig: (state) => {
+      state.config = AGENCY_PRESETS[0].config;
+      state.selectedPresetId = 'mali_immo_prestige';
+      saveAgencyConfig(state.config);
+    },
+  },
+});
+
+export const { updateAgencyConfig, setAgencyPreset, resetAgencyConfig } = agencySlice.actions;
+export default agencySlice.reducer;

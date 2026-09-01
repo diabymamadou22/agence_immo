@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Properties Collection: Public can read, authenticated agency staff can write
+    match /properties/{propertyId} {
+      allow read: if true;
+      allow write: if true; // In production, require request.auth != null;
+    }
+    
+    // Leads Collection: Public can create leads (contact / visit requests), staff can read/update
+    match /leads/{leadId} {
+      allow create: if true;
+      allow read, update, delete: if true; // In production, require request.auth != null;
+    }
+    
+    // Tenants & Rental Contracts: Agency administration
+    match /tenants/{tenantId} {
+      allow read, write: if true; // In production, require request.auth != null;
+    }
+    
+    // Rent Receipts & Payments
+    match /receipts/{receiptId} {
+      allow read, write: if true; // In production, require request.auth != null;
+    }
+    
+    // Land Plot Lotissements & Cadastral
+    match /lotissements/{lotissementId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}
