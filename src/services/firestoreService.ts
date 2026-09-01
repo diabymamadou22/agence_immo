@@ -75,6 +75,15 @@ export const firestoreService = {
     }
   },
 
+  async deleteLead(leadId: string): Promise<void> {
+    if (!db || !isConfigured) return;
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.LEADS, leadId));
+    } catch (e) {
+      console.warn('Firestore deleteLead fallback:', e);
+    }
+  },
+
   // Tenants & Receipts
   async saveTenant(tenant: Tenant): Promise<void> {
     if (!db || !isConfigured) return;
@@ -85,12 +94,30 @@ export const firestoreService = {
     }
   },
 
+  async deleteTenant(tenantId: string): Promise<void> {
+    if (!db || !isConfigured) return;
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.TENANTS, tenantId));
+    } catch (e) {
+      console.warn('Firestore deleteTenant fallback:', e);
+    }
+  },
+
   async saveReceipt(receipt: RentReceipt): Promise<void> {
     if (!db || !isConfigured) return;
     try {
       await setDoc(doc(db, COLLECTIONS.RECEIPTS, receipt.id), receipt, { merge: true });
     } catch (e) {
       console.warn('Firestore saveReceipt fallback:', e);
+    }
+  },
+
+  async deleteReceipt(receiptId: string): Promise<void> {
+    if (!db || !isConfigured) return;
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.RECEIPTS, receiptId));
+    } catch (e) {
+      console.warn('Firestore deleteReceipt fallback:', e);
     }
   },
 

@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../store';
 import { 
   addTenant, 
   deleteTenant, 
+  deleteReceipt,
   setActiveReceiptForPrint 
 } from '../../store/tenantsSlice';
 import { 
@@ -10,6 +11,7 @@ import {
   openPaymentModal, 
   addToast 
 } from '../../store/uiSlice';
+import { firestoreService } from '../../services/firestoreService';
 import { Tenant, PaymentMethod } from '../../types';
 import { formatFCFA, formatDate, AGENCY_INFO } from '../../utils/formatters';
 import { 
@@ -101,12 +103,24 @@ export const AdminTenantManager: React.FC = () => {
     dispatch(openReceiptModal());
   };
 
-  const handleDeleteTenant = (id: string, tenantName: string) => {
+  const handleDeleteTenant = async (id: string, tenantName: string) => {
     if (window.confirm(`Voulez-vous vraiment supprimer le locataire ${tenantName} ?`)) {
       dispatch(deleteTenant(id));
+      await firestoreService.deleteTenant(id);
       dispatch(addToast({
         type: 'info',
         message: `Locataire ${tenantName} supprimé.`,
+      }));
+    }
+  };
+
+  const handleDeleteReceipt = async (id: string, receiptNumber: string) => {
+    if (window.confirm(`Confirmez-vous la suppression de la quittance ${receiptNumber} ?`)) {
+      dispatch(deleteReceipt(id));
+      await firestoreService.deleteReceipt(id);
+      dispatch(addToast({
+        type: 'info',
+        message: `Quittance ${receiptNumber} supprimée.`,
       }));
     }
   };
@@ -444,15 +458,24 @@ export const AdminTenantManager: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
                 <span className="text-[10px] text-slate-400">{formatDate(rec.paymentDate)}</span>
-                <button
-                  onClick={() => handlePrintReceipt(rec)}
-                  className="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 cursor-pointer"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Imprimer / Télécharger</span>
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => handlePrintReceipt(rec)}
+                    className="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>Imprimer</span>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteReceipt(rec.id, rec.receiptNumber)}
+                    className="p-1 rounded text-rose-500 hover:bg-rose-50 cursor-pointer"
+                    title="Supprimer la quittance"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
           ))}

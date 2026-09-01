@@ -54,12 +54,13 @@ export const AdminLeadManager: React.FC = () => {
     }));
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Voulez-vous supprimer ce prospect ?')) {
       dispatch(deleteLead(id));
+      await firestoreService.deleteLead(id);
       dispatch(addToast({
         type: 'info',
-        message: 'Prospect supprimé.',
+        message: 'Prospect supprimé avec succès.',
       }));
     }
   };

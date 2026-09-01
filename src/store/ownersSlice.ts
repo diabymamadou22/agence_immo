@@ -191,6 +191,10 @@ export const ownersSlice = createSlice({
       state.items = state.items.filter((o) => o.id !== action.payload);
       saveOwners(state.items);
     },
+    deletePayout: (state, action: PayloadAction<string>) => {
+      state.payouts = state.payouts.filter((p) => p.id !== action.payload);
+      savePayouts(state.payouts);
+    },
     addPayout: (state, action: PayloadAction<Omit<OwnerPayout, 'id' | 'payoutNumber'>>) => {
       const count = state.payouts.length + 1;
       const year = new Date().getFullYear();
@@ -224,6 +228,7 @@ export const {
   addOwner,
   updateOwner,
   deleteOwner,
+  deletePayout,
   addPayout,
   setSelectedOwnerId,
   setSelectedPayoutId,

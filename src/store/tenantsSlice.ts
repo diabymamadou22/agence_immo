@@ -90,6 +90,15 @@ export const tenantsSlice = createSlice({
       state.items = state.items.filter(t => t.id !== action.payload);
       saveToLocalStorage(state.items, state.receipts);
     },
+    deleteReceipt: (state, action: PayloadAction<string>) => {
+      state.receipts = state.receipts.filter(r => r.id !== action.payload);
+      state.items.forEach(t => {
+        if (t.receipts) {
+          t.receipts = t.receipts.filter(r => r.id !== action.payload);
+        }
+      });
+      saveToLocalStorage(state.items, state.receipts);
+    },
     recordRentPayment: (
       state,
       action: PayloadAction<{
@@ -198,6 +207,7 @@ export const {
   addTenant,
   updateTenant,
   deleteTenant,
+  deleteReceipt,
   recordRentPayment,
   recordPaymentReceipt,
   setActiveReceiptForPrint,

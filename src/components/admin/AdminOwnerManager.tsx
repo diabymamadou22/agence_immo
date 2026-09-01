@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { addOwner, updateOwner, deleteOwner, addPayout } from '../../store/ownersSlice';
+import { addOwner, updateOwner, deleteOwner, addPayout, deletePayout } from '../../store/ownersSlice';
 import { openPayoutPrintModal, addToast } from '../../store/uiSlice';
 import { formatFCFA, formatDate } from '../../utils/formatters';
 import { Owner, OwnerPayout, PaymentMethod } from '../../types';
@@ -598,13 +598,27 @@ export const AdminOwnerManager: React.FC = () => {
                       {payout.paymentMethod}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <button
-                        onClick={() => dispatch(openPayoutPrintModal(payout))}
-                        className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer shadow-xs"
-                      >
-                        <Printer className="w-3 h-3 text-amber-400" />
-                        <span>Imprimer Bordereau</span>
-                      </button>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => dispatch(openPayoutPrintModal(payout))}
+                          className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] inline-flex items-center gap-1 cursor-pointer shadow-xs"
+                        >
+                          <Printer className="w-3 h-3 text-amber-400" />
+                          <span>Imprimer</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Supprimer le bordereau ${payout.payoutNumber} ?`)) {
+                              dispatch(deletePayout(payout.id));
+                              dispatch(addToast({ type: 'info', message: `Bordereau ${payout.payoutNumber} supprimé.` }));
+                            }
+                          }}
+                          className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer"
+                          title="Supprimer le bordereau"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
