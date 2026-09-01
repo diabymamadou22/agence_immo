@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { addExpense, deleteExpense } from '../../store/financialsSlice';
 import { addToast } from '../../store/uiSlice';
+import { firestoreService } from '../../services/firestoreService';
 import { formatFCFA, formatDate } from '../../utils/formatters';
 import { AgencyExpense, PaymentMethod } from '../../types';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -33,6 +35,8 @@ export const AdminFinancials: React.FC = () => {
   const agencyConfig = useAppSelector((state) => state.agency.config);
 
   const [isAddingExpense, setIsAddingExpense] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<AgencyExpense | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [expenseForm, setExpenseForm] = useState({
     title: '',
     category: 'geometre' as AgencyExpense['category'],
@@ -42,6 +46,22 @@ export const AdminFinancials: React.FC = () => {
     receiptNumber: '',
     notes: '',
   });
+
+  const handleConfirmDeleteExpense = async () => {
+    if (!expenseToDelete) return;
+    setIsDeleting(true);
+    try {
+      dispatch(deleteExpense(expenseToDelete.id));
+      await firestoreService.deleteExpense(expenseToDelete.id);
+      dispatch(addToast({ type: 'info', message: 'Dépense supprimée avec succès du grand livre.' }));
+      setExpenseToDelete(null);
+    } catch (error) {
+      console.error('Erreur lors de la suppression de la dépense:', error);
+      dispatch(addToast({ type: 'error', message: 'Erreur lors de la suppression de la dépense.' }));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // Calculate Key Financial Metrics
   // 1. Rental Management Commissions earned by Agency
@@ -429,15 +449,12 @@ export const AdminFinancials: React.FC = () => {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button
-                        onClick={() => {
-                          if (window.confirm(`Supprimer cette dépense ?`)) {
-                            dispatch(deleteExpense(expense.id));
-                            dispatch(addToast({ type: 'info', message: 'Dépense supprimée.' }));
-                          }
-                        }}
-                        className="p-1 rounded text-rose-500 hover:bg-rose-50 cursor-pointer"
+                        type="button"
+                        onClick={() => setExpenseToDelete(expense)}
+                        className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer"
+                        title="Supprimer cette dépense"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </td>
                   </tr>
@@ -447,6 +464,29 @@ export const AdminFinancials: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal for Expense Deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!expenseToDelete}
+        title="Supprimer la dépense comptable"
+        message="Êtes-vous sûr de vouloir supprimer définitivement cet enregistrement de dépense ? Cette action mettra à jour instantanément le solde et les bilans comptables de l'agence."
+        itemName={expenseToDelete?.title}
+        itemType="Dépense / Charge"
+        details={
+          expenseToDelete
+            ? [
+                { label: 'Intitulé', value: expenseToDelete.title },
+                { label: 'Catégorie', value: getCategoryLabel(expenseToDelete.category) },
+                { label: 'Montant décaissé', value: formatFCFA(expenseToDelete.amount) },
+                { label: 'Date', value: formatDate(expenseToDelete.date) },
+                { label: 'Mode de règlement', value: expenseToDelete.paymentMethod },
+              ]
+            : []
+        }
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDeleteExpense}
+        onCancel={() => setExpenseToDelete(null)}
+      />
     </div>
   );
 };

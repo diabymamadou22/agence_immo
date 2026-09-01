@@ -11,6 +11,8 @@ import {
   getStatusBadgeInfo,
   MALI_LOCATIONS 
 } from '../../utils/formatters';
+import { exportPropertiesToCSV } from '../../utils/exportUtils';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { 
   Layers, 
   Plus, 
@@ -23,16 +25,19 @@ import {
   CheckCircle2, 
   Maximize2,
   FileText,
-  MapPin
+  MapPin,
+  FileSpreadsheet
 } from 'lucide-react';
 
 export const AdminParcelleManager: React.FC = () => {
   const dispatch = useAppDispatch();
   const properties = useAppSelector((state) => state.properties.items);
+  const agencyConfig = useAppSelector((state) => state.agency.config);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDoc, setFilterDoc] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [parcelleToDelete, setParcelleToDelete] = useState<Property | null>(null);
 
   const parcelles = properties.filter((p) => p.propertyType === 'parcelle');
 
@@ -55,15 +60,32 @@ export const AdminParcelleManager: React.FC = () => {
     return true;
   });
 
-  const handleDelete = async (id: string, ref: string) => {
-    if (window.confirm(`Confirmez-vous la suppression de la parcelle ${ref} ?`)) {
+  const handleConfirmDelete = async () => {
+    if (!parcelleToDelete) return;
+    const { id, reference, title } = parcelleToDelete;
+    try {
       dispatch(deleteProperty(id));
       await firestoreService.deleteProperty(id);
       dispatch(addToast({
         type: 'info',
-        message: `Parcelle ${ref} supprimée avec succès.`,
+        message: `Parcelle "${reference} - ${title}" supprimée avec succès du cadastre.`,
+      }));
+    } catch (err) {
+      console.error('Error deleting parcelle:', err);
+      dispatch(addToast({
+        type: 'error',
+        message: `Erreur lors de la suppression de la parcelle ${reference}.`,
       }));
     }
+  };
+
+  const handleExportParcellesCSV = () => {
+    const filename = `registre_parcelles_foncier_${agencyConfig.name.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}`;
+    exportPropertiesToCSV(filteredParcelles, filename);
+    dispatch(addToast({
+      type: 'success',
+      message: `${filteredParcelles.length} parcelles exportées au format CSV (Excel).`,
+    }));
   };
 
   const handleStatusChange = async (id: string, status: PropertyStatus) => {
@@ -77,7 +99,7 @@ export const AdminParcelleManager: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header with Title and Add Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <Layers className="w-5 h-5 text-amber-500" />
@@ -89,18 +111,30 @@ export const AdminParcelleManager: React.FC = () => {
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Gestion cadastrale : Numéros de lot, sections, dimensions, Titres Fonciers (TF) et concessions rurales.
+            Cadastre et réserves foncières : Titres Fonciers (TF), Concessions Urbaines d'Habitation (CUH), Lettres et Permis d'occuper.
           </p>
         </div>
 
-        <button
-          id="btn-add-parcelle-manager"
-          onClick={() => dispatch(openPropertyForm({ type: 'parcelle' }))}
-          className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Ajouter une Parcelle TF</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Export CSV Parcelles */}
+          <button
+            onClick={handleExportParcellesCSV}
+            className="px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Exporter le registre des parcelles au format CSV pour Excel"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>Export CSV Cadastre</span>
+          </button>
+
+          <button
+            id="btn-add-parcelle-manager"
+            onClick={() => dispatch(openPropertyForm({ type: 'parcelle' }))}
+            className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Ajouter une Parcelle TF</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
@@ -263,9 +297,9 @@ export const AdminParcelleManager: React.FC = () => {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(parcel.id, parcel.reference)}
+                            onClick={() => setParcelleToDelete(parcel)}
                             className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                            title="Supprimer"
+                            title="Supprimer définitivement"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -279,6 +313,24 @@ export const AdminParcelleManager: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Confirmation Modal for Parcelle Deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!parcelleToDelete}
+        onClose={() => setParcelleToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Supprimer cette parcelle du cadastre ?"
+        itemType="Parcelle Foncier"
+        itemName={parcelleToDelete ? `${parcelleToDelete.reference} — ${parcelleToDelete.title}` : ''}
+        itemDetails={parcelleToDelete ? [
+          { label: 'Localisation', value: `${parcelleToDelete.neighborhood}, ${parcelleToDelete.city}` },
+          { label: 'Document Foncier', value: `${getDocumentBadgeInfo(parcelleToDelete.documentType).label} ${parcelleToDelete.documentNumber ? `(N° ${parcelleToDelete.documentNumber})` : ''}` },
+          { label: 'N° Lot / Section', value: `Lot: ${parcelleToDelete.lotNumber || 'Non spécifié'} | Section: ${parcelleToDelete.sectionNumber || '-'}` },
+          { label: 'Surface & Prix', value: `${formatSurface(parcelleToDelete.surface)} • ${formatFCFA(parcelleToDelete.price)}` },
+        ] : []}
+        warningMessage="Attention : La suppression de cette parcelle retirera toutes les références cadastrales, dimensions et coordonnées géographiques associées de l'inventaire."
+        confirmLabel="Supprimer définitivement"
+      />
     </div>
   );
 };

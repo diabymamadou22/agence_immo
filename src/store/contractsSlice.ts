@@ -77,9 +77,9 @@ export const INITIAL_CONTRACTS: LegalContract[] = [
 const loadSavedContracts = (): LegalContract[] => {
   try {
     const saved = localStorage.getItem(LOCAL_STORAGE_CONTRACTS_KEY);
-    if (saved) {
+    if (saved !== null) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) {
     console.error('Error loading contracts:', e);

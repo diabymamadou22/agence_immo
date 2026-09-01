@@ -10,22 +10,47 @@
   }
 }
 
-/* Print styles specifically for Reçus de loyer & Fiches Parcelles */
+/* Print styles specifically for Reçus de loyer, Actes, Mandats & Fiches Parcelles */
 @media print {
-  body {
+  html, body {
     background: white !important;
-    color: black !important;
+    color: #0f172a !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  .no-print {
+
+  /* Hide UI elements on print */
+  header, footer, nav, button, .no-print, .print\:hidden {
     display: none !important;
   }
+
+  /* Reset modal overlay backgrounds for printing */
+  .fixed.inset-0 {
+    position: static !important;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    backdrop-filter: none !important;
+  }
+
+  .print-card, [role="dialog"] {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    border-radius: 0 !important;
+    page-break-inside: avoid;
+  }
+
   .print-only {
     display: block !important;
-  }
-  .print-card {
-    box-shadow: none !important;
-    border: 1px solid #cbd5e1 !important;
-    page-break-inside: avoid;
   }
 }
 

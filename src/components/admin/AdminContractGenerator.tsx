@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { addContract, updateContract, deleteContract } from '../../store/contractsSlice';
 import { openContractPrintModal, addToast } from '../../store/uiSlice';
+import { firestoreService } from '../../services/firestoreService';
 import { formatFCFA, formatDate } from '../../utils/formatters';
 import { LegalContract, ContractType } from '../../types';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { 
   FileText, 
   Plus, 
@@ -32,6 +34,24 @@ export const AdminContractGenerator: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTypeFilter, setSelectedTypeFilter] = useState<string>('all');
   const [isCreating, setIsCreating] = useState(false);
+  const [contractToDelete, setContractToDelete] = useState<LegalContract | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirmDeleteContract = async () => {
+    if (!contractToDelete) return;
+    setIsDeleting(true);
+    try {
+      dispatch(deleteContract(contractToDelete.id));
+      await firestoreService.deleteContract(contractToDelete.id);
+      dispatch(addToast({ type: 'info', message: `Acte juridique ${contractToDelete.reference} supprimé avec succès.` }));
+      setContractToDelete(null);
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'acte juridique:", error);
+      dispatch(addToast({ type: 'error', message: "Erreur lors de la suppression de l'acte juridique." }));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // New Contract Form State
   const [formData, setFormData] = useState<{
@@ -489,14 +509,10 @@ export const AdminContractGenerator: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={() => {
-                    if (window.confirm(`Voulez-vous supprimer l'acte ${contract.reference} ?`)) {
-                      dispatch(deleteContract(contract.id));
-                      dispatch(addToast({ type: 'info', message: 'Acte supprimé.' }));
-                    }
-                  }}
-                  className="p-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors cursor-pointer"
-                  title="Supprimer"
+                  type="button"
+                  onClick={() => setContractToDelete(contract)}
+                  className="p-2 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-800 transition-colors cursor-pointer"
+                  title="Supprimer définitivement cet acte"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -505,6 +521,30 @@ export const AdminContractGenerator: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Confirmation Modal for Legal Contracts & Mandates Deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!contractToDelete}
+        title="Supprimer l'acte juridique / mandat"
+        message="Êtes-vous sûr de vouloir supprimer définitivement cet acte juridique ou mandat ? Cette action supprimera la convention légale de la base de données de l'agence."
+        itemName={contractToDelete ? `${contractToDelete.reference} - ${contractToDelete.title}` : ''}
+        itemType="Contrat / Mandat Notarié"
+        details={
+          contractToDelete
+            ? [
+                { label: 'Référence Acte', value: contractToDelete.reference },
+                { label: 'Intitulé de la convention', value: contractToDelete.title },
+                { label: 'Partie A (Bailleur / Vendeur / Mandant)', value: contractToDelete.partyAName },
+                { label: 'Partie B (Preneur / Acquéreur / Mandataire)', value: contractToDelete.partyBName },
+                { label: 'Montant de transaction', value: formatFCFA(contractToDelete.amountFCFA) },
+                { label: 'Période / Date de début', value: formatDate(contractToDelete.startDate) },
+              ]
+            : []
+        }
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDeleteContract}
+        onCancel={() => setContractToDelete(null)}
+      />
     </div>
   );
 };

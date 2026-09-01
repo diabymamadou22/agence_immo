@@ -12,8 +12,11 @@ import {
   addToast 
 } from '../../store/uiSlice';
 import { firestoreService } from '../../services/firestoreService';
-import { Tenant, PaymentMethod } from '../../types';
+import { Tenant, RentReceipt, PaymentMethod } from '../../types';
 import { formatFCFA, formatDate, AGENCY_INFO } from '../../utils/formatters';
+import { exportTenantsToCSV, exportReceiptsToCSV } from '../../utils/exportUtils';
+import { TenantExportModal } from './TenantExportModal';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { 
   Users, 
   Plus, 
@@ -29,7 +32,8 @@ import {
   FileText,
   DollarSign,
   Building,
-  UserCheck
+  UserCheck,
+  FileSpreadsheet
 } from 'lucide-react';
 
 export const AdminTenantManager: React.FC = () => {
@@ -37,11 +41,15 @@ export const AdminTenantManager: React.FC = () => {
   const tenants = useAppSelector((state) => state.tenants.items);
   const receipts = useAppSelector((state) => state.tenants.receipts);
   const properties = useAppSelector((state) => state.properties.items);
+  const agencyConfig = useAppSelector((state) => state.agency.config);
 
   const rentalProperties = properties.filter((p) => p.dealType === 'location');
 
   // Form State to add tenant
   const [isAddingTenant, setIsAddingTenant] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [tenantToDelete, setTenantToDelete] = useState<Tenant | null>(null);
+  const [receiptToDelete, setReceiptToDelete] = useState<RentReceipt | null>(null);
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('+223 ');
   const [email, setEmail] = useState('');
@@ -54,7 +62,7 @@ export const AdminTenantManager: React.FC = () => {
   const [leaseEndDate, setLeaseEndDate] = useState('');
   const [rentPaymentDay, setRentPaymentDay] = useState(5);
 
-  const handleAddTenantSubmit = (e: React.FormEvent) => {
+  const handleAddTenantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !phone.trim() || !propertyId) {
       dispatch(addToast({
@@ -85,6 +93,11 @@ export const AdminTenantManager: React.FC = () => {
     };
 
     dispatch(addTenant(newTenantData));
+    await firestoreService.saveTenant({
+      ...newTenantData,
+      id: `tenant-${Date.now()}`,
+      receipts: [],
+    });
     dispatch(addToast({
       type: 'success',
       message: `Locataire ${name} ajouté avec succès au contrat de location.`,
@@ -103,32 +116,66 @@ export const AdminTenantManager: React.FC = () => {
     dispatch(openReceiptModal());
   };
 
-  const handleDeleteTenant = async (id: string, tenantName: string) => {
-    if (window.confirm(`Voulez-vous vraiment supprimer le locataire ${tenantName} ?`)) {
+  const handleConfirmDeleteTenant = async () => {
+    if (!tenantToDelete) return;
+    const { id, name: tenantName } = tenantToDelete;
+    try {
       dispatch(deleteTenant(id));
       await firestoreService.deleteTenant(id);
       dispatch(addToast({
         type: 'info',
-        message: `Locataire ${tenantName} supprimé.`,
+        message: `Dossier du locataire ${tenantName} supprimé avec succès.`,
+      }));
+    } catch (err) {
+      console.error('Error deleting tenant:', err);
+      dispatch(addToast({
+        type: 'error',
+        message: `Erreur lors de la suppression du locataire ${tenantName}.`,
       }));
     }
   };
 
-  const handleDeleteReceipt = async (id: string, receiptNumber: string) => {
-    if (window.confirm(`Confirmez-vous la suppression de la quittance ${receiptNumber} ?`)) {
+  const handleConfirmDeleteReceipt = async () => {
+    if (!receiptToDelete) return;
+    const { id, receiptNumber } = receiptToDelete;
+    try {
       dispatch(deleteReceipt(id));
       await firestoreService.deleteReceipt(id);
       dispatch(addToast({
         type: 'info',
-        message: `Quittance ${receiptNumber} supprimée.`,
+        message: `Quittance ${receiptNumber} supprimée avec succès.`,
+      }));
+    } catch (err) {
+      console.error('Error deleting receipt:', err);
+      dispatch(addToast({
+        type: 'error',
+        message: `Erreur lors de la suppression de la quittance ${receiptNumber}.`,
       }));
     }
+  };
+
+  const handleExportTenantsCSV = () => {
+    const filename = `baux_locataires_${agencyConfig.name.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}`;
+    exportTenantsToCSV(tenants, filename);
+    dispatch(addToast({
+      type: 'success',
+      message: `${tenants.length} baux locataires exportés en CSV (Excel).`,
+    }));
+  };
+
+  const handleExportReceiptsCSV = () => {
+    const filename = `journal_quittances_${agencyConfig.name.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}`;
+    exportReceiptsToCSV(receipts, filename);
+    dispatch(addToast({
+      type: 'success',
+      message: `${receipts.length} quittances de loyer exportées en CSV (Excel).`,
+    }));
   };
 
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-600" />
@@ -144,13 +191,45 @@ export const AdminTenantManager: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddingTenant(!isAddingTenant)}
-          className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>{isAddingTenant ? 'Fermer le formulaire' : 'Nouveau Locataire / Bail'}</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* CSV Export Locataires */}
+          <button
+            onClick={handleExportTenantsCSV}
+            className="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Exporter les locataires en format CSV"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>CSV Baux</span>
+          </button>
+
+          {/* CSV Export Quittances */}
+          <button
+            onClick={handleExportReceiptsCSV}
+            className="px-3 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Exporter le journal des quittances en format CSV"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-blue-600" />
+            <span>CSV Quittances</span>
+          </button>
+
+          {/* État Comptable PDF */}
+          <button
+            onClick={() => setIsExportModalOpen(true)}
+            className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Générer l'état comptable des loyers et imprimer en PDF"
+          >
+            <Printer className="w-4 h-4 text-slate-600" />
+            <span>État Comptable PDF</span>
+          </button>
+
+          <button
+            onClick={() => setIsAddingTenant(!isAddingTenant)}
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{isAddingTenant ? 'Fermer le formulaire' : 'Nouveau Locataire / Bail'}</span>
+          </button>
+        </div>
       </div>
 
       {/* New Tenant Creation Form */}
@@ -407,9 +486,9 @@ export const AdminTenantManager: React.FC = () => {
                         </button>
 
                         <button
-                          onClick={() => handleDeleteTenant(tenant.id, tenant.name)}
+                          onClick={() => setTenantToDelete(tenant)}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                          title="Supprimer le contrat"
+                          title="Supprimer définitivement le contrat"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -469,7 +548,7 @@ export const AdminTenantManager: React.FC = () => {
                     <span>Imprimer</span>
                   </button>
                   <button
-                    onClick={() => handleDeleteReceipt(rec.id, rec.receiptNumber)}
+                    onClick={() => setReceiptToDelete(rec)}
                     className="p-1 rounded text-rose-500 hover:bg-rose-50 cursor-pointer"
                     title="Supprimer la quittance"
                   >
@@ -481,6 +560,48 @@ export const AdminTenantManager: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Confirmation Modal for Tenant Deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!tenantToDelete}
+        onClose={() => setTenantToDelete(null)}
+        onConfirm={handleConfirmDeleteTenant}
+        title="Supprimer définitivement ce locataire ?"
+        itemType="Bail / Locataire"
+        itemName={tenantToDelete?.name}
+        itemDetails={tenantToDelete ? [
+          { label: 'Bien loué', value: tenantToDelete.propertyTitle },
+          { label: 'Téléphone', value: tenantToDelete.phone },
+          { label: 'Loyer mensuel', value: formatFCFA(tenantToDelete.monthlyRent) },
+          { label: 'Caution déposée', value: formatFCFA(tenantToDelete.depositAmount) },
+        ] : []}
+        warningMessage="Attention : La résiliation ou suppression définitive de ce dossier effacera l'historique d'échéances et de suivi locatif pour ce bien."
+        confirmLabel="Supprimer le locataire"
+      />
+
+      {/* Confirmation Modal for Receipt Deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!receiptToDelete}
+        onClose={() => setReceiptToDelete(null)}
+        onConfirm={handleConfirmDeleteReceipt}
+        title="Supprimer cette quittance de loyer ?"
+        itemType="Quittance de Loyer"
+        itemName={receiptToDelete ? `Quittance N° ${receiptToDelete.receiptNumber}` : ''}
+        itemDetails={receiptToDelete ? [
+          { label: 'Locataire', value: receiptToDelete.tenantName },
+          { label: 'Bien concerné', value: receiptToDelete.propertyTitle },
+          { label: 'Période réglée', value: receiptToDelete.periodMonth },
+          { label: 'Montant encaissé', value: `${formatFCFA(receiptToDelete.amount)} (${receiptToDelete.paymentMethod})` },
+        ] : []}
+        warningMessage="Attention : Cette suppression annulera la trace d'encaissement correspondante dans le journal comptable de l'agence."
+        confirmLabel="Supprimer la quittance"
+      />
+
+      {/* Grand Livre de Gestion Locative PDF Modal */}
+      <TenantExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+      />
     </div>
   );
 };

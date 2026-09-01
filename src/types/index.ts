@@ -259,6 +259,7 @@ export interface AgencyConfig {
   officialStampText: string;
   isCustomBranding: boolean;
   logoUrl?: string;
+  stampUrl?: string;
 
   // Security / Back-Office Access Password
   adminPassword?: string; // Default: 00223

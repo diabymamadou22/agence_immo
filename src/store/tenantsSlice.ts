@@ -8,9 +8,9 @@ const LOCAL_STORAGE_KEY_RECEIPTS = 'mali_immo_receipts';
 const loadSavedTenants = (): Tenant[] => {
   try {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY_TENANTS);
-    if (saved) {
+    if (saved !== null) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }
@@ -23,9 +23,9 @@ const loadSavedTenants = (): Tenant[] => {
 const loadSavedReceipts = (): RentReceipt[] => {
   try {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY_RECEIPTS);
-    if (saved) {
+    if (saved !== null) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         return parsed;
       }
     }

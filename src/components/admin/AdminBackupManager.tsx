@@ -1,8 +1,9 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { addToast } from '../../store/uiSlice';
 import { resetToMockData } from '../../store/propertiesSlice';
 import { resetAgencyConfig } from '../../store/agencySlice';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { 
   Database, 
   Download, 
@@ -19,6 +20,7 @@ import {
 export const AdminBackupManager: React.FC = () => {
   const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const state = useAppSelector((state) => state);
 
@@ -109,22 +111,21 @@ export const AdminBackupManager: React.FC = () => {
   };
 
   const handleResetAllData = () => {
-    if (
-      window.confirm(
-        'Êtes-vous certain de vouloir réinitialiser toutes les données aux valeurs de démonstration ?'
-      )
-    ) {
-      localStorage.clear();
-      dispatch(resetToMockData());
-      dispatch(resetAgencyConfig());
-      dispatch(
-        addToast({
-          type: 'info',
-          message: 'Données réinitialisées aux valeurs usine avec succès.',
-        })
-      );
-      setTimeout(() => window.location.reload(), 800);
-    }
+    setShowResetConfirm(true);
+  };
+
+  const handleConfirmReset = () => {
+    localStorage.clear();
+    dispatch(resetToMockData());
+    dispatch(resetAgencyConfig());
+    dispatch(
+      addToast({
+        type: 'info',
+        message: 'Données réinitialisées aux valeurs usine avec succès.',
+      })
+    );
+    setShowResetConfirm(false);
+    setTimeout(() => window.location.reload(), 800);
   };
 
   return (
@@ -226,6 +227,22 @@ export const AdminBackupManager: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Confirmation Modal for Resetting to Demo Data */}
+      <ConfirmDeleteModal
+        isOpen={showResetConfirm}
+        title="Réinitialisation aux données de démonstration"
+        message="Êtes-vous certain de vouloir réinitialiser l'ensemble des données aux valeurs de démonstration ? Toutes les modifications locales seront remplacées par le catalogue initial."
+        itemName="Base de données locale complète"
+        itemType="Réinitialisation Usine"
+        details={[
+          { label: 'Biens immobiliers', value: 'Restaurer le catalogue initial de Bamako' },
+          { label: 'Baux et locataires', value: 'Restaurer les quittances d’exemple' },
+          { label: 'Paramètres d’agence', value: 'Restaurer Mali Immo Prestige par défaut' },
+        ]}
+        onConfirm={handleConfirmReset}
+        onCancel={() => setShowResetConfirm(false)}
+      />
     </div>
   );
 };

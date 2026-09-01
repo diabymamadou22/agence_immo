@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { formatFCFA, calculateNotaryFeesMali, formatSurface } from '../../utils/formatters';
+import { printElement } from '../../utils/printUtils';
 import { DocumentType } from '../../types';
 import { 
   Calculator, 
@@ -22,11 +23,11 @@ export const AdminNotaryFeeView: React.FC = () => {
   const fees = calculateNotaryFeesMali(priceInput, docType);
 
   const handlePrint = () => {
-    window.print();
+    printElement('notary-fee-simulator-content', 'Bareme_Frais_Notarie_Mali');
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" id="notary-fee-simulator-content">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2">

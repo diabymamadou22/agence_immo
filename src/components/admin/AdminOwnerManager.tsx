@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { addOwner, updateOwner, deleteOwner, addPayout, deletePayout } from '../../store/ownersSlice';
 import { openPayoutPrintModal, addToast } from '../../store/uiSlice';
+import { firestoreService } from '../../services/firestoreService';
 import { formatFCFA, formatDate } from '../../utils/formatters';
 import { Owner, OwnerPayout, PaymentMethod } from '../../types';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { 
   Users, 
   Plus, 
@@ -35,6 +37,8 @@ export const AdminOwnerManager: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'owners' | 'payouts'>('owners');
   const [isAddingOwner, setIsAddingOwner] = useState(false);
   const [isAddingPayout, setIsAddingPayout] = useState(false);
+  const [ownerToDelete, setOwnerToDelete] = useState<Owner | null>(null);
+  const [payoutToDelete, setPayoutToDelete] = useState<OwnerPayout | null>(null);
 
   // New Owner Form State
   const [ownerForm, setOwnerForm] = useState({
@@ -71,9 +75,15 @@ export const AdminOwnerManager: React.FC = () => {
   const totalAgencyMonthlyCommissions = Math.round(totalRentsManaged * 0.1);
   const totalPayoutsPaid = payouts.reduce((acc, p) => acc + p.netPaidToOwner, 0);
 
-  const handleSaveOwner = (e: React.FormEvent) => {
+  const handleSaveOwner = async (e: React.FormEvent) => {
     e.preventDefault();
+    const newOwner: Owner = {
+      ...ownerForm,
+      id: `owner-${Date.now()}`,
+      createdAt: new Date().toISOString().split('T')[0],
+    };
     dispatch(addOwner(ownerForm));
+    await firestoreService.saveOwner(newOwner);
     setIsAddingOwner(false);
     dispatch(
       addToast({
@@ -83,30 +93,28 @@ export const AdminOwnerManager: React.FC = () => {
     );
   };
 
-  const handleSavePayout = (e: React.FormEvent) => {
+  const handleSavePayout = async (e: React.FormEvent) => {
     e.preventDefault();
     const owner = owners.find((o) => o.id === payoutForm.ownerId);
     const commAmount = Math.round((payoutForm.grossRentCollected * payoutForm.agencyCommissionPercent) / 100);
     const netAmount = payoutForm.grossRentCollected - commAmount - payoutForm.maintenanceDeductions;
+    const payoutData = {
+      ownerId: payoutForm.ownerId,
+      ownerName: owner?.name || 'Propriétaire',
+      periodMonth: payoutForm.periodMonth,
+      grossRentCollected: payoutForm.grossRentCollected,
+      agencyCommissionPercent: payoutForm.agencyCommissionPercent,
+      agencyCommissionAmount: commAmount,
+      maintenanceDeductions: payoutForm.maintenanceDeductions,
+      netPaidToOwner: netAmount,
+      payoutDate: new Date().toISOString().split('T')[0],
+      paymentMethod: payoutForm.paymentMethod,
+      transactionReference: payoutForm.transactionReference,
+      status: payoutForm.status,
+      notes: payoutForm.notes,
+    };
 
-    dispatch(
-      addPayout({
-        ownerId: payoutForm.ownerId,
-        ownerName: owner?.name || 'Propriétaire',
-        periodMonth: payoutForm.periodMonth,
-        grossRentCollected: payoutForm.grossRentCollected,
-        agencyCommissionPercent: payoutForm.agencyCommissionPercent,
-        agencyCommissionAmount: commAmount,
-        maintenanceDeductions: payoutForm.maintenanceDeductions,
-        netPaidToOwner: netAmount,
-        payoutDate: new Date().toISOString().split('T')[0],
-        paymentMethod: payoutForm.paymentMethod,
-        transactionReference: payoutForm.transactionReference,
-        status: payoutForm.status,
-        notes: payoutForm.notes,
-      })
-    );
-
+    dispatch(addPayout(payoutData));
     setIsAddingPayout(false);
     dispatch(
       addToast({
@@ -114,6 +122,44 @@ export const AdminOwnerManager: React.FC = () => {
         message: `Reversement de ${formatFCFA(netAmount)} enregistré pour ${owner?.name} !`,
       })
     );
+  };
+
+  const handleConfirmDeleteOwner = async () => {
+    if (!ownerToDelete) return;
+    const { id, name } = ownerToDelete;
+    try {
+      dispatch(deleteOwner(id));
+      await firestoreService.deleteOwner(id);
+      dispatch(addToast({
+        type: 'info',
+        message: `Fiche du propriétaire ${name} supprimée avec succès.`,
+      }));
+    } catch (err) {
+      console.error('Error deleting owner:', err);
+      dispatch(addToast({
+        type: 'error',
+        message: `Erreur lors de la suppression du propriétaire ${name}.`,
+      }));
+    }
+  };
+
+  const handleConfirmDeletePayout = async () => {
+    if (!payoutToDelete) return;
+    const { id, payoutNumber } = payoutToDelete;
+    try {
+      dispatch(deletePayout(id));
+      await firestoreService.deletePayout(id);
+      dispatch(addToast({
+        type: 'info',
+        message: `Bordereau de reversement ${payoutNumber} supprimé avec succès.`,
+      }));
+    } catch (err) {
+      console.error('Error deleting payout:', err);
+      dispatch(addToast({
+        type: 'error',
+        message: `Erreur lors de la suppression du bordereau ${payoutNumber}.`,
+      }));
+    }
   };
 
   return (
@@ -540,13 +586,9 @@ export const AdminOwnerManager: React.FC = () => {
                 </button>
 
                 <button
-                  onClick={() => {
-                    if (window.confirm(`Supprimer la fiche de ${owner.name} ?`)) {
-                      dispatch(deleteOwner(owner.id));
-                      dispatch(addToast({ type: 'info', message: 'Propriétaire supprimé.' }));
-                    }
-                  }}
+                  onClick={() => setOwnerToDelete(owner)}
                   className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer"
+                  title="Supprimer la fiche propriétaire"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -607,12 +649,7 @@ export const AdminOwnerManager: React.FC = () => {
                           <span>Imprimer</span>
                         </button>
                         <button
-                          onClick={() => {
-                            if (window.confirm(`Supprimer le bordereau ${payout.payoutNumber} ?`)) {
-                              dispatch(deletePayout(payout.id));
-                              dispatch(addToast({ type: 'info', message: `Bordereau ${payout.payoutNumber} supprimé.` }));
-                            }
-                          }}
+                          onClick={() => setPayoutToDelete(payout)}
                           className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer"
                           title="Supprimer le bordereau"
                         >
@@ -627,6 +664,43 @@ export const AdminOwnerManager: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal for Owner Deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!ownerToDelete}
+        onClose={() => setOwnerToDelete(null)}
+        onConfirm={handleConfirmDeleteOwner}
+        title="Supprimer définitivement ce propriétaire bailleur ?"
+        itemType="Bailleur / Mandant"
+        itemName={ownerToDelete?.name}
+        itemDetails={ownerToDelete ? [
+          { label: 'Téléphone', value: ownerToDelete.phone },
+          { label: 'Banque / Mobile Money', value: `${ownerToDelete.bankName || 'N/A'} - ${ownerToDelete.accountNumber || ownerToDelete.mobileMoneyNumber || 'N/A'}` },
+          { label: 'Com. Gestion', value: `${ownerToDelete.managementCommissionRate}%` },
+          { label: 'Biens confiés', value: `${ownerToDelete.propertiesCount || 0} bien(s)` },
+        ] : []}
+        warningMessage="Attention : La suppression de cette fiche propriétaire rompt la liaison avec les biens en gestion et le journal des reversements."
+        confirmLabel="Supprimer le propriétaire"
+      />
+
+      {/* Confirmation Modal for Payout Deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!payoutToDelete}
+        onClose={() => setPayoutToDelete(null)}
+        onConfirm={handleConfirmDeletePayout}
+        title="Supprimer ce bordereau de reversement ?"
+        itemType="Bordereau de Reversement"
+        itemName={payoutToDelete ? `Bordereau N° ${payoutToDelete.payoutNumber}` : ''}
+        itemDetails={payoutToDelete ? [
+          { label: 'Bénéficiaire', value: payoutToDelete.ownerName },
+          { label: 'Période', value: payoutToDelete.periodMonth },
+          { label: 'Net reversé', value: formatFCFA(payoutToDelete.netPaidToOwner) },
+          { label: 'Commission agence', value: `${formatFCFA(payoutToDelete.agencyCommissionAmount)} (${payoutToDelete.agencyCommissionPercent}%)` },
+          { label: 'Mode paiement', value: payoutToDelete.paymentMethod },
+        ] : []}
+        warningMessage="Attention : Cette suppression annulera la trace de versement au propriétaire dans l'historique comptable."
+        confirmLabel="Supprimer le bordereau"
+      />
     </div>
   );
 };

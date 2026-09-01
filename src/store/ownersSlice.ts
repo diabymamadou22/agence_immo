@@ -114,9 +114,9 @@ export const INITIAL_PAYOUTS: OwnerPayout[] = [
 const loadSavedOwners = (): Owner[] => {
   try {
     const saved = localStorage.getItem(LOCAL_STORAGE_OWNERS_KEY);
-    if (saved) {
+    if (saved !== null) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) {
     console.error('Error loading owners:', e);
@@ -127,9 +127,9 @@ const loadSavedOwners = (): Owner[] => {
 const loadSavedPayouts = (): OwnerPayout[] => {
   try {
     const saved = localStorage.getItem(LOCAL_STORAGE_PAYOUTS_KEY);
-    if (saved) {
+    if (saved !== null) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) {
     console.error('Error loading payouts:', e);

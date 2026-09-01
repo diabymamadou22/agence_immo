@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../store';
 import { updateAgencyConfig, resetAgencyConfig } from '../../store/agencySlice';
 import { addToast } from '../../store/uiSlice';
 import { compressImageFile } from '../../utils/imageUtils';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { 
   Building2, 
   Sparkles, 
@@ -37,6 +38,7 @@ export const AdminAgencySettings: React.FC = () => {
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({ ...agencyConfig });
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [activeTab, setActiveTab] = useState<'general' | 'contact' | 'financial' | 'branding' | 'security'>('general');
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
@@ -162,15 +164,19 @@ export const AdminAgencySettings: React.FC = () => {
   };
 
   const handleReset = () => {
-    if (window.confirm('Voulez-vous réinitialiser tous les champs de configuration d\'agence aux valeurs par défaut ?')) {
-      dispatch(resetAgencyConfig());
-      dispatch(
-        addToast({
-          type: 'info',
-          message: 'Paramètres réinitialisés aux valeurs d\'origine.',
-        })
-      );
-    }
+    setShowResetConfirm(true);
+  };
+
+  const handleConfirmResetSettings = () => {
+    dispatch(resetAgencyConfig());
+    setFormData({ ...agencyConfig });
+    setShowResetConfirm(false);
+    dispatch(
+      addToast({
+        type: 'info',
+        message: 'Paramètres d’agence réinitialisés aux valeurs d’origine avec succès.',
+      })
+    );
   };
 
   return (
@@ -890,6 +896,14 @@ export const AdminAgencySettings: React.FC = () => {
         {/* Footer actions */}
         <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 flex items-center justify-end gap-3">
           <button
+            type="button"
+            onClick={handleReset}
+            className="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Réinitialiser aux valeurs d'origine</span>
+          </button>
+          <button
             type="submit"
             className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
           >
@@ -898,6 +912,22 @@ export const AdminAgencySettings: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {/* Confirmation Modal for Resetting Agency Settings */}
+      <ConfirmDeleteModal
+        isOpen={showResetConfirm}
+        title="Réinitialiser les paramètres d'agence"
+        message="Êtes-vous certain de vouloir réinitialiser toutes les coordonnées, barèmes de commissions et informations de marque aux valeurs d'origine ?"
+        itemName="Configuration Globale d'Agence"
+        itemType="Réinitialisation des Paramètres"
+        details={[
+          { label: 'Nom d’agence par défaut', value: 'Mali Immo Prestige' },
+          { label: 'Frais d’agence', value: 'Commission vente 5%, Commission location 1 mois' },
+          { label: 'Téléphone & Email', value: 'Réinitialiser aux coordonnées de contact initiales' },
+        ]}
+        onConfirm={handleConfirmResetSettings}
+        onCancel={() => setShowResetConfirm(false)}
+      />
     </div>
   );
 };

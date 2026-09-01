@@ -11,6 +11,9 @@ import {
   getStatusBadgeInfo, 
   getPropertyTypeLabel 
 } from '../../utils/formatters';
+import { exportPropertiesToCSV } from '../../utils/exportUtils';
+import { PropertyExportModal } from './PropertyExportModal';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { 
   Building2, 
   Plus, 
@@ -21,17 +24,22 @@ import {
   Filter, 
   CheckCircle2, 
   Maximize2,
-  MapPin
+  MapPin,
+  FileSpreadsheet,
+  Printer
 } from 'lucide-react';
 
 export const AdminPropertyManager: React.FC = () => {
   const dispatch = useAppDispatch();
   const properties = useAppSelector((state) => state.properties.items);
+  const agencyConfig = useAppSelector((state) => state.agency.config);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterDeal, setFilterDeal] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
 
   const filteredProperties = properties.filter((p) => {
     if (filterType !== 'all' && p.propertyType !== filterType) return false;
@@ -51,15 +59,32 @@ export const AdminPropertyManager: React.FC = () => {
     return true;
   });
 
-  const handleDelete = async (id: string, ref: string) => {
-    if (window.confirm(`Confirmez-vous la suppression du bien ${ref} ?`)) {
+  const handleConfirmDelete = async () => {
+    if (!propertyToDelete) return;
+    const { id, reference, title } = propertyToDelete;
+    try {
       dispatch(deleteProperty(id));
       await firestoreService.deleteProperty(id);
       dispatch(addToast({
         type: 'info',
-        message: `Bien ${ref} supprimé avec succès.`,
+        message: `Bien "${reference} - ${title}" supprimé avec succès du catalogue.`,
+      }));
+    } catch (err) {
+      console.error('Error deleting property:', err);
+      dispatch(addToast({
+        type: 'error',
+        message: `Erreur lors de la suppression de ${reference}.`,
       }));
     }
+  };
+
+  const handleExportCSV = () => {
+    const filename = `catalogue_biens_${agencyConfig.name.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}`;
+    exportPropertiesToCSV(filteredProperties, filename);
+    dispatch(addToast({
+      type: 'success',
+      message: `${filteredProperties.length} biens exportés au format CSV (Excel) avec succès.`,
+    }));
   };
 
   const handleStatusChange = (id: string, status: PropertyStatus) => {
@@ -73,7 +98,7 @@ export const AdminPropertyManager: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <Building2 className="w-5 h-5 text-amber-500" />
@@ -89,13 +114,36 @@ export const AdminPropertyManager: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => dispatch(openPropertyForm({ type: 'general' }))}
-          className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4 text-amber-400" />
-          <span>Ajouter une Propriété</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* CSV Export */}
+          <button
+            onClick={handleExportCSV}
+            className="px-3.5 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Télécharger le fichier CSV pour Excel / Comptabilité"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>Export CSV</span>
+          </button>
+
+          {/* Grand Livre PDF */}
+          <button
+            onClick={() => setIsExportModalOpen(true)}
+            className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Générer l'état des actifs et imprimer en PDF"
+          >
+            <Printer className="w-4 h-4 text-slate-600" />
+            <span>Grand Livre PDF</span>
+          </button>
+
+          {/* Add Property */}
+          <button
+            onClick={() => dispatch(openPropertyForm({ type: 'general' }))}
+            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4 text-amber-400" />
+            <span>Ajouter une Propriété</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -265,9 +313,9 @@ export const AdminPropertyManager: React.FC = () => {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(prop.id, prop.reference)}
+                            onClick={() => setPropertyToDelete(prop)}
                             className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                            title="Supprimer"
+                            title="Supprimer définitivement"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -281,6 +329,30 @@ export const AdminPropertyManager: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Confirmation Modal for Property Deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!propertyToDelete}
+        onClose={() => setPropertyToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Supprimer définitivement ce bien ?"
+        itemType={propertyToDelete?.propertyType === 'parcelle' ? 'Parcelle / Foncier' : 'Bien Bâti / Immobilier'}
+        itemName={propertyToDelete ? `${propertyToDelete.reference} — ${propertyToDelete.title}` : ''}
+        itemDetails={propertyToDelete ? [
+          { label: 'Localisation', value: `${propertyToDelete.neighborhood}, ${propertyToDelete.city}` },
+          { label: 'Opération & Prix', value: `${propertyToDelete.dealType === 'vente' ? 'Vente' : 'Location'} : ${formatFCFA(propertyToDelete.price)}` },
+          { label: 'Surface', value: `${propertyToDelete.surface} m²` },
+          { label: 'Titre de propriété', value: getDocumentBadgeInfo(propertyToDelete.documentType).label },
+        ] : []}
+        warningMessage="Cette action est irréversible. Le bien sera définitivement retiré du catalogue en ligne, des fiches de visite et de la base de données de l'agence."
+        confirmLabel="Supprimer définitivement"
+      />
+
+      {/* Grand Livre d'Inventaire & Comptabilité PDF Export Modal */}
+      <PropertyExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+      />
     </div>
   );
 };

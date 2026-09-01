@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { closePayoutPrintModal } from '../../store/uiSlice';
 import { formatFCFA, formatDate } from '../../utils/formatters';
+import { printElement } from '../../utils/printUtils';
 import { 
   X, 
   Printer, 
@@ -17,10 +18,16 @@ export const PayoutPrintModal: React.FC = () => {
   const payout = useAppSelector((state) => state.ui.selectedPayoutForPrint);
   const agencyConfig = useAppSelector((state) => state.agency.config);
 
+  const printRef = useRef<HTMLDivElement>(null);
+
   if (!isOpen || !payout) return null;
 
   const handlePrint = () => {
-    window.print();
+    if (printRef.current) {
+      printElement(printRef.current, `Bordereau_Reversement_${payout.payoutNumber}`);
+    } else {
+      window.print();
+    }
   };
 
   return (
@@ -53,7 +60,7 @@ export const PayoutPrintModal: React.FC = () => {
         </div>
 
         {/* Printable Statement */}
-        <div className="p-8 sm:p-12 overflow-y-auto space-y-8 text-slate-900 bg-white font-sans text-xs sm:text-sm">
+        <div ref={printRef} className="p-8 sm:p-12 overflow-y-auto space-y-8 text-slate-900 bg-white font-sans text-xs sm:text-sm">
           {/* Header */}
           <div className="border-b-2 border-slate-900 pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="space-y-1">

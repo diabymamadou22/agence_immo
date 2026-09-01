@@ -5,6 +5,7 @@ import { addToast } from '../../store/uiSlice';
 import { firestoreService } from '../../services/firestoreService';
 import { Lead, LeadStatus } from '../../types';
 import { formatDate } from '../../utils/formatters';
+import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { 
   MessageSquare, 
   Phone, 
@@ -27,6 +28,7 @@ export const AdminLeadManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
+  const [leadToDelete, setLeadToDelete] = useState<Lead | null>(null);
 
   const filteredLeads = leads.filter((lead) => {
     if (filterStatus !== 'all' && lead.status !== filterStatus) return false;
@@ -54,13 +56,21 @@ export const AdminLeadManager: React.FC = () => {
     }));
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Voulez-vous supprimer ce prospect ?')) {
+  const handleConfirmDelete = async () => {
+    if (!leadToDelete) return;
+    const { id, clientName } = leadToDelete;
+    try {
       dispatch(deleteLead(id));
       await firestoreService.deleteLead(id);
       dispatch(addToast({
         type: 'info',
-        message: 'Prospect supprimé avec succès.',
+        message: `Prospect ${clientName} supprimé avec succès.`,
+      }));
+    } catch (err) {
+      console.error('Error deleting lead:', err);
+      dispatch(addToast({
+        type: 'error',
+        message: `Erreur lors de la suppression du prospect ${clientName}.`,
       }));
     }
   };
@@ -237,9 +247,9 @@ export const AdminLeadManager: React.FC = () => {
                   </a>
 
                   <button
-                    onClick={() => handleDelete(lead.id)}
+                    onClick={() => setLeadToDelete(lead)}
                     className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                    title="Supprimer le prospect"
+                    title="Supprimer définitivement le prospect"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -249,6 +259,24 @@ export const AdminLeadManager: React.FC = () => {
           })
         )}
       </div>
+
+      {/* Confirmation Modal for Lead Deletion */}
+      <ConfirmDeleteModal
+        isOpen={!!leadToDelete}
+        onClose={() => setLeadToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Supprimer la fiche de ce prospect ?"
+        itemType="Prospect / Visiteur"
+        itemName={leadToDelete?.clientName}
+        itemDetails={leadToDelete ? [
+          { label: 'Téléphone', value: leadToDelete.clientPhone },
+          { label: 'Bien ciblé', value: leadToDelete.propertyRef ? `${leadToDelete.propertyRef} - ${leadToDelete.propertyTitle || ''}` : 'Demande générale' },
+          { label: 'Type de demande', value: leadToDelete.leadType === 'achat' ? 'Achat foncier / immobilier' : 'Location' },
+          { label: 'Date création', value: formatDate(leadToDelete.createdAt) },
+        ] : []}
+        warningMessage="Attention : La suppression de ce prospect effacera l'historique des prises de contact, notes et rendez-vous de visite programmés."
+        confirmLabel="Supprimer le prospect"
+      />
     </div>
   );
 };

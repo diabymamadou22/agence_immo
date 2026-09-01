@@ -2,6 +2,7 @@ import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { closeReceiptModal } from '../../store/uiSlice';
 import { formatFCFA, formatDate, AGENCY_INFO } from '../../utils/formatters';
+import { printElement } from '../../utils/printUtils';
 import { X, Printer, Download, CheckCircle2, ShieldCheck, Building2, Landmark } from 'lucide-react';
 
 export const RentReceiptModal: React.FC = () => {
@@ -12,7 +13,7 @@ export const RentReceiptModal: React.FC = () => {
   if (!isOpen || !activeReceipt) return null;
 
   const handlePrint = () => {
-    window.print();
+    printElement('printable-rent-receipt', `Quittance_Loyer_${activeReceipt.receiptNumber}`);
   };
 
   // Helper to convert small amounts to French words

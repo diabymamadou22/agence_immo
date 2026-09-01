@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { closeContractPrintModal } from '../../store/uiSlice';
 import { formatFCFA, formatDate } from '../../utils/formatters';
+import { printElement } from '../../utils/printUtils';
 import { 
   X, 
   Printer, 
@@ -26,7 +27,11 @@ export const ContractPrintModal: React.FC = () => {
   if (!isOpen || !contract) return null;
 
   const handlePrint = () => {
-    window.print();
+    if (printRef.current) {
+      printElement(printRef.current, `Acte_${contract.reference}_${contract.contractType}`);
+    } else {
+      window.print();
+    }
   };
 
   return (
