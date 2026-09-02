@@ -297,10 +297,14 @@ export const PropertyFormModal: React.FC = () => {
                 <input
                   type="number"
                   required
-                  min="1000"
-                  step="50000"
-                  value={price}
-                  onChange={(e) => setPrice(Number(e.target.value))}
+                  min="0"
+                  step="any"
+                  value={price === 0 ? '' : price}
+                  placeholder="Ex : 25000000"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPrice(val === '' ? 0 : parseFloat(val) || 0);
+                  }}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl font-extrabold text-amber-800 focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
                 <span className="text-[11px] text-slate-400 font-mono">
@@ -313,9 +317,14 @@ export const PropertyFormModal: React.FC = () => {
                 <input
                   type="number"
                   required
-                  min="1"
-                  value={surface}
-                  onChange={(e) => setSurface(Number(e.target.value))}
+                  min="0"
+                  step="any"
+                  value={surface === 0 ? '' : surface}
+                  placeholder="Ex : 300"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSurface(val === '' ? 0 : parseFloat(val) || 0);
+                  }}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
               </div>

@@ -8,43 +8,60 @@ export interface DeleteItemDetail {
 
 export interface ConfirmDeleteModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
+  onCancel?: () => void;
   onConfirm: () => Promise<void> | void;
   title?: string;
   itemType?: string;
   itemName?: string;
   itemDetails?: DeleteItemDetail[];
+  details?: DeleteItemDetail[];
   warningMessage?: string;
+  message?: string;
   confirmLabel?: string;
   cancelLabel?: string;
   isDanger?: boolean;
+  isLoading?: boolean;
 }
 
 export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
   isOpen,
   onClose,
+  onCancel,
   onConfirm,
   title = 'Confirmer la suppression définitive',
   itemType = 'Enregistrement',
   itemName,
   itemDetails,
-  warningMessage = 'Cette action est irréversible. L\'élément sera définitivement supprimé de la base de données et des registres de l\'agence.',
+  details,
+  warningMessage,
+  message,
   confirmLabel = 'Supprimer définitivement',
   cancelLabel = 'Annuler',
+  isLoading = false,
 }) => {
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [internalProcessing, setInternalProcessing] = useState(false);
 
   if (!isOpen) return null;
 
+  const handleClose = () => {
+    if (onClose) onClose();
+    else if (onCancel) onCancel();
+  };
+
+  const effectiveDetails = itemDetails || details;
+  const effectiveWarning = warningMessage || message || 'Cette action est irréversible. L\'élément sera définitivement supprimé de la base de données et des registres de l\'agence.';
+  const isProcessing = internalProcessing || isLoading;
+
   const handleConfirm = async () => {
     try {
-      setIsProcessing(true);
+      setInternalProcessing(true);
       await onConfirm();
-      onClose();
+      handleClose();
     } catch (error) {
       console.error('Error during deletion:', error);
     } finally {
-      setIsProcessing(false);
+      setInternalProcessing(false);
     }
   };
 
@@ -72,7 +89,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
           </div>
 
           <button
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isProcessing}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-rose-100/50 transition-colors cursor-pointer disabled:opacity-50"
             aria-label="Fermer"
@@ -100,9 +117,9 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
               </p>
             )}
 
-            {itemDetails && itemDetails.length > 0 && (
+            {effectiveDetails && effectiveDetails.length > 0 && (
               <div className="pt-2 border-t border-slate-200/80 grid grid-cols-2 gap-2 text-xs">
-                {itemDetails.map((detail, index) => (
+                {effectiveDetails.map((detail, index) => (
                   <div key={index} className="space-y-0.5">
                     <span className="text-[10px] text-slate-500 font-semibold block">{detail.label}</span>
                     <span className="font-bold text-slate-900 font-mono text-[11px] break-all">{detail.value}</span>
@@ -116,7 +133,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
           <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-amber-900 text-xs leading-relaxed">
             <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <p className="font-medium">
-              {warningMessage}
+              {effectiveWarning}
             </p>
           </div>
 
@@ -129,7 +146,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
         <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-100 flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={isProcessing}
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
           >

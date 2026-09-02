@@ -516,36 +516,82 @@ export const AdminAgencySettings: React.FC = () => {
         {/* Tab 2: Contacts & WhatsApp */}
         {activeTab === 'contact' && (
           <div className="p-6 sm:p-8 space-y-6">
+            {/* Information Banner */}
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold shrink-0 mt-0.5">
+                <Phone className="w-4 h-4" />
+              </div>
+              <div className="text-xs text-slate-700 space-y-1">
+                <h5 className="font-extrabold text-slate-900 font-heading">
+                  Numéros de Contact Officiels de l'Agence
+                </h5>
+                <p>
+                  Chaque agence immobilière dispose de ses propres numéros de téléphone et WhatsApp. Tous les boutons d'appel, d'envoi WhatsApp sur les fiches de parcelles, la carte interactive, les formulaires de visite et le bas de page utiliseront immédiatement ces coordonnées.
+                </p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">
-                  Numéro WhatsApp Principal (Format International sans '+') *
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2 flex items-center justify-between">
+                  <span>Numéro WhatsApp de l'Agence *</span>
+                  <span className="text-[10px] text-emerald-600 font-bold lowercase">Format international sans '+'</span>
                 </label>
-                <input
-                  type="text"
-                  name="whatsappNumber"
-                  value={formData.whatsappNumber}
-                  onChange={handleChange}
-                  placeholder="Ex: 22376001122"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono text-slate-900 text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="whatsappNumber"
+                    value={formData.whatsappNumber}
+                    onChange={handleChange}
+                    placeholder="Ex: 22376001122"
+                    className="w-full pl-4 pr-12 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono text-slate-900 text-sm font-bold"
+                  />
+                  {formData.whatsappNumber && (
+                    <a
+                      href={`https://wa.me/${formData.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Test de contact WhatsApp pour l'agence ${formData.name}`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
+                      title="Tester l'ouverture de WhatsApp"
+                    >
+                      <span>Tester</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  )}
+                </div>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Ce numéro recevra automatiquement les clics "Discuter sur WhatsApp" de tous les biens.
+                  Exemple : <strong className="font-mono text-slate-700">22376001122</strong>. Ce numéro recevra automatiquement les messages WhatsApp pré-remplis pour chaque parcelle ou bien immobilier.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">
-                  Numéros de Téléphone d'Appel (Affichage) *
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2 flex items-center justify-between">
+                  <span>Numéros de Téléphone d'Appel (Affichage & Appel) *</span>
+                  <span className="text-[10px] text-amber-600 font-bold lowercase">Visible sur tout le site</span>
                 </label>
-                <input
-                  type="text"
-                  name="phoneDisplay"
-                  value={formData.phoneDisplay}
-                  onChange={handleChange}
-                  placeholder="Ex: +223 76 00 11 22 / 66 99 88 77"
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900 text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="phoneDisplay"
+                    value={formData.phoneDisplay}
+                    onChange={handleChange}
+                    placeholder="Ex: +223 76 00 11 22"
+                    className="w-full pl-4 pr-12 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900 text-sm font-bold"
+                  />
+                  {formData.phoneDisplay && (
+                    <a
+                      href={`tel:${formData.phoneDisplay.replace(/[^0-9+]/g, '')}`}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
+                      title="Tester le lien d'appel"
+                    >
+                      <span>Appeler</span>
+                      <Phone className="w-2.5 h-2.5" />
+                    </a>
+                  )}
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Exemple : <strong className="font-mono text-slate-700">+223 76 00 11 22</strong>. Utilisé dans le Header, le Footer et les boutons "Appeler l'Agence".
+                </p>
               </div>
 
               <div>

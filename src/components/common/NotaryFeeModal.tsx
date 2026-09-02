@@ -64,10 +64,11 @@ export const NotaryFeeModal: React.FC = () => {
               <input
                 id="input-notary-price"
                 type="number"
-                min="500000"
-                step="500000"
-                value={price}
-                onChange={(e) => setPrice(Number(e.target.value) || 0)}
+                min="0"
+                step="any"
+                value={price === 0 ? '' : price}
+                placeholder="Montant en FCFA"
+                onChange={(e) => setPrice(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                 className="w-full text-lg font-bold text-slate-900 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 pl-12 focus:ring-2 focus:ring-amber-500 focus:outline-none focus:border-amber-500"
               />
               <span className="absolute left-4 top-3.5 text-slate-400 font-bold">💰</span>

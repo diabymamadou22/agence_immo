@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { closeOwnerDepositModal, addToast } from '../../store/uiSlice';
 import { addLead } from '../../store/leadsSlice';
-import { formatFCFA } from '../../utils/formatters';
+import { formatFCFA, cleanWhatsAppNumber } from '../../utils/formatters';
 import { ImageUploadGallery } from '../common/ImageUploadGallery';
 import { 
   X, 
@@ -63,8 +63,9 @@ export const OwnerDepositModal: React.FC = () => {
     );
 
     // Open WhatsApp
+    const targetWhatsApp = cleanWhatsAppNumber(agencyConfig.whatsappNumber);
     const message = `Bonjour ${agencyConfig.name}, je souhaite vous confier mon bien :\n- Type : ${formData.propertyType}\n- Opération : ${formData.dealType === 'vente' ? 'Vente' : 'Gestion Locative'}\n- Localisation : ${formData.neighborhood} (${formData.city})\n- Superficie : ${formData.surface} m²\n- Document : ${formData.documentType}\n- Prix souhaité : ${formatFCFA(formData.desiredPrice)}\n- Photos : ${photos.length} photo(s) prête(s)\n- Nom : ${formData.ownerName}\n- Tel : ${formData.ownerPhone}`;
-    window.open(`https://wa.me/${agencyConfig.whatsappNumber}?text=${encodeURIComponent(message)}`, '_blank');
+    window.open(`https://wa.me/${targetWhatsApp}?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (

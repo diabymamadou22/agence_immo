@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useAppDispatch } from '../../store';
+import { useAppDispatch, useAppSelector } from '../../store';
 import { setSelectedPropertyId } from '../../store/propertiesSlice';
 import { Property } from '../../types';
 import { formatFCFA, formatSurface, getDocumentBadgeInfo, generateWhatsAppLink } from '../../utils/formatters';
@@ -11,6 +11,7 @@ interface InteractiveMapSimulationProps {
 
 export const InteractiveMapSimulation: React.FC<InteractiveMapSimulationProps> = ({ properties }) => {
   const dispatch = useAppDispatch();
+  const agencyConfig = useAppSelector((state) => state.agency.config);
   const [activePropertyId, setActivePropertyId] = useState<string | null>(properties[0]?.id || null);
 
   const activeProperty = properties.find((p) => p.id === activePropertyId) || properties[0];
@@ -174,7 +175,15 @@ export const InteractiveMapSimulation: React.FC<InteractiveMapSimulationProps> =
               <span>Voir la Fiche Complète</span>
             </button>
             <a
-              href={generateWhatsAppLink(activeProperty.title, activeProperty.reference, activeProperty.price, activeProperty.dealType)}
+              href={generateWhatsAppLink(
+                activeProperty.title, 
+                activeProperty.reference, 
+                activeProperty.price, 
+                activeProperty.dealType,
+                undefined,
+                agencyConfig.whatsappNumber,
+                agencyConfig.name
+              )}
               target="_blank"
               rel="noreferrer"
               className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer"

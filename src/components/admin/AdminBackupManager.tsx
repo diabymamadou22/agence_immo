@@ -1,9 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { addToast } from '../../store/uiSlice';
+import { addToast, openCloudSyncModal } from '../../store/uiSlice';
 import { resetToMockData } from '../../store/propertiesSlice';
 import { resetAgencyConfig } from '../../store/agencySlice';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
+import { firestoreService } from '../../services/firestoreService';
 import { 
   Database, 
   Download, 
@@ -14,15 +15,66 @@ import {
   FileJson, 
   Sparkles, 
   CheckCircle2, 
-  AlertTriangle 
+  AlertTriangle,
+  Cloud,
+  CloudLightning,
+  CloudOff,
+  UploadCloud,
+  Smartphone,
+  Laptop,
+  Settings
 } from 'lucide-react';
 
 export const AdminBackupManager: React.FC = () => {
   const dispatch = useAppDispatch();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [isPushingCloud, setIsPushingCloud] = useState(false);
 
   const state = useAppSelector((state) => state);
+  const isCloudLive = firestoreService.isLive();
+
+  const handlePushAllDataToCloud = async () => {
+    setIsPushingCloud(true);
+    try {
+      const res = await firestoreService.pushAllLocalDataToCloud({
+        properties: state.properties.items,
+        tenants: state.tenants.items,
+        receipts: state.tenants.receipts,
+        owners: state.owners.items,
+        payouts: state.owners.payouts,
+        contracts: state.contracts.items,
+        expenses: state.financials.expenses,
+        leads: state.leads.items,
+        agencyConfig: state.agency.config,
+      });
+
+      if (res.success) {
+        dispatch(
+          addToast({
+            type: 'success',
+            message: `Synchronisation réussie ! ${res.count} documents enregistrés sur le Cloud Firestore.`,
+          })
+        );
+      } else {
+        dispatch(
+          addToast({
+            type: 'error',
+            message: res.message,
+          })
+        );
+      }
+    } catch (err: any) {
+      dispatch(
+        addToast({
+          type: 'error',
+          message: err?.message || 'Erreur lors de la synchronisation cloud.',
+        })
+      );
+    } finally {
+      setIsPushingCloud(false);
+    }
+  };
 
   // Export Full Database as JSON
   const handleExportJSON = () => {
@@ -145,6 +197,79 @@ export const AdminBackupManager: React.FC = () => {
           <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">
             Exportez l'intégralité des biens, baux, propriétaires, quittances et paramètres d'agence en un clic pour créer des sauvegardes régulières ou migrer les données chez un nouveau client.
           </p>
+        </div>
+      </div>
+
+      {/* CLOUD MULTI-DEVICE SYNC CARD */}
+      <div className={`rounded-3xl p-6 sm:p-7 border shadow-lg transition-all ${
+        isCloudLive 
+          ? 'bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border-emerald-500/40' 
+          : 'bg-gradient-to-br from-blue-950/50 via-slate-900 to-slate-900 border-blue-500/40'
+      }`}>
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5">
+              <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold shadow-md ${
+                isCloudLive ? 'bg-emerald-500 text-slate-950' : 'bg-blue-600 text-white'
+              }`}>
+                {isCloudLive ? <CloudLightning className="w-5 h-5" /> : <Cloud className="w-5 h-5" />}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-extrabold text-white font-heading">
+                    Synchronisation Cloud Multi-Appareils (Firestore)
+                  </h3>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                    isCloudLive 
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' 
+                      : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                  }`}>
+                    {isCloudLive ? 'Connecté & Temps Réel' : 'En Attente de Configuration'}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300">
+                  Permet la synchronisation automatique des parcelles, loyers et contrats entre le PC et le téléphone sur Vercel.
+                </p>
+              </div>
+            </div>
+
+            {/* Sync status pills */}
+            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-300 pt-1">
+              <div className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/60">
+                <Laptop className="w-4 h-4 text-blue-400" />
+                <span>PC & Tablettes</span>
+              </div>
+              <span className="text-slate-500 font-bold">⇄</span>
+              <div className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/60">
+                <Smartphone className="w-4 h-4 text-emerald-400" />
+                <span>Téléphones Mobiles</span>
+              </div>
+              <span className="text-slate-500 font-bold">⇄</span>
+              <div className="flex items-center gap-1.5 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700/60">
+                <Cloud className="w-4 h-4 text-amber-400" />
+                <span>Firebase Cloud</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            <button
+              onClick={() => dispatch(openCloudSyncModal())}
+              className="px-4 py-3 bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs rounded-xl border border-slate-700 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+            >
+              <Settings className="w-4 h-4 text-blue-400" />
+              <span>Paramètres Cloud & Guide</span>
+            </button>
+
+            <button
+              onClick={handlePushAllDataToCloud}
+              disabled={isPushingCloud}
+              className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white font-black text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            >
+              <UploadCloud className={`w-4 h-4 ${isPushingCloud ? 'animate-bounce' : ''}`} />
+              <span>{isPushingCloud ? 'Transfert en cours...' : 'Pousser vers le Cloud'}</span>
+            </button>
+          </div>
         </div>
       </div>
 

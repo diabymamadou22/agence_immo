@@ -2,7 +2,7 @@ import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { setFavoritesDrawerOpen } from '../../store/uiSlice';
 import { setSelectedPropertyId, toggleFavorite } from '../../store/propertiesSlice';
-import { formatFCFA, getDocumentBadgeInfo, generateWhatsAppLink } from '../../utils/formatters';
+import { formatFCFA, getDocumentBadgeInfo, generateWhatsAppLink, cleanWhatsAppNumber } from '../../utils/formatters';
 import { X, Heart, Trash2, ExternalLink, MessageCircle, Building2 } from 'lucide-react';
 
 export const FavoritesDrawer: React.FC = () => {
@@ -10,10 +10,12 @@ export const FavoritesDrawer: React.FC = () => {
   const isOpen = useAppSelector((state) => state.ui.isFavoritesDrawerOpen);
   const favoriteIds = useAppSelector((state) => state.properties.favorites);
   const allProperties = useAppSelector((state) => state.properties.items);
+  const agencyConfig = useAppSelector((state) => state.agency.config);
 
   if (!isOpen) return null;
 
   const favoriteProperties = allProperties.filter((p) => favoriteIds.includes(p.id));
+  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber);
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -60,7 +62,15 @@ export const FavoritesDrawer: React.FC = () => {
             ) : (
               favoriteProperties.map((prop) => {
                 const docBadge = getDocumentBadgeInfo(prop.documentType);
-                const waLink = generateWhatsAppLink(prop.title, prop.reference, prop.price, prop.dealType);
+                const waLink = generateWhatsAppLink(
+                  prop.title, 
+                  prop.reference, 
+                  prop.price, 
+                  prop.dealType,
+                  undefined,
+                  agencyWhatsAppNumber,
+                  agencyConfig.name
+                );
 
                 return (
                   <div
@@ -142,8 +152,8 @@ export const FavoritesDrawer: React.FC = () => {
           {favoriteProperties.length > 0 && (
             <div className="p-4 bg-slate-50 border-t border-slate-200">
               <a
-                href={`https://wa.me/22376001122?text=${encodeURIComponent(
-                  `Bonjour Mali Immo Prestige, je souhaiterais des informations sur ma sélection de ${favoriteProperties.length} biens :\n` +
+                href={`https://wa.me/${agencyWhatsAppNumber}?text=${encodeURIComponent(
+                  `Bonjour ${agencyConfig.name}, je souhaiterais des informations sur ma sélection de ${favoriteProperties.length} biens :\n` +
                   favoriteProperties.map((p) => `- ${p.title} (${p.reference}) à ${formatFCFA(p.price)}`).join('\n')
                 )}`}
                 target="_blank"

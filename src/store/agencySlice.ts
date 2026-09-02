@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AgencyConfig } from '../types';
+import { firestoreService } from '../services/firestoreService';
 
 const LOCAL_STORAGE_AGENCY_KEY = 'mali_immo_agency_config';
 
@@ -13,7 +14,7 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
       slogan: 'L\'Excellence Foncière & Immobilière au Mali',
       tagline: 'Vente de Parcelles avec Titre Foncier, Gestion Locative & Villas de Standing',
       phone: '+223 76 00 11 22',
-      phoneDisplay: '+223 76 00 11 22 / 66 99 88 77',
+      phoneDisplay: '+223 76 00 11 22',
       whatsappNumber: '22376001122',
       email: 'contact@mali-immoprestige.ml',
       address: 'Hamdallaye ACI 2000, Rue 318, Face Immeuble BNDA, Bamako, Mali',
@@ -45,9 +46,9 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
       name: 'Mandé Habitat & Terroirs',
       slogan: 'Votre Partenaire Foncier de Confiance au Sahel',
       tagline: 'Lotissements Viabilisés, Villas de Luxe & Conseil Juridique Foncier',
-      phone: '+223 70 88 44 22',
-      phoneDisplay: '+223 70 88 44 22 / 75 11 33 55',
-      whatsappNumber: '22370884422',
+      phone: '+223 76 00 11 22',
+      phoneDisplay: '+223 76 00 11 22',
+      whatsappNumber: '22376001122',
       email: 'contact@mande-habitat.ml',
       address: 'Zone du Golf, Près de l\'Hôtel Mandé, Baco-Djicoroni, Bamako, Mali',
       city: 'Bamako',
@@ -78,9 +79,9 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
       name: 'Koulikoro Foncier S.A.R.L.',
       slogan: 'Le Spécialiste des Terrains Agricoles et Parcelles TF',
       tagline: 'Grands Domaines, Parcelles Loties et Concessions Rurales',
-      phone: '+223 79 12 34 56',
-      phoneDisplay: '+223 79 12 34 56',
-      whatsappNumber: '22379123456',
+      phone: '+223 76 00 11 22',
+      phoneDisplay: '+223 76 00 11 22',
+      whatsappNumber: '22376001122',
       email: 'infos@koulikoro-foncier.ml',
       address: 'Avenue du 22 Septembre, Face Préfecture de Kati, Mali',
       city: 'Kati / Koulikoro',
@@ -92,7 +93,7 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
       bankName: 'BNDA (Banque Nationale de Développement Agricole)',
       bankRib: 'ML042 01005 00019283746 88',
       bankAccountName: 'KOULIKORO FONCIER SARL',
-      orangeMoneyMerchant: 'OM-79123456',
+      orangeMoneyMerchant: 'OM-76001122',
       moovMoneyMerchant: 'MOOV-66002244',
       waveMerchant: 'WAVE-KTI-001',
       defaultRentalCommissionPercent: 10,
@@ -111,9 +112,9 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
       name: 'Sahel Immobilier International',
       slogan: 'L\'Immobilier Haut de Gamme & Gestion de Patrimoine',
       tagline: 'Bureaux ACI 2000, Résidences Diplomatiques & Investissement Diaspora',
-      phone: '+223 66 55 44 33',
-      phoneDisplay: '+223 66 55 44 33 / 70 00 99 88',
-      whatsappNumber: '22366554433',
+      phone: '+223 76 00 11 22',
+      phoneDisplay: '+223 76 00 11 22',
+      whatsappNumber: '22376001122',
       email: 'direction@sahel-immo.ml',
       address: 'Hippodrome Rue 240, Porte 88, Bamako, Mali',
       city: 'Bamako',
@@ -160,6 +161,10 @@ const loadSavedAgencyConfig = (): AgencyConfig => {
 const saveAgencyConfig = (config: AgencyConfig) => {
   try {
     localStorage.setItem(LOCAL_STORAGE_AGENCY_KEY, JSON.stringify(config));
+    // Asynchronously update Firestore if connected
+    firestoreService.saveAgencyConfig(config).catch((err) => {
+      console.warn('Firestore agencyConfig save notice:', err);
+    });
   } catch (e) {
     console.error('Error saving agency config:', e);
   }
@@ -187,6 +192,10 @@ export const agencySlice = createSlice({
       };
       saveAgencyConfig(state.config);
     },
+    setAgencyConfig: (state, action: PayloadAction<AgencyConfig>) => {
+      state.config = action.payload;
+      saveAgencyConfig(state.config);
+    },
     setAgencyPreset: (state, action: PayloadAction<string>) => {
       const preset = AGENCY_PRESETS.find((p) => p.id === action.payload);
       if (preset) {
@@ -203,5 +212,5 @@ export const agencySlice = createSlice({
   },
 });
 
-export const { updateAgencyConfig, setAgencyPreset, resetAgencyConfig } = agencySlice.actions;
+export const { updateAgencyConfig, setAgencyConfig, setAgencyPreset, resetAgencyConfig } = agencySlice.actions;
 export default agencySlice.reducer;

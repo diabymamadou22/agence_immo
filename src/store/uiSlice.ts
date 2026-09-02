@@ -52,6 +52,9 @@ interface UiState {
   isAdminAuthenticated: boolean;
   isAdminAuthModalOpen: boolean;
 
+  // Cloud Sync Modal
+  isCloudSyncModalOpen: boolean;
+
   toasts: ToastNotification[];
 }
 
@@ -91,6 +94,7 @@ const initialState: UiState = {
 
   isAdminAuthenticated: getInitialAdminAuth(),
   isAdminAuthModalOpen: false,
+  isCloudSyncModalOpen: false,
 
   toasts: [],
 };
@@ -238,6 +242,12 @@ export const uiSlice = createSlice({
     closeAdminAuthModal: (state) => {
       state.isAdminAuthModalOpen = false;
     },
+    openCloudSyncModal: (state) => {
+      state.isCloudSyncModalOpen = true;
+    },
+    closeCloudSyncModal: (state) => {
+      state.isCloudSyncModalOpen = false;
+    },
     logoutAdmin: (state) => {
       state.isAdminAuthenticated = false;
       state.viewMode = 'client';
@@ -293,6 +303,8 @@ export const {
   setAdminAuthenticated,
   openAdminAuthModal,
   closeAdminAuthModal,
+  openCloudSyncModal,
+  closeCloudSyncModal,
   logoutAdmin,
   addToast,
   removeToast,

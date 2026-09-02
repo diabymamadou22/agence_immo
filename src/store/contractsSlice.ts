@@ -132,6 +132,10 @@ export const contractsSlice = createSlice({
     setSelectedContractId: (state, action: PayloadAction<string | null>) => {
       state.selectedContractId = action.payload;
     },
+    setContracts: (state, action: PayloadAction<LegalContract[]>) => {
+      state.items = action.payload;
+      saveContracts(state.items);
+    },
     resetContractsData: (state) => {
       state.items = INITIAL_CONTRACTS;
       saveContracts(INITIAL_CONTRACTS);
@@ -144,6 +148,7 @@ export const {
   updateContract,
   deleteContract,
   setSelectedContractId,
+  setContracts,
   resetContractsData,
 } = contractsSlice.actions;
 

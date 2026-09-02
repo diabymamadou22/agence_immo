@@ -3,14 +3,19 @@ import { useAppDispatch, useAppSelector } from '../../store';
 import { closeVisitModal, addToast } from '../../store/uiSlice';
 import { addLead } from '../../store/leadsSlice';
 import { firestoreService } from '../../services/firestoreService';
-import { formatFCFA, getDocumentBadgeInfo } from '../../utils/formatters';
-import { X, Calendar, Clock, Phone, User, Mail, MessageSquare, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { formatFCFA, getDocumentBadgeInfo, cleanPhoneNumberForTel, cleanWhatsAppNumber } from '../../utils/formatters';
+import { X, Calendar, Clock, Phone, User, Mail, MessageSquare, MessageCircle, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export const VisitBookingModal: React.FC = () => {
   const dispatch = useAppDispatch();
   const isOpen = useAppSelector((state) => state.ui.isVisitModalOpen);
   const propertyId = useAppSelector((state) => state.ui.visitPropertyId);
   const properties = useAppSelector((state) => state.properties.items);
+  const agencyConfig = useAppSelector((state) => state.agency.config);
+
+  const agencyPhoneDisplay = agencyConfig.phoneDisplay || agencyConfig.phone || '+223 76 00 11 22';
+  const agencyCallTel = cleanPhoneNumberForTel(agencyConfig.phone || agencyConfig.phoneDisplay);
+  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber);
 
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('+223 ');
@@ -234,6 +239,31 @@ export const VisitBookingModal: React.FC = () => {
                 onChange={(e) => setMessage(e.target.value)}
                 className="w-full p-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
               ></textarea>
+            </div>
+
+            {/* Direct Helpline Banner */}
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/80 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+              <span className="text-amber-900 font-medium text-[11px]">
+                Besoin d'une confirmation immédiate avec {agencyConfig.name} ?
+              </span>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`tel:${agencyCallTel}`}
+                  className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] flex items-center gap-1 transition-colors"
+                >
+                  <Phone className="w-3 h-3" />
+                  <span>Appeler ({agencyPhoneDisplay})</span>
+                </a>
+                <a
+                  href={`https://wa.me/${agencyWhatsAppNumber}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1 transition-colors"
+                >
+                  <MessageCircle className="w-3 h-3" />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
             </div>
 
             {/* Submit */}

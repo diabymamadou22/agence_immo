@@ -10,47 +10,114 @@
   }
 }
 
-/* Print styles specifically for Reçus de loyer, Actes, Mandats & Fiches Parcelles */
+/* Print styles specifically for Reçus de loyer, Actes, Mandats, Rapports & Fiches Parcelles */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 10mm 12mm 10mm;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box !important;
+  }
+
   html, body {
-    background: white !important;
+    background: #ffffff !important;
     color: #0f172a !important;
     margin: 0 !important;
     padding: 0 !important;
+    width: 100% !important;
     height: auto !important;
+    min-height: auto !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
-  /* Hide UI elements on print */
-  header, footer, nav, button, .no-print, .print\:hidden {
+  /* Hide UI navigation, footers, toolbars, buttons, toast alerts and screen-only controls */
+  header, 
+  footer, 
+  nav, 
+  button, 
+  .no-print, 
+  .print\:hidden,
+  #toast-container,
+  [role="tooltip"],
+  .floating-action-btn {
     display: none !important;
   }
 
-  /* Reset modal overlay backgrounds for printing */
+  /* Reset modal overlay backgrounds for printing so that the active modal prints cleanly */
   .fixed.inset-0 {
     position: static !important;
-    background: white !important;
+    background: #ffffff !important;
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
     height: auto !important;
     overflow: visible !important;
     backdrop-filter: none !important;
+    display: block !important;
   }
 
-  .print-card, [role="dialog"] {
+  .print-card, 
+  [role="dialog"],
+  #printable-rent-receipt,
+  #printable-contract,
+  #printable-payout,
+  #printable-tenant-report,
+  #printable-property-report,
+  #notary-fee-simulator-content {
     box-shadow: none !important;
     border: none !important;
     max-width: 100% !important;
     width: 100% !important;
     border-radius: 0 !important;
-    page-break-inside: avoid;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    overflow: visible !important;
   }
 
   .print-only {
     display: block !important;
+  }
+
+  /* Page break management */
+  .page-break, .page-break-before {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  .page-break-after {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Table formatting for print */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  tr, td, th {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tfoot {
+    display: table-footer-group !important;
   }
 }
 

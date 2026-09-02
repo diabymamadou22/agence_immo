@@ -4,6 +4,10 @@ import { store, useAppDispatch, useAppSelector } from './store';
 import { setProperties } from './store/propertiesSlice';
 import { setLeads } from './store/leadsSlice';
 import { setTenants, setReceipts } from './store/tenantsSlice';
+import { setOwners, setPayouts } from './store/ownersSlice';
+import { setContracts } from './store/contractsSlice';
+import { setExpenses } from './store/financialsSlice';
+import { setAgencyConfig } from './store/agencySlice';
 import { firestoreService } from './services/firestoreService';
 
 // Client Components
@@ -12,6 +16,7 @@ import { Footer } from './components/common/Footer';
 import { ToastContainer } from './components/common/ToastContainer';
 import { NotaryFeeModal } from './components/common/NotaryFeeModal';
 import { FavoritesDrawer } from './components/common/FavoritesDrawer';
+import { CloudSyncModal } from './components/common/CloudSyncModal';
 import { HeroSearch } from './components/client/HeroSearch';
 import { PropertyGrid } from './components/client/PropertyGrid';
 import { LandPlotGuideBanner } from './components/client/LandPlotGuideBanner';
@@ -49,26 +54,69 @@ const AppContent: React.FC = () => {
   const isAdminAuthenticated = useAppSelector((state) => state.ui.isAdminAuthenticated);
   const agencyConfig = useAppSelector((state) => state.agency.config);
 
-  // Initialize Firestore listeners or load initial data
+  // Initialize Firestore listeners for multi-device real-time sync across all collections
   useEffect(() => {
-    // Subscribe to properties
+    // 1. Properties & Parcelles
     const unsubscribeProps = firestoreService.subscribeProperties((props) => {
-      dispatch(setProperties(props));
+      if (props && props.length > 0) {
+        dispatch(setProperties(props));
+      }
     });
 
-    // Subscribe to leads
+    // 2. Leads & Visits
     const unsubscribeLeads = firestoreService.subscribeLeads((leads) => {
-      dispatch(setLeads(leads));
+      if (leads && leads.length > 0) {
+        dispatch(setLeads(leads));
+      }
     });
 
-    // Subscribe to tenants
+    // 3. Tenants
     const unsubscribeTenants = firestoreService.subscribeTenants((tenants) => {
-      dispatch(setTenants(tenants));
+      if (tenants && tenants.length > 0) {
+        dispatch(setTenants(tenants));
+      }
     });
 
-    // Subscribe to receipts
+    // 4. Receipts
     const unsubscribeReceipts = firestoreService.subscribeReceipts((receipts) => {
-      dispatch(setReceipts(receipts));
+      if (receipts && receipts.length > 0) {
+        dispatch(setReceipts(receipts));
+      }
+    });
+
+    // 5. Owners
+    const unsubscribeOwners = firestoreService.subscribeOwners((owners) => {
+      if (owners && owners.length > 0) {
+        dispatch(setOwners(owners));
+      }
+    });
+
+    // 6. Payouts
+    const unsubscribePayouts = firestoreService.subscribePayouts((payouts) => {
+      if (payouts && payouts.length > 0) {
+        dispatch(setPayouts(payouts));
+      }
+    });
+
+    // 7. Contracts
+    const unsubscribeContracts = firestoreService.subscribeContracts((contracts) => {
+      if (contracts && contracts.length > 0) {
+        dispatch(setContracts(contracts));
+      }
+    });
+
+    // 8. Expenses
+    const unsubscribeExpenses = firestoreService.subscribeExpenses((expenses) => {
+      if (expenses && expenses.length > 0) {
+        dispatch(setExpenses(expenses));
+      }
+    });
+
+    // 9. Agency Config
+    const unsubscribeAgency = firestoreService.subscribeAgencyConfig((cfg) => {
+      if (cfg && cfg.name) {
+        dispatch(setAgencyConfig(cfg));
+      }
     });
 
     return () => {
@@ -76,6 +124,11 @@ const AppContent: React.FC = () => {
       unsubscribeLeads();
       unsubscribeTenants();
       unsubscribeReceipts();
+      unsubscribeOwners();
+      unsubscribePayouts();
+      unsubscribeContracts();
+      unsubscribeExpenses();
+      unsubscribeAgency();
     };
   }, [dispatch]);
 
@@ -166,6 +219,7 @@ const AppContent: React.FC = () => {
 
       {/* Modals & Overlays */}
       <AdminAuthModal />
+      <CloudSyncModal />
       <PropertyDetailModal />
       <VisitBookingModal />
       <NotaryFeeModal />
@@ -191,4 +245,5 @@ export function App() {
 }
 
 export default App;
+
 

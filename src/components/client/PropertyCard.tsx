@@ -36,6 +36,7 @@ interface PropertyCardProps {
 export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   const dispatch = useAppDispatch();
   const favorites = useAppSelector((state) => state.properties.favorites);
+  const agencyConfig = useAppSelector((state) => state.agency.config);
   const isFavorite = favorites.includes(property.id);
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -46,7 +47,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     property.title,
     property.reference,
     property.price,
-    property.dealType
+    property.dealType,
+    undefined,
+    agencyConfig.whatsappNumber,
+    agencyConfig.name
   );
 
   const images = property.images && property.images.length > 0 ? property.images : [property.featuredImage];

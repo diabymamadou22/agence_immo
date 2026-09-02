@@ -311,10 +311,14 @@ export const AdminTenantManager: React.FC = () => {
                 <input
                   type="number"
                   required
-                  min="10000"
-                  step="5000"
-                  value={monthlyRent}
-                  onChange={(e) => setMonthlyRent(Number(e.target.value))}
+                  min="0"
+                  step="any"
+                  value={monthlyRent === 0 ? '' : monthlyRent}
+                  placeholder="Ex : 150000"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setMonthlyRent(val === '' ? 0 : parseFloat(val) || 0);
+                  }}
                   className="w-full px-3 py-2 text-xs bg-slate-800 border border-slate-700 rounded-xl text-amber-400 font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
               </div>
@@ -325,9 +329,13 @@ export const AdminTenantManager: React.FC = () => {
                 <input
                   type="number"
                   min="0"
-                  step="10000"
-                  value={depositAmount}
-                  onChange={(e) => setDepositAmount(Number(e.target.value))}
+                  step="any"
+                  value={depositAmount === 0 ? '' : depositAmount}
+                  placeholder="Ex : 300000"
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setDepositAmount(val === '' ? 0 : parseFloat(val) || 0);
+                  }}
                   className="w-full px-3 py-2 text-xs bg-slate-800 border border-slate-700 rounded-xl text-white font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none"
                 />
               </div>

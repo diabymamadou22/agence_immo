@@ -215,6 +215,14 @@ export const ownersSlice = createSlice({
     setSelectedPayoutId: (state, action: PayloadAction<string | null>) => {
       state.selectedPayoutId = action.payload;
     },
+    setOwners: (state, action: PayloadAction<Owner[]>) => {
+      state.items = action.payload;
+      saveOwners(state.items);
+    },
+    setPayouts: (state, action: PayloadAction<OwnerPayout[]>) => {
+      state.payouts = action.payload;
+      savePayouts(state.payouts);
+    },
     resetOwnersData: (state) => {
       state.items = INITIAL_OWNERS;
       state.payouts = INITIAL_PAYOUTS;
@@ -232,6 +240,8 @@ export const {
   addPayout,
   setSelectedOwnerId,
   setSelectedPayoutId,
+  setOwners,
+  setPayouts,
   resetOwnersData,
 } = ownersSlice.actions;
 

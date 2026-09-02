@@ -254,6 +254,11 @@ export interface AgencyConfig {
   defaultRentalCommissionPercent: number; // e.g. 10%
   defaultSaleCommissionPercent: number; // e.g. 5%
 
+  // Agency Specialties & Core Services
+  specialties?: ('vente' | 'location' | 'gestion')[];
+  primarySpecialty?: 'vente' | 'location' | 'gestion' | 'toutes';
+  specialtyDetails?: string;
+
   // Visual Theme / Stamp
   themeColor: 'amber' | 'emerald' | 'blue' | 'slate' | 'indigo';
   officialStampText: string;

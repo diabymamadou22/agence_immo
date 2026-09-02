@@ -48,7 +48,7 @@ export const AdminNotaryFeeView: React.FC = () => {
         <button
           type="button"
           onClick={handlePrint}
-          className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs rounded-xl border border-slate-700 shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0"
+          className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs rounded-xl border border-slate-700 shadow-md transition-all flex items-center gap-2 cursor-pointer shrink-0 print:hidden no-print"
         >
           <Printer className="w-4 h-4 text-amber-400" />
           <span>Imprimer la Grille</span>
@@ -74,10 +74,11 @@ export const AdminNotaryFeeView: React.FC = () => {
               </label>
               <input
                 type="number"
-                min="1000000"
-                step="500000"
-                value={priceInput}
-                onChange={(e) => setPriceInput(Number(e.target.value) || 0)}
+                min="0"
+                step="any"
+                value={priceInput === 0 ? '' : priceInput}
+                placeholder="Montant FCFA"
+                onChange={(e) => setPriceInput(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2.5 text-sm bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
               <div className="flex gap-2 pt-1">
@@ -119,10 +120,11 @@ export const AdminNotaryFeeView: React.FC = () => {
               </label>
               <input
                 type="number"
-                min="50"
-                step="50"
-                value={surfaceInput}
-                onChange={(e) => setSurfaceInput(Number(e.target.value) || 0)}
+                min="0"
+                step="any"
+                value={surfaceInput === 0 ? '' : surfaceInput}
+                placeholder="Superficie en m²"
+                onChange={(e) => setSurfaceInput(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                 className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
             </div>

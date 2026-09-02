@@ -2,32 +2,60 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Properties Collection: Public can read, authenticated agency staff can write
+    // Properties & Land Plots (Parcelles)
     match /properties/{propertyId} {
-      allow read: if true;
-      allow write: if true; // In production, require request.auth != null;
+      allow read, write: if true;
     }
     
-    // Leads Collection: Public can create leads (contact / visit requests), staff can read/update
+    // Leads & Visit Requests
     match /leads/{leadId} {
-      allow create: if true;
-      allow read, update, delete: if true; // In production, require request.auth != null;
+      allow read, write: if true;
     }
     
-    // Tenants & Rental Contracts: Agency administration
+    // Tenants (Locataires)
     match /tenants/{tenantId} {
-      allow read, write: if true; // In production, require request.auth != null;
+      allow read, write: if true;
     }
     
-    // Rent Receipts & Payments
+    // Rent Receipts & Payments (Quittances)
     match /receipts/{receiptId} {
-      allow read, write: if true; // In production, require request.auth != null;
+      allow read, write: if true;
+    }
+
+    // Landlords & Property Owners (Bailleurs)
+    match /owners/{ownerId} {
+      allow read, write: if true;
+    }
+
+    // Owner Payouts (Reversements)
+    match /payouts/{payoutId} {
+      allow read, write: if true;
+    }
+
+    // Contracts & Leases (Baux & Mandats)
+    match /contracts/{contractId} {
+      allow read, write: if true;
+    }
+
+    // Agency Expenses & Accounting (Dépenses)
+    match /expenses/{expenseId} {
+      allow read, write: if true;
+    }
+
+    // Agency Configuration & Branding
+    match /agency_config/{configId} {
+      allow read, write: if true;
     }
     
     // Land Plot Lotissements & Cadastral
     match /lotissements/{lotissementId} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if true;
+    }
+
+    // System Health & Connection Test
+    match /_system_health/{checkId} {
+      allow read, write: if true;
     }
   }
 }
+

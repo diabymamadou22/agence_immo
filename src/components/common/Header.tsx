@@ -12,6 +12,7 @@ import {
   Building2, 
   ShieldCheck, 
   MessageCircle, 
+  Phone,
   Heart, 
   Calculator, 
   UserCheck, 
@@ -21,6 +22,7 @@ import {
   PlusCircle,
   Lock
 } from 'lucide-react';
+import { cleanPhoneNumberForTel, cleanWhatsAppNumber } from '../../utils/formatters';
 
 export const Header: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -32,8 +34,12 @@ export const Header: React.FC = () => {
 
   const pendingLeadsCount = leads.filter((l) => l.status === 'nouveau').length;
 
+  const agencyPhoneDisplay = agencyConfig.phoneDisplay || agencyConfig.phone || '+223 76 00 11 22';
+  const agencyCallTel = cleanPhoneNumberForTel(agencyConfig.phone || agencyConfig.phoneDisplay);
+  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber);
+
   const handleWhatsAppClick = () => {
-    window.open(`https://wa.me/${agencyConfig.whatsappNumber}`, '_blank');
+    window.open(`https://wa.me/${agencyWhatsAppNumber}?text=${encodeURIComponent(`Bonjour ${agencyConfig.name}, je vous contacte depuis votre site internet.`)}`, '_blank');
   };
 
   const handleAdminSwitch = () => {
@@ -61,13 +67,22 @@ export const Header: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-3">
+            <a
+              id="header-direct-phone-call"
+              href={`tel:${agencyCallTel}`}
+              className="flex items-center gap-1.5 text-amber-400 hover:text-amber-300 font-semibold transition-colors cursor-pointer"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>Appel : {agencyPhoneDisplay}</span>
+            </a>
+            <span className="hidden sm:inline text-slate-700">|</span>
             <button
               id="header-direct-call"
               onClick={handleWhatsAppClick}
-              className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors cursor-pointer"
             >
               <MessageCircle className="w-3.5 h-3.5" />
-              <span>WhatsApp Direct : +{agencyConfig.whatsappNumber}</span>
+              <span>WhatsApp : {agencyPhoneDisplay}</span>
             </button>
           </div>
         </div>
@@ -165,4 +180,5 @@ export const Header: React.FC = () => {
     </header>
   );
 };
+
 

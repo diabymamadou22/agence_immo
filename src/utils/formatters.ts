@@ -1,11 +1,36 @@
 import { DocumentType, PropertyType, PropertyStatus, DealType, PaymentMethod } from '../types';
 
+export const CLIENT_CONTACT_PHONE = '+223 76 00 11 22';
+export const CLIENT_CALL_TEL = '+22376001122';
+export const CLIENT_WHATSAPP_NUMBER = '22376001122';
+export const CLIENT_PHONE_DISPLAY = '+223 76 00 11 22';
+
+/**
+ * Clean a phone string for use in tel: href (preserves leading +, strips spaces)
+ */
+export function cleanPhoneNumberForTel(phone?: string): string {
+  if (!phone || !phone.trim()) return CLIENT_CALL_TEL;
+  const trimmed = phone.trim();
+  const hasPlus = trimmed.startsWith('+');
+  const digits = trimmed.replace(/[^0-9]/g, '');
+  return hasPlus ? `+${digits}` : `+${digits}`;
+}
+
+/**
+ * Clean a WhatsApp number for use in wa.me URL (only digits)
+ */
+export function cleanWhatsAppNumber(phone?: string): string {
+  if (!phone || !phone.trim()) return CLIENT_WHATSAPP_NUMBER;
+  const digits = phone.replace(/[^0-9]/g, '');
+  return digits || CLIENT_WHATSAPP_NUMBER;
+}
+
 export const AGENCY_INFO = {
   name: 'Mali Immo Prestige',
   slogan: 'L\'Excellence Foncière & Immobilière au Mali',
   tagline: 'L\'Excellence Foncière & Immobilière au Mali',
   phone: '+223 76 00 11 22',
-  phoneDisplay: '+223 76 00 11 22 / 66 99 88 77',
+  phoneDisplay: '+223 76 00 11 22',
   whatsappNumber: '22376001122',
   email: 'contact@mali-immoprestige.ml',
   address: 'Hamdallaye ACI 2000, Près du Monument de l\'Obélisque, Bamako, Mali',
@@ -155,22 +180,26 @@ export function getStatusBadgeInfo(status: PropertyStatus): { label: string; col
 }
 
 /**
- * Generate prefilled WhatsApp URL for instant client contact
+ * Generate prefilled WhatsApp URL for instant client contact with active agency phone number
  */
 export function generateWhatsAppLink(
   propertyTitle: string,
   propertyRef: string,
   price: number,
   dealType: DealType,
-  customMsg?: string
+  customMsg?: string,
+  whatsappNumber?: string,
+  agencyName?: string
 ): string {
   const priceText = formatFCFA(price);
   const actionText = dealType === 'vente' ? 'l\'achat' : 'la location';
+  const targetName = agencyName || 'l\'agence';
+  const targetNumber = cleanWhatsAppNumber(whatsappNumber || CLIENT_WHATSAPP_NUMBER);
   
-  const defaultMsg = `Bonjour Mali Immo Prestige,\n\nJe suis très intéressé(e) par ${actionText} du bien suivant :\n📌 *${propertyTitle}*\n🆔 Réf : *${propertyRef}*\n💰 Prix : *${priceText}*\n\nEst-il toujours disponible ? Pouvons-nous convenir d'une visite sur le terrain ?\nMerci !`;
+  const defaultMsg = `Bonjour ${targetName},\n\nJe suis très intéressé(e) par ${actionText} du bien suivant :\n📌 *${propertyTitle}*\n🆔 Réf : *${propertyRef}*\n💰 Prix : *${priceText}*\n\nEst-il toujours disponible ? Pouvons-nous convenir d'une visite sur le terrain ?\nMerci !`;
   
   const textToSend = customMsg ? customMsg : defaultMsg;
-  return `https://wa.me/${AGENCY_INFO.whatsappNumber}?text=${encodeURIComponent(textToSend)}`;
+  return `https://wa.me/${targetNumber}?text=${encodeURIComponent(textToSend)}`;
 }
 
 /**

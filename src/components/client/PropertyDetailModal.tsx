@@ -11,7 +11,8 @@ import {
   generateWhatsAppLink,
   calculateNotaryFeesMali,
   AMENITY_DEFINITIONS,
-  AGENCY_INFO
+  cleanPhoneNumberForTel,
+  cleanWhatsAppNumber
 } from '../../utils/formatters';
 import { 
   X, 
@@ -42,6 +43,7 @@ export const PropertyDetailModal: React.FC = () => {
   const selectedId = useAppSelector((state) => state.properties.selectedPropertyId);
   const properties = useAppSelector((state) => state.properties.items);
   const favorites = useAppSelector((state) => state.properties.favorites);
+  const agencyConfig = useAppSelector((state) => state.agency.config);
 
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
 
@@ -55,7 +57,20 @@ export const PropertyDetailModal: React.FC = () => {
   const statusBadge = getStatusBadgeInfo(property.status);
   const images = property.images && property.images.length > 0 ? property.images : [property.featuredImage];
   const notaryEstimate = calculateNotaryFeesMali(property.price, property.documentType);
-  const waLink = generateWhatsAppLink(property.title, property.reference, property.price, property.dealType);
+  
+  const agencyPhoneDisplay = agencyConfig.phoneDisplay || agencyConfig.phone || '+223 76 00 11 22';
+  const agencyCallTel = cleanPhoneNumberForTel(agencyConfig.phone || agencyConfig.phoneDisplay);
+  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber);
+
+  const waLink = generateWhatsAppLink(
+    property.title, 
+    property.reference, 
+    property.price, 
+    property.dealType,
+    undefined,
+    agencyWhatsAppNumber,
+    agencyConfig.name
+  );
 
   const handleShare = () => {
     if (navigator.clipboard) {
@@ -430,21 +445,32 @@ export const PropertyDetailModal: React.FC = () => {
               🏢
             </div>
             <div>
-              <p className="font-bold text-slate-900">{AGENCY_INFO.name}</p>
-              <p className="text-[11px] text-slate-500">Hamdallaye ACI 2000, Bamako • Téléphone : {AGENCY_INFO.phoneDisplay}</p>
+              <p className="font-bold text-slate-900">{agencyConfig.name}</p>
+              <p className="text-[11px] text-slate-600">
+                Ligne Directe Client : <a href={`tel:${agencyCallTel}`} className="font-bold text-amber-600 hover:underline">{agencyPhoneDisplay}</a>
+              </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            {/* Direct Phone Call */}
+            <a
+              href={`tel:${agencyCallTel}`}
+              className="flex-1 sm:flex-none py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+            >
+              <Phone className="w-4 h-4 fill-slate-950" />
+              <span>Appeler ({agencyPhoneDisplay})</span>
+            </a>
+
             {/* Direct WhatsApp */}
             <a
               href={waLink}
               target="_blank"
               rel="noreferrer"
-              className="flex-1 sm:flex-none py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+              className="flex-1 sm:flex-none py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
             >
               <MessageCircle className="w-4 h-4 fill-white" />
-              <span>Contacter sur WhatsApp</span>
+              <span>WhatsApp Direct</span>
             </a>
 
             {/* Plan Visit */}
@@ -452,10 +478,10 @@ export const PropertyDetailModal: React.FC = () => {
               type="button"
               id="btn-modal-plan-visit"
               onClick={handleOpenVisit}
-              className="flex-1 sm:flex-none py-3 px-5 rounded-xl bg-slate-900 hover:bg-amber-500 hover:text-slate-950 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+              className="flex-1 sm:flex-none py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
             >
-              <Calendar className="w-4 h-4" />
-              <span>Demander une Visite Terrain</span>
+              <Calendar className="w-4 h-4 text-amber-400" />
+              <span>Demander une Visite</span>
             </button>
           </div>
         </div>

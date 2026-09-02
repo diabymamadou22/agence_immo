@@ -2,11 +2,16 @@ import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { setFilters, resetFilters } from '../../store/propertiesSlice';
 import { openNotaryModal, openMortgageModal, openOwnerDepositModal, setViewMode } from '../../store/uiSlice';
-import { Building2, ShieldCheck, MapPin, Phone, Mail, Clock, MessageSquare, ArrowUpRight } from 'lucide-react';
+import { Building2, ShieldCheck, MapPin, Phone, Mail, Clock, MessageSquare, MessageCircle, ArrowUpRight } from 'lucide-react';
+import { cleanPhoneNumberForTel, cleanWhatsAppNumber } from '../../utils/formatters';
 
 export const Footer: React.FC = () => {
   const dispatch = useAppDispatch();
   const agencyConfig = useAppSelector((state) => state.agency.config);
+
+  const agencyPhoneDisplay = agencyConfig.phoneDisplay || agencyConfig.phone || '+223 76 00 11 22';
+  const agencyCallTel = cleanPhoneNumberForTel(agencyConfig.phone || agencyConfig.phoneDisplay);
+  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber);
 
   const handleFilterClick = (dealType: 'vente' | 'location', propertyType?: any) => {
     dispatch(resetFilters());
@@ -179,23 +184,42 @@ export const Footer: React.FC = () => {
           {/* Contact & Agence Bamako */}
           <div>
             <h4 className="text-white font-semibold text-sm uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">
-              Siège Social & Contact
+              Contact Client & Agence
             </h4>
             <ul className="space-y-3 text-xs">
-              <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+              <li className="flex items-center gap-2.5">
+                <Phone className="w-4 h-4 text-amber-400 shrink-0" />
+                <div>
+                  <span className="text-[10px] text-slate-500 font-semibold block uppercase">Ligne Directe Client</span>
+                  <a href={`tel:${agencyCallTel}`} className="text-amber-400 hover:text-amber-300 font-bold text-sm transition-colors">
+                    {agencyPhoneDisplay}
+                  </a>
+                </div>
+              </li>
+              <li className="flex items-center gap-2.5">
+                <MessageCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                <div>
+                  <span className="text-[10px] text-slate-500 font-semibold block uppercase">WhatsApp Assistance</span>
+                  <a 
+                    href={`https://wa.me/${agencyWhatsAppNumber}`} 
+                    target="_blank" 
+                    rel="noreferrer" 
+                    className="text-emerald-400 hover:text-emerald-300 font-bold text-sm transition-colors"
+                  >
+                    +{agencyWhatsAppNumber}
+                  </a>
+                </div>
+              </li>
+              <li className="flex items-start gap-2.5 pt-1">
+                <MapPin className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
                 <span>{agencyConfig.address}</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-amber-400 shrink-0" />
-                <span>{agencyConfig.phoneDisplay}</span>
-              </li>
-              <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-amber-400 shrink-0" />
+                <Mail className="w-4 h-4 text-slate-400 shrink-0" />
                 <span>{agencyConfig.email}</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Clock className="w-4 h-4 text-amber-400 shrink-0" />
+                <Clock className="w-4 h-4 text-slate-400 shrink-0" />
                 <span>{agencyConfig.workingHours}</span>
               </li>
             </ul>

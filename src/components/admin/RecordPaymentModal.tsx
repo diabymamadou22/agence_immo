@@ -111,10 +111,14 @@ export const RecordPaymentModal: React.FC = () => {
             <input
               type="number"
               required
-              min="1000"
-              step="5000"
-              value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              min="0"
+              step="any"
+              value={amount === 0 ? '' : amount}
+              placeholder="Montant FCFA"
+              onChange={(e) => {
+                const val = e.target.value;
+                setAmount(val === '' ? 0 : parseFloat(val) || 0);
+              }}
               className="w-full px-3 py-2.5 text-base font-extrabold bg-slate-50 border border-slate-300 rounded-xl text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>

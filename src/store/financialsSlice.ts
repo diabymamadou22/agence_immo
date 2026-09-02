@@ -90,6 +90,10 @@ export const financialsSlice = createSlice({
       state.expenses = state.expenses.filter((e) => e.id !== action.payload);
       saveExpenses(state.expenses);
     },
+    setExpenses: (state, action: PayloadAction<AgencyExpense[]>) => {
+      state.expenses = action.payload;
+      saveExpenses(state.expenses);
+    },
     resetExpensesData: (state) => {
       state.expenses = INITIAL_EXPENSES;
       saveExpenses(INITIAL_EXPENSES);
@@ -97,5 +101,5 @@ export const financialsSlice = createSlice({
   },
 });
 
-export const { addExpense, deleteExpense, resetExpensesData } = financialsSlice.actions;
+export const { addExpense, deleteExpense, setExpenses, resetExpensesData } = financialsSlice.actions;
 export default financialsSlice.reducer;

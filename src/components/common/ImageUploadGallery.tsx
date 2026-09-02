@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { compressImageFile, processMultipleImageFiles } from '../../utils/imageUtils';
+import { ConfirmDeleteModal } from './ConfirmDeleteModal';
 import { 
   Upload, 
   Camera, 
@@ -40,6 +41,7 @@ export const ImageUploadGallery: React.FC<ImageUploadGalleryProps> = ({
   const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [manualUrl, setManualUrl] = useState('');
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -124,9 +126,12 @@ export const ImageUploadGallery: React.FC<ImageUploadGalleryProps> = ({
   };
 
   const handleClearAll = () => {
-    if (window.confirm('Voulez-vous supprimer toutes les photos actuelles ?')) {
-      onChange([]);
-    }
+    setShowClearConfirm(true);
+  };
+
+  const handleConfirmClearAll = () => {
+    onChange([]);
+    setShowClearConfirm(false);
   };
 
   return (
@@ -410,6 +415,17 @@ export const ImageUploadGallery: React.FC<ImageUploadGalleryProps> = ({
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal to Clear All Photos */}
+      <ConfirmDeleteModal
+        isOpen={showClearConfirm}
+        title="Supprimer toutes les photos"
+        message="Êtes-vous certain de vouloir vider l'ensemble des photos actuelles de cette fiche ?"
+        itemName={`${images.length} photo(s) sélectionnée(s)`}
+        itemType="Galerie de photos"
+        onConfirm={handleConfirmClearAll}
+        onCancel={() => setShowClearConfirm(false)}
+      />
     </div>
   );
 };

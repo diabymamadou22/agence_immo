@@ -1,24 +1,30 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { closeReceiptModal } from '../../store/uiSlice';
-import { formatFCFA, formatDate, AGENCY_INFO } from '../../utils/formatters';
+import { formatFCFA, formatDate } from '../../utils/formatters';
 import { printElement } from '../../utils/printUtils';
-import { X, Printer, Download, CheckCircle2, ShieldCheck, Building2, Landmark } from 'lucide-react';
+import { X, Printer, Building2, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
 export const RentReceiptModal: React.FC = () => {
   const dispatch = useAppDispatch();
   const isOpen = useAppSelector((state) => state.ui.isReceiptModalOpen);
   const activeReceipt = useAppSelector((state) => state.tenants.activeReceiptForPrint);
+  const agencyConfig = useAppSelector((state) => state.agency.config);
+
+  const printRef = useRef<HTMLDivElement>(null);
 
   if (!isOpen || !activeReceipt) return null;
 
   const handlePrint = () => {
-    printElement('printable-rent-receipt', `Quittance_Loyer_${activeReceipt.receiptNumber}`);
+    if (printRef.current) {
+      printElement(printRef.current, `Quittance_Loyer_${activeReceipt.receiptNumber}`);
+    } else {
+      printElement('printable-rent-receipt', `Quittance_Loyer_${activeReceipt.receiptNumber}`);
+    }
   };
 
   // Helper to convert small amounts to French words
   const getAmountInWords = (amt: number): string => {
-    // Standard friendly conversion
     if (amt === 150000) return "Cent cinquante mille Francs CFA";
     if (amt === 250000) return "Deux cent cinquante mille Francs CFA";
     if (amt === 350000) return "Trois cent cinquante mille Francs CFA";
@@ -32,7 +38,6 @@ export const RentReceiptModal: React.FC = () => {
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-4 flex items-center justify-center animate-fadeIn print:p-0 print:bg-white">
       <div 
         className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col print:shadow-none print:border-none print:rounded-none"
-        id="printable-rent-receipt"
       >
         {/* Screen Controls Header */}
         <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 print:hidden">
@@ -62,29 +67,44 @@ export const RentReceiptModal: React.FC = () => {
         </div>
 
         {/* Printable Document Body (A4 Style Paper) */}
-        <div className="p-8 sm:p-12 space-y-8 bg-white text-slate-900 font-sans print:p-6 print:space-y-6">
+        <div 
+          ref={printRef} 
+          id="printable-rent-receipt" 
+          className="p-8 sm:p-12 space-y-8 bg-white text-slate-900 font-sans print:p-6 print:space-y-6 text-xs sm:text-sm"
+        >
           {/* Agency Letterhead */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-6 border-b-2 border-slate-900">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center font-black text-base shadow-sm">
-                  M
-                </div>
+              <div className="flex items-center gap-2.5">
+                {agencyConfig.logoUrl ? (
+                  <img
+                    src={agencyConfig.logoUrl}
+                    alt={agencyConfig.name}
+                    className="w-12 h-12 object-contain rounded-xl border border-slate-200 p-0.5"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-xl bg-slate-950 text-amber-400 flex items-center justify-center font-black text-base shadow-sm">
+                    {agencyConfig.name.slice(0, 2).toUpperCase()}
+                  </div>
+                )}
                 <div>
                   <h1 className="font-black text-xl text-slate-950 font-heading tracking-tight uppercase">
-                    {AGENCY_INFO.name}
+                    {agencyConfig.name}
                   </h1>
                   <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">
-                    {AGENCY_INFO.tagline}
+                    {agencyConfig.slogan || 'Agence Immobilière & Gestion Déléguée'}
                   </p>
                 </div>
               </div>
 
               <div className="text-[11px] text-slate-600 space-y-0.5 pt-2">
-                <p>{AGENCY_INFO.address}</p>
+                <p>{agencyConfig.address}</p>
                 <p>Bamako, République du Mali</p>
-                <p>Tél : {AGENCY_INFO.phoneDisplay} • Email : {AGENCY_INFO.email}</p>
-                <p className="text-[10px] text-slate-400 font-mono">NIF : 085214079M • RCCM : MA.BKO.2021.B.4120</p>
+                <p>Tél : {agencyConfig.phoneDisplay} • Email : {agencyConfig.email}</p>
+                <p className="text-[10px] text-slate-400 font-mono">
+                  NIF : {agencyConfig.nif} • RCCM : {agencyConfig.rccm}
+                </p>
               </div>
             </div>
 
@@ -120,7 +140,7 @@ export const RentReceiptModal: React.FC = () => {
           {/* Statement of Payment */}
           <div className="space-y-3 text-xs leading-relaxed text-slate-800">
             <p>
-              L'agence <strong>{AGENCY_INFO.name}</strong>, agissant en qualité de gestionnaire mandataire du bien susmentionné, reconnaît avoir reçu de <strong>{activeReceipt.tenantName}</strong> la somme de :
+              L'agence <strong>{agencyConfig.name}</strong>, agissant en qualité de gestionnaire mandataire du bien susmentionné, reconnaît avoir reçu de <strong>{activeReceipt.tenantName}</strong> la somme de :
             </p>
 
             {/* Amount Box */}
@@ -187,14 +207,14 @@ export const RentReceiptModal: React.FC = () => {
             </div>
 
             <div className="text-right">
-              <p className="font-bold text-slate-900">Pour l'Agence {AGENCY_INFO.name} :</p>
+              <p className="font-bold text-slate-900">Pour l'Agence {agencyConfig.name} :</p>
               <p className="text-[11px] text-slate-500 mt-0.5">Direction Générale & Gérance</p>
               
               {/* Simulated Stamp */}
               <div className="inline-block mt-2 p-2.5 rounded-xl border-2 border-slate-900 bg-slate-50 text-[10px] font-mono text-center rotate-[-3deg] shadow-xs">
-                <span className="font-black text-slate-900 block">MALI IMMO PRESTIGE</span>
+                <span className="font-black text-slate-900 block uppercase">{agencyConfig.name}</span>
                 <span className="text-emerald-700 font-bold block">★ ACQUITTÉ & ENCAISSÉ ★</span>
-                <span className="text-[9px] text-slate-500 block">ACI 2000 BAMAKO</span>
+                <span className="text-[9px] text-slate-500 block">BAMAKO (MALI)</span>
               </div>
             </div>
           </div>
@@ -203,3 +223,4 @@ export const RentReceiptModal: React.FC = () => {
     </div>
   );
 };
+
