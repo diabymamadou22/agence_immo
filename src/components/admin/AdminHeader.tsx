@@ -14,7 +14,8 @@ import {
   TrendingUp,
   Settings,
   Database,
-  Lock
+  Lock,
+  Receipt
 } from 'lucide-react';
 
 export const AdminHeader: React.FC = () => {
@@ -22,6 +23,7 @@ export const AdminHeader: React.FC = () => {
   const activeTab = useAppSelector((state) => state.ui.activeAdminTab);
   const leads = useAppSelector((state) => state.leads.items);
   const properties = useAppSelector((state) => state.properties.items);
+  const sales = useAppSelector((state) => state.sales.items);
   const tenants = useAppSelector((state) => state.tenants.items);
   const owners = useAppSelector((state) => state.owners.items);
   const contracts = useAppSelector((state) => state.contracts.items);
@@ -33,6 +35,7 @@ export const AdminHeader: React.FC = () => {
     { id: 'overview', label: 'Vue d\'Ensemble', icon: LayoutDashboard },
     { id: 'parcelles', label: 'Parcelles & Foncier', icon: Layers, count: properties.filter((p) => p.propertyType === 'parcelle').length },
     { id: 'properties', label: 'Stock Biens', icon: Building2, count: properties.length },
+    { id: 'sales_receipts', label: 'Reçus de Vente', icon: Receipt, count: sales.length, badgeColor: 'bg-amber-500 text-slate-950 font-black' },
     { 
       id: 'locations', 
       label: 'Locations & Quittances', 

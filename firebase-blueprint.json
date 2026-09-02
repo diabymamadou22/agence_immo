@@ -1,0 +1,211 @@
+{
+  "entities": {
+    "Property": {
+      "title": "Property",
+      "description": "Biens immobiliers, parcelles de terrain, villas, appartements et bureaux au Mali",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "reference": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "propertyType": { "type": "string", "enum": ["parcelle", "maison", "appartement", "magasin_bureau", "immeuble", "entrepot"] },
+        "dealType": { "type": "string", "enum": ["vente", "location"] },
+        "price": { "type": "number" },
+        "pricePeriod": { "type": "string", "enum": ["mois", "total", "m2"] },
+        "surface": { "type": "number" },
+        "city": { "type": "string" },
+        "neighborhood": { "type": "string" },
+        "address": { "type": "string" },
+        "documentType": { "type": "string" },
+        "status": { "type": "string", "enum": ["disponible", "vendu", "loue", "reserve"] },
+        "viewsCount": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "reference", "title", "propertyType", "dealType", "price", "surface", "city", "neighborhood", "status"]
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "Demandes de visite, contacts clients, offres et réservations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientPhone": { "type": "string" },
+        "leadType": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["nouveau", "contacte", "visite_programmee", "conclu", "annule"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "clientName", "clientPhone", "leadType", "status", "createdAt"]
+    },
+    "Tenant": {
+      "title": "Tenant",
+      "description": "Locataires sous gestion de l'agence immobilière",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "propertyId": { "type": "string" },
+        "propertyTitle": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "monthlyRent": { "type": "number" },
+        "depositAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["actif", "inactif", "retard"] }
+      },
+      "required": ["id", "propertyId", "name", "phone", "monthlyRent", "status"]
+    },
+    "RentReceipt": {
+      "title": "RentReceipt",
+      "description": "Quittances de loyers et paiements émis",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "receiptNumber": { "type": "string" },
+        "tenantId": { "type": "string" },
+        "tenantName": { "type": "string" },
+        "propertyId": { "type": "string" },
+        "periodMonth": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentDate": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string" },
+        "issuedBy": { "type": "string" }
+      },
+      "required": ["id", "receiptNumber", "tenantId", "tenantName", "amount", "paymentDate", "paymentMethod", "status"]
+    },
+    "Owner": {
+      "title": "Owner",
+      "description": "Bailleurs et propriétaires fonciers sous mandat de gestion",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "managementCommissionRate": { "type": "number" },
+        "status": { "type": "string", "enum": ["actif", "inactif"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "name", "phone", "managementCommissionRate", "status"]
+    },
+    "OwnerPayout": {
+      "title": "OwnerPayout",
+      "description": "Reversements et bordereaux de paiement des loyers aux bailleurs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "payoutNumber": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "periodMonth": { "type": "string" },
+        "grossRentCollected": { "type": "number" },
+        "netPaidToOwner": { "type": "number" },
+        "payoutDate": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string", "enum": ["paye", "en_attente"] }
+      },
+      "required": ["id", "payoutNumber", "ownerId", "ownerName", "netPaidToOwner", "payoutDate", "status"]
+    },
+    "LegalContract": {
+      "title": "LegalContract",
+      "description": "Baux, mandats de gestion et contrats immobiliers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "contractType": { "type": "string" },
+        "reference": { "type": "string" },
+        "title": { "type": "string" },
+        "propertyId": { "type": "string" },
+        "partyAName": { "type": "string" },
+        "partyBName": { "type": "string" },
+        "amountFCFA": { "type": "number" },
+        "status": { "type": "string", "enum": ["actif", "signe", "archive"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "contractType", "reference", "title", "partyAName", "partyBName", "status"]
+    },
+    "AgencyExpense": {
+      "title": "AgencyExpense",
+      "description": "Dépenses d'exploitation et frais de l'agence",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string" },
+        "paymentMethod": { "type": "string" }
+      },
+      "required": ["id", "title", "category", "amount", "date", "paymentMethod"]
+    },
+    "AgencyConfig": {
+      "title": "AgencyConfig",
+      "description": "Configuration, coordonnées et profil de marque de l'agence",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "address": { "type": "string" },
+        "city": { "type": "string" },
+        "country": { "type": "string" }
+      },
+      "required": ["name", "phone", "email"]
+    },
+    "SystemHealth": {
+      "title": "SystemHealth",
+      "description": "Vérification de connectivité et heartbeat Firestore",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" },
+        "lastCheckedAt": { "type": "string" },
+        "client": { "type": "string" }
+      },
+      "required": ["status"]
+    }
+  },
+  "firestore": {
+    "/properties/{propertyId}": {
+      "schema": { "$ref": "#/entities/Property" },
+      "description": "Catalogue public et privé des parcelles et biens immobiliers"
+    },
+    "/leads/{leadId}": {
+      "schema": { "$ref": "#/entities/Lead" },
+      "description": "Demandes des clients et prospects"
+    },
+    "/tenants/{tenantId}": {
+      "schema": { "$ref": "#/entities/Tenant" },
+      "description": "Dossiers locataires et suivi des baux"
+    },
+    "/receipts/{receiptId}": {
+      "schema": { "$ref": "#/entities/RentReceipt" },
+      "description": "Quittances de loyer et encaissements"
+    },
+    "/owners/{ownerId}": {
+      "schema": { "$ref": "#/entities/Owner" },
+      "description": "Bailleurs et propriétaires mandataires"
+    },
+    "/payouts/{payoutId}": {
+      "schema": { "$ref": "#/entities/OwnerPayout" },
+      "description": "Reversements de loyers effectués aux bailleurs"
+    },
+    "/contracts/{contractId}": {
+      "schema": { "$ref": "#/entities/LegalContract" },
+      "description": "Contrats légaux et mandats"
+    },
+    "/expenses/{expenseId}": {
+      "schema": { "$ref": "#/entities/AgencyExpense" },
+      "description": "Dépenses comptables et charges de l'agence"
+    },
+    "/agency_config/{configId}": {
+      "schema": { "$ref": "#/entities/AgencyConfig" },
+      "description": "Paramètres d'agence et personnalisation"
+    },
+    "/_system_health/{checkId}": {
+      "schema": { "$ref": "#/entities/SystemHealth" },
+      "description": "Statut de diagnostic et test de connexion"
+    }
+  }
+}

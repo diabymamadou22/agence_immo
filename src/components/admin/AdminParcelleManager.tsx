@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { openPropertyForm, addToast } from '../../store/uiSlice';
+import { openPropertyForm, addToast, openRecordSaleModal, openSaleReceiptModal } from '../../store/uiSlice';
 import { deleteProperty, updatePropertyStatus, setSelectedPropertyId } from '../../store/propertiesSlice';
+import { setActiveReceiptForPrint, setSelectedPropertyForSale } from '../../store/salesSlice';
 import { firestoreService } from '../../services/firestoreService';
 import { Property, PropertyStatus, DocumentType } from '../../types';
 import { 
@@ -13,6 +14,7 @@ import {
 } from '../../utils/formatters';
 import { exportPropertiesToCSV } from '../../utils/exportUtils';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
+import { AdminSaleReceiptsList } from './AdminSaleReceiptsList';
 import { 
   Layers, 
   Plus, 
@@ -26,14 +28,18 @@ import {
   Maximize2,
   FileText,
   MapPin,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Receipt,
+  Printer
 } from 'lucide-react';
 
 export const AdminParcelleManager: React.FC = () => {
   const dispatch = useAppDispatch();
   const properties = useAppSelector((state) => state.properties.items);
+  const sales = useAppSelector((state) => state.sales.items);
   const agencyConfig = useAppSelector((state) => state.agency.config);
 
+  const [activeTab, setActiveTab] = useState<'inventory' | 'receipts'>('inventory');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDoc, setFilterDoc] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -116,6 +122,19 @@ export const AdminParcelleManager: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Reçu de Vente Button */}
+          <button
+            onClick={() => {
+              dispatch(setSelectedPropertyForSale(null));
+              dispatch(openRecordSaleModal());
+            }}
+            className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Émettre et imprimer un reçu de vente avec informations client"
+          >
+            <Receipt className="w-4 h-4 text-amber-400" />
+            <span>Émettre Reçu de Vente</span>
+          </button>
+
           {/* Export CSV Parcelles */}
           <button
             onClick={handleExportParcellesCSV}
@@ -137,7 +156,38 @@ export const AdminParcelleManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Sub-Tabs: Inventaire vs Reçus de Vente */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <button
+          onClick={() => setActiveTab('inventory')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'inventory'
+              ? 'bg-slate-900 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5 text-amber-400" />
+          <span>Inventaire & Cadastre des Parcelles ({parcelles.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('receipts')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'receipts'
+              ? 'bg-slate-900 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Receipt className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Reçus de Vente Foncier ({sales.filter(s => s.propertyType === 'parcelle').length})</span>
+        </button>
+      </div>
+
+      {activeTab === 'receipts' ? (
+        <AdminSaleReceiptsList />
+      ) : (
+        <>
+          {/* Filter and Search Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs grid grid-cols-1 sm:grid-cols-3 gap-3">
         {/* Search */}
         <div className="relative">
@@ -282,6 +332,32 @@ export const AdminParcelleManager: React.FC = () => {
                       {/* Actions */}
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Reçu de vente action */}
+                          {(() => {
+                            const existingSale = sales.find((s) => s.propertyId === parcel.id || s.propertyReference === parcel.reference);
+                            return (
+                              <button
+                                onClick={() => {
+                                  if (existingSale) {
+                                    dispatch(setActiveReceiptForPrint(existingSale));
+                                    dispatch(openSaleReceiptModal());
+                                  } else {
+                                    dispatch(setSelectedPropertyForSale(parcel));
+                                    dispatch(openRecordSaleModal());
+                                  }
+                                }}
+                                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                  existingSale || parcel.status === 'vendu'
+                                    ? 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                                    : 'text-slate-600 hover:text-amber-700 hover:bg-amber-50'
+                                }`}
+                                title={existingSale ? `Imprimer le Reçu de Vente (${existingSale.receiptNumber})` : 'Émettre un Reçu de Vente'}
+                              >
+                                <Receipt className="w-4 h-4" />
+                              </button>
+                            );
+                          })()}
+
                           <button
                             onClick={() => dispatch(setSelectedPropertyId(parcel.id))}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
@@ -313,6 +389,8 @@ export const AdminParcelleManager: React.FC = () => {
           </table>
         </div>
       </div>
+        </>
+      )}
 
       {/* Confirmation Modal for Parcelle Deletion */}
       <ConfirmDeleteModal

@@ -155,29 +155,29 @@ export const PropertyExportModal: React.FC<PropertyExportModalProps> = ({ isOpen
         </div>
 
         {/* Printable Document Sheet Content */}
-        <div className="p-6 sm:p-8 overflow-y-auto print:overflow-visible space-y-6 text-slate-900 bg-white" id="printable-property-report">
+        <div className="p-6 sm:p-8 overflow-y-auto print:overflow-visible space-y-4 print:space-y-3 text-slate-900 bg-white print:p-2" id="printable-property-report">
           
           {/* Official Agency Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b-2 border-slate-900 pb-5">
-            <div className="flex items-center gap-4">
+          <div className="flex justify-between items-start gap-4 border-b-2 border-slate-900 pb-3 print:pb-1.5 avoid-break">
+            <div className="flex items-center gap-3">
               {agencyConfig.logoUrl ? (
                 <img
                   src={agencyConfig.logoUrl}
                   alt={agencyConfig.name}
-                  className="w-16 h-16 object-contain rounded-xl border border-slate-200 p-1"
+                  className="w-12 h-12 print:w-9 print:h-9 object-contain rounded-lg border border-slate-200 p-0.5"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-xs">
+                <div className="w-10 h-10 print:w-8 print:h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-base print:text-xs shadow-2xs">
                   {agencyConfig.name.slice(0, 2).toUpperCase()}
                 </div>
               )}
               <div>
-                <h1 className="text-xl font-black font-heading text-slate-950 uppercase tracking-tight">
+                <h1 className="text-lg print:text-sm font-black font-heading text-slate-950 uppercase tracking-tight">
                   {agencyConfig.name}
                 </h1>
-                <p className="text-xs text-slate-600 font-medium">{agencyConfig.slogan}</p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-slate-500 mt-1 font-mono">
+                <p className="text-[10px] print:text-[8px] text-slate-600 font-medium">{agencyConfig.slogan}</p>
+                <div className="flex flex-wrap items-center gap-x-2 text-[9px] print:text-[7.5px] text-slate-500 mt-0.5 font-mono">
                   <span>RCCM : {agencyConfig.rccm}</span>
                   <span>•</span>
                   <span>NIF : {agencyConfig.nif}</span>
@@ -187,77 +187,77 @@ export const PropertyExportModal: React.FC<PropertyExportModalProps> = ({ isOpen
               </div>
             </div>
 
-            <div className="text-right sm:self-end">
-              <span className="inline-block px-3 py-1 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-wider">
+            <div className="text-right shrink-0">
+              <span className="inline-block px-2.5 py-0.5 bg-slate-900 text-white rounded text-[9px] print:text-[8px] font-black uppercase tracking-wider">
                 État Officiel des Actifs
               </span>
-              <p className="text-[11px] text-slate-500 mt-1 font-medium">
+              <p className="text-[10px] print:text-[8px] text-slate-500 mt-0.5 font-medium">
                 Édité le : <strong>{new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</strong>
               </p>
             </div>
           </div>
 
           {/* Title and Scope */}
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-slate-50 p-3 print:p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-2 avoid-break">
             <div>
-              <h2 className="text-base font-extrabold text-slate-900 font-heading">
+              <h2 className="text-sm print:text-xs font-extrabold text-slate-900 font-heading">
                 Grand Livre d'Inventaire du Patrimoine Immobilier & Foncier
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-[10px] print:text-[8px] text-slate-500">
                 Recensement officiel des mandats de vente, baux de gestion et réserves foncières.
               </p>
             </div>
-            <div className="text-xs font-bold text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
-              {totalCount} Biens répertoriés
+            <div className="text-[10px] print:text-[8.5px] font-bold text-slate-700 bg-white px-2 py-1 rounded-lg border border-slate-200 shrink-0">
+              {totalCount} Biens
             </div>
           </div>
 
           {/* Executive Accounting Summary KPI Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold uppercase text-slate-500 block">Total Biens au Registre</span>
-              <span className="text-lg font-black text-slate-900 font-heading">{totalCount}</span>
+          <div className="grid grid-cols-4 gap-2 avoid-break">
+            <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+              <span className="text-[8.5px] font-bold uppercase text-slate-500 block">Total Biens</span>
+              <span className="text-sm font-black text-slate-900 font-heading">{totalCount}</span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
-              <span className="text-[10px] font-bold uppercase text-amber-800 block">Valeur Portefeuille Vente</span>
-              <span className="text-sm sm:text-base font-black text-amber-950 font-heading truncate block">
+            <div className="p-2 rounded-lg bg-amber-50 border border-amber-200">
+              <span className="text-[8.5px] font-bold uppercase text-amber-800 block">Valeur Portefeuille Vente</span>
+              <span className="text-xs font-black text-amber-950 font-heading truncate block">
                 {formatFCFA(totalSaleValue)}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200">
-              <span className="text-[10px] font-bold uppercase text-blue-800 block">Potentiel Locatif Mensuel</span>
-              <span className="text-sm sm:text-base font-black text-blue-950 font-heading truncate block">
-                {formatFCFA(totalRentalValue)} / mois
+            <div className="p-2 rounded-lg bg-blue-50 border border-blue-200">
+              <span className="text-[8.5px] font-bold uppercase text-blue-800 block">Potentiel Locatif Mensuel</span>
+              <span className="text-xs font-black text-blue-950 font-heading truncate block">
+                {formatFCFA(totalRentalValue)}/m
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
-              <span className="text-[10px] font-bold uppercase text-emerald-800 block">Parcelles Titre Foncier</span>
-              <span className="text-lg font-black text-emerald-950 font-heading">{totalTFPlots} TF</span>
+            <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200">
+              <span className="text-[8.5px] font-bold uppercase text-emerald-800 block">Parcelles Titre Foncier</span>
+              <span className="text-sm font-black text-emerald-950 font-heading">{totalTFPlots} TF</span>
             </div>
           </div>
 
           {/* Detailed Data Table */}
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900 text-white font-bold text-[10px] uppercase">
+          <div className="border border-slate-200 rounded-lg overflow-hidden text-[10px] print:text-[8px]">
+            <table className="w-full text-left">
+              <thead className="bg-slate-900 text-white font-bold text-[9px] print:text-[7.5px] uppercase">
                 <tr>
-                  <th className="py-2.5 px-3">Réf</th>
-                  <th className="py-2.5 px-3">Désignation du Bien</th>
-                  <th className="py-2.5 px-3">Type & Opération</th>
-                  <th className="py-2.5 px-3">Localisation</th>
-                  <th className="py-2.5 px-3">Surface</th>
-                  <th className="py-2.5 px-3">Titre / Doc</th>
-                  <th className="py-2.5 px-3 text-right">Prix / Valeur</th>
-                  <th className="py-2.5 px-3 text-center">Statut</th>
+                  <th className="py-1.5 px-2">Réf</th>
+                  <th className="py-1.5 px-2">Désignation</th>
+                  <th className="py-1.5 px-2">Type / Op</th>
+                  <th className="py-1.5 px-2">Localisation</th>
+                  <th className="py-1.5 px-2">Surface</th>
+                  <th className="py-1.5 px-2">Titre / Doc</th>
+                  <th className="py-1.5 px-2 text-right">Prix / Valeur</th>
+                  <th className="py-1.5 px-2 text-center">Statut</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200 font-medium">
                 {filteredProperties.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-8 text-center text-slate-400">
+                    <td colSpan={8} className="py-6 text-center text-slate-400">
                       Aucun enregistrement ne correspond aux filtres appliqués.
                     </td>
                   </tr>
@@ -266,48 +266,48 @@ export const PropertyExportModal: React.FC<PropertyExportModalProps> = ({ isOpen
                     const docBadge = getDocumentBadgeInfo(p.documentType);
                     return (
                       <tr key={p.id} className="hover:bg-slate-50">
-                        <td className="py-2 px-3 font-mono font-bold text-slate-950 whitespace-nowrap">
+                        <td className="py-1 px-2 font-mono font-bold text-slate-950 whitespace-nowrap">
                           {p.reference}
                         </td>
-                        <td className="py-2 px-3">
-                          <span className="font-bold text-slate-900 block truncate max-w-[200px]">
+                        <td className="py-1 px-2">
+                          <span className="font-bold text-slate-900 block truncate max-w-[140px]">
                             {p.title}
                           </span>
                           {p.lotNumber && (
-                            <span className="text-[10px] text-slate-500 font-mono">Lot: {p.lotNumber}</span>
+                            <span className="text-[8px] text-slate-500 font-mono">Lot: {p.lotNumber}</span>
                           )}
                         </td>
-                        <td className="py-2 px-3 whitespace-nowrap">
+                        <td className="py-1 px-2 whitespace-nowrap">
                           <span className="block text-slate-800">{getPropertyTypeLabel(p.propertyType)}</span>
-                          <span className={`text-[10px] font-black uppercase ${
+                          <span className={`text-[8px] font-black uppercase ${
                             p.dealType === 'vente' ? 'text-amber-700' : 'text-blue-700'
                           }`}>
                             {p.dealType === 'vente' ? 'Vente' : 'Location'}
                           </span>
                         </td>
-                        <td className="py-2 px-3 whitespace-nowrap">
+                        <td className="py-1 px-2 whitespace-nowrap">
                           <span className="text-slate-900 font-bold block">{p.neighborhood}</span>
-                          <span className="text-[10px] text-slate-500">{p.city}</span>
+                          <span className="text-[8px] text-slate-500">{p.city}</span>
                         </td>
-                        <td className="py-2 px-3 font-mono whitespace-nowrap">
+                        <td className="py-1 px-2 font-mono whitespace-nowrap">
                           {p.surface} m²
                         </td>
-                        <td className="py-2 px-3 whitespace-nowrap">
-                          <span className="text-[10px] font-bold text-slate-700 block">
+                        <td className="py-1 px-2 whitespace-nowrap">
+                          <span className="text-[8.5px] font-bold text-slate-700 block">
                             {docBadge.shortLabel}
                           </span>
                           {p.documentNumber && (
-                            <span className="font-mono text-[9px] text-slate-500 block truncate max-w-[100px]">
+                            <span className="font-mono text-[7.5px] text-slate-500 block truncate max-w-[70px]">
                               {p.documentNumber}
                             </span>
                           )}
                         </td>
-                        <td className="py-2 px-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
+                        <td className="py-1 px-2 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
                           {formatFCFA(p.price)}
-                          {p.dealType === 'location' && <span className="text-[10px] text-slate-400 font-normal"> /m</span>}
+                          {p.dealType === 'location' && <span className="text-[7.5px] text-slate-400 font-normal"> /m</span>}
                         </td>
-                        <td className="py-2 px-3 text-center whitespace-nowrap">
-                          <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-black uppercase ${
+                        <td className="py-1 px-2 text-center whitespace-nowrap">
+                          <span className={`inline-block px-1 py-0.2 rounded text-[7.5px] font-black uppercase ${
                             p.status === 'disponible' ? 'bg-emerald-100 text-emerald-800' :
                             p.status === 'reserve' ? 'bg-amber-100 text-amber-800' :
                             p.status === 'loue' ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-800'
@@ -324,18 +324,18 @@ export const PropertyExportModal: React.FC<PropertyExportModalProps> = ({ isOpen
           </div>
 
           {/* Legal Signoff & Stamp Footer */}
-          <div className="pt-8 border-t border-slate-200 flex justify-between items-end gap-6 text-xs text-slate-600">
-            <div className="space-y-1 max-w-sm">
-              <p className="font-bold text-slate-900">Attestation de Conformité d'Inventaire</p>
-              <p className="text-[10px] leading-relaxed text-slate-500">
+          <div className="pt-3 border-t border-slate-200 flex justify-between items-end gap-4 text-xs text-slate-600 avoid-break print:pt-2">
+            <div className="space-y-0.5 max-w-sm">
+              <p className="font-bold text-slate-900 text-[10px] print:text-[8px]">Attestation de Conformité d'Inventaire</p>
+              <p className="text-[9px] print:text-[7px] leading-tight text-slate-500">
                 Ce document certifie l'état exhaustif du portefeuille immobilier géré par l'agence {agencyConfig.name} à la date d'émission. Document confidentiel à usage de gestion comptable et d'audit.
               </p>
             </div>
 
-            <div className="text-center space-y-3 min-w-[200px]">
-              <p className="font-bold text-slate-900 text-xs">Pour la Direction Générale & la Comptabilité</p>
+            <div className="text-center space-y-1 min-w-[150px]">
+              <p className="font-bold text-slate-900 text-[10px] print:text-[8px]">Pour la Direction & Comptabilité</p>
               {agencyConfig.stampUrl ? (
-                <div className="w-24 h-24 mx-auto flex items-center justify-center">
+                <div className="w-16 h-16 mx-auto flex items-center justify-center">
                   <img
                     src={agencyConfig.stampUrl}
                     alt="Cachet"
@@ -344,7 +344,7 @@ export const PropertyExportModal: React.FC<PropertyExportModalProps> = ({ isOpen
                   />
                 </div>
               ) : (
-                <div className="w-24 h-16 mx-auto border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-[10px] text-slate-400">
+                <div className="w-20 h-10 mx-auto border border-dashed border-slate-300 rounded flex items-center justify-center text-[8px] text-slate-400">
                   Cachet & Signature
                 </div>
               )}

@@ -1,7 +1,8 @@
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { setActiveAdminTab, openPropertyForm, openPaymentModal } from '../../store/uiSlice';
+import { setActiveAdminTab, openPropertyForm, openPaymentModal, openRecordSaleModal } from '../../store/uiSlice';
 import { setSelectedPropertyId } from '../../store/propertiesSlice';
+import { setSelectedPropertyForSale } from '../../store/salesSlice';
 import { formatFCFA, formatDate, getDocumentBadgeInfo, getStatusBadgeInfo, formatSurface } from '../../utils/formatters';
 import { 
   Building2, 
@@ -64,10 +65,20 @@ export const AdminDashboardOverview: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-3">
           <button
-            onClick={() => dispatch(openPropertyForm({ type: 'parcelle' }))}
-            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+            onClick={() => {
+              dispatch(setSelectedPropertyForSale(null));
+              dispatch(openRecordSaleModal());
+            }}
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Receipt className="w-4 h-4 text-slate-950" />
+            <span>Émettre Reçu de Vente</span>
+          </button>
+          <button
+            onClick={() => dispatch(openPropertyForm({ type: 'parcelle' }))}
+            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs border border-slate-700 transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <Plus className="w-4 h-4 text-amber-400" />
             <span>Nouvelle Parcelle</span>
           </button>
           <button
@@ -75,7 +86,7 @@ export const AdminDashboardOverview: React.FC = () => {
             className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs border border-slate-700 transition-all flex items-center gap-2 cursor-pointer"
           >
             <Receipt className="w-4 h-4 text-amber-400" />
-            <span>Générer Quittance</span>
+            <span>Quittance Loyer</span>
           </button>
         </div>
       </div>

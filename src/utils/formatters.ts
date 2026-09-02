@@ -50,6 +50,130 @@ export function formatFCFA(amount: number | undefined | null): string {
 }
 
 /**
+ * Convert number in Francs CFA to French Words (for official notary deeds and receipts)
+ */
+export function formatAmountInFrenchWords(amount: number | undefined | null): string {
+  if (!amount || isNaN(amount) || amount <= 0) return 'Zéro Franc CFA';
+
+  const units = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix',
+    'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
+  const tens = ['', '', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix', 'quatre-vingts', 'quatre-vingt-dix'];
+
+  function convertGroup(n: number): string {
+    if (n === 0) return '';
+    let result = '';
+
+    // Hundreds
+    if (n >= 100) {
+      const h = Math.floor(n / 100);
+      if (h === 1) {
+        result += 'cent';
+      } else {
+        result += `${units[h]} cent${n % 100 === 0 ? 's' : ''}`;
+      }
+      n = n % 100;
+      if (n > 0) result += ' ';
+    }
+
+    // Tens and Units
+    if (n > 0) {
+      if (n < 20) {
+        result += units[n];
+      } else if (n < 70) {
+        const t = Math.floor(n / 10);
+        const u = n % 10;
+        result += tens[t];
+        if (u === 1) result += ' et un';
+        else if (u > 1) result += `-${units[u]}`;
+      } else if (n < 80) {
+        const u = n - 60;
+        result += 'soixante';
+        if (u === 11) result += ' et onze';
+        else result += `-${units[u]}`;
+      } else if (n < 100) {
+        const u = n - 80;
+        result += 'quatre-vingt';
+        if (u === 0) result += 's';
+        else result += `-${units[u]}`;
+      }
+    }
+
+    return result.trim();
+  }
+
+  const rounded = Math.round(amount);
+  if (rounded === 0) return 'Zéro Franc CFA';
+
+  const billions = Math.floor(rounded / 1000000000);
+  const millions = Math.floor((rounded % 1000000000) / 1000000);
+  const thousands = Math.floor((rounded % 1000000) / 1000);
+  const remainder = rounded % 1000;
+
+  const parts: string[] = [];
+
+  if (billions > 0) {
+    if (billions === 1) parts.push('un milliard');
+    else parts.push(`${convertGroup(billions)} milliards`);
+  }
+
+  if (millions > 0) {
+    if (millions === 1) parts.push('un million');
+    else parts.push(`${convertGroup(millions)} millions`);
+  }
+
+  if (thousands > 0) {
+    if (thousands === 1) parts.push('mille');
+    else parts.push(`${convertGroup(thousands)} mille`);
+  }
+
+  if (remainder > 0) {
+    parts.push(convertGroup(remainder));
+  }
+
+  const rawWords = parts.join(' ').trim();
+  const capitalized = rawWords.charAt(0).toUpperCase() + rawWords.slice(1);
+  return `${capitalized} Francs CFA`;
+}
+
+/**
+ * Get user-friendly label for sale operation types
+ */
+export function getSaleOperationLabel(type: 'vente_totale' | 'acompte' | 'solde' | 'versement_echelonne'): { label: string; badge: string; color: string } {
+  switch (type) {
+    case 'vente_totale':
+      return {
+        label: 'Vente Définitive (Paiement Intégral)',
+        badge: 'Règlement Intégral',
+        color: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+      };
+    case 'acompte':
+      return {
+        label: 'Acompte / Versement de Réservation',
+        badge: 'Acompte Reçu',
+        color: 'bg-amber-100 text-amber-800 border-amber-300',
+      };
+    case 'solde':
+      return {
+        label: 'Règlement du Solde Final',
+        badge: 'Solde Acquit',
+        color: 'bg-blue-100 text-blue-800 border-blue-300',
+      };
+    case 'versement_echelonne':
+      return {
+        label: 'Tranche / Versement Échelonné',
+        badge: 'Versement Échelonné',
+        color: 'bg-purple-100 text-purple-800 border-purple-300',
+      };
+    default:
+      return {
+        label: 'Reçu de Vente Immobilière',
+        badge: 'Vente',
+        color: 'bg-slate-100 text-slate-800 border-slate-300',
+      };
+  }
+}
+
+/**
  * Format surface area in m2
  * Example: 300 -> "300 m²"
  */

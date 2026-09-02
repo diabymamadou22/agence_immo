@@ -166,29 +166,29 @@ export const TenantExportModal: React.FC<TenantExportModalProps> = ({ isOpen, on
         </div>
 
         {/* Printable Document Sheet Content */}
-        <div className="p-6 sm:p-8 overflow-y-auto print:overflow-visible space-y-6 text-slate-900 bg-white" id="printable-tenant-report">
+        <div className="p-6 sm:p-8 overflow-y-auto print:overflow-visible space-y-4 print:space-y-3 text-slate-900 bg-white print:p-2" id="printable-tenant-report">
           
           {/* Official Agency Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b-2 border-slate-900 pb-5">
-            <div className="flex items-center gap-4">
+          <div className="flex justify-between items-start gap-4 border-b-2 border-slate-900 pb-3 print:pb-1.5 avoid-break">
+            <div className="flex items-center gap-3">
               {agencyConfig.logoUrl ? (
                 <img
                   src={agencyConfig.logoUrl}
                   alt={agencyConfig.name}
-                  className="w-16 h-16 object-contain rounded-xl border border-slate-200 p-1"
+                  className="w-12 h-12 print:w-9 print:h-9 object-contain rounded-lg border border-slate-200 p-0.5"
                   referrerPolicy="no-referrer"
                 />
               ) : (
-                <div className="w-14 h-14 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-xl shadow-xs">
+                <div className="w-10 h-10 print:w-8 print:h-8 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black text-base print:text-xs shadow-2xs">
                   {agencyConfig.name.slice(0, 2).toUpperCase()}
                 </div>
               )}
               <div>
-                <h1 className="text-xl font-black font-heading text-slate-950 uppercase tracking-tight">
+                <h1 className="text-lg print:text-sm font-black font-heading text-slate-950 uppercase tracking-tight">
                   {agencyConfig.name}
                 </h1>
-                <p className="text-xs text-slate-600 font-medium">{agencyConfig.slogan}</p>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[10px] text-slate-500 mt-1 font-mono">
+                <p className="text-[10px] print:text-[8px] text-slate-600 font-medium">{agencyConfig.slogan}</p>
+                <div className="flex flex-wrap items-center gap-x-2 text-[9px] print:text-[7.5px] text-slate-500 mt-0.5 font-mono">
                   <span>RCCM : {agencyConfig.rccm}</span>
                   <span>•</span>
                   <span>NIF : {agencyConfig.nif}</span>
@@ -198,121 +198,121 @@ export const TenantExportModal: React.FC<TenantExportModalProps> = ({ isOpen, on
               </div>
             </div>
 
-            <div className="text-right sm:self-end">
-              <span className="inline-block px-3 py-1 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-wider">
+            <div className="text-right shrink-0">
+              <span className="inline-block px-2.5 py-0.5 bg-slate-900 text-white rounded text-[9px] print:text-[8px] font-black uppercase tracking-wider">
                 État des Encaissements Locatifs
               </span>
-              <p className="text-[11px] text-slate-500 mt-1 font-medium">
+              <p className="text-[10px] print:text-[8px] text-slate-500 mt-0.5 font-medium">
                 Édité le : <strong>{new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</strong>
               </p>
             </div>
           </div>
 
           {/* Title & Scope */}
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-slate-50 p-3 print:p-2 rounded-xl border border-slate-200 flex items-center justify-between gap-2 avoid-break">
             <div>
-              <h2 className="text-base font-extrabold text-slate-900 font-heading">
+              <h2 className="text-sm print:text-xs font-extrabold text-slate-900 font-heading">
                 Rapport Comptable & Recouvrement des Loyers
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-[10px] print:text-[8px] text-slate-500">
                 Suivi financier des baux d'habitation et commerciaux sous mandat de gérance.
               </p>
             </div>
-            <div className="text-xs font-bold text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shadow-2xs">
-              {activeTenantsCount} Baux répertoriés
+            <div className="text-[10px] print:text-[8.5px] font-bold text-slate-700 bg-white px-2 py-1 rounded-lg border border-slate-200 shrink-0">
+              {activeTenantsCount} Baux
             </div>
           </div>
 
           {/* Executive Summary KPIs */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
-              <span className="text-[10px] font-bold uppercase text-slate-500 block">Loyer Mensuel Global</span>
-              <span className="text-sm sm:text-base font-black text-slate-950 font-heading truncate block">
+          <div className="grid grid-cols-4 gap-2 avoid-break">
+            <div className="p-2 rounded-lg bg-slate-50 border border-slate-200">
+              <span className="text-[8.5px] font-bold uppercase text-slate-500 block">Loyer Mensuel Global</span>
+              <span className="text-xs font-black text-slate-950 font-heading truncate block">
                 {formatFCFA(totalMonthlyRent)}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
-              <span className="text-[10px] font-bold uppercase text-emerald-800 block">Total Quittances Encaissées</span>
-              <span className="text-sm sm:text-base font-black text-emerald-950 font-heading truncate block">
+            <div className="p-2 rounded-lg bg-emerald-50 border border-emerald-200">
+              <span className="text-[8.5px] font-bold uppercase text-emerald-800 block">Quittances Encaissées</span>
+              <span className="text-xs font-black text-emerald-950 font-heading truncate block">
                 {formatFCFA(totalReceiptsCollected)}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200">
-              <span className="text-[10px] font-bold uppercase text-blue-800 block">Cautions Séquestrées</span>
-              <span className="text-sm sm:text-base font-black text-blue-950 font-heading truncate block">
+            <div className="p-2 rounded-lg bg-blue-50 border border-blue-200">
+              <span className="text-[8.5px] font-bold uppercase text-blue-800 block">Cautions Séquestrées</span>
+              <span className="text-xs font-black text-blue-950 font-heading truncate block">
                 {formatFCFA(totalDeposits)}
               </span>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
-              <span className="text-[10px] font-bold uppercase text-amber-800 block">Taux de Recouvrement</span>
-              <span className="text-lg font-black text-amber-950 font-heading">{recoveryRate}%</span>
-              <span className="text-[10px] text-amber-700 block">
-                {lateTenantsCount > 0 ? `${lateTenantsCount} retard(s)` : 'Tous à jour'}
+            <div className="p-2 rounded-lg bg-amber-50 border border-amber-200">
+              <span className="text-[8.5px] font-bold uppercase text-amber-800 block">Taux Recouvrement</span>
+              <span className="text-sm font-black text-amber-950 font-heading">{recoveryRate}%</span>
+              <span className="text-[8px] text-amber-700 block">
+                {lateTenantsCount > 0 ? `${lateTenantsCount} retard(s)` : 'À jour'}
               </span>
             </div>
           </div>
 
           {/* Section 1: Detailed Tenants & Leases Table */}
           {(activeTab === 'both' || activeTab === 'tenants') && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-extrabold text-sm text-slate-900 font-heading flex items-center gap-1.5">
-                  <Users className="w-4 h-4 text-blue-600" />
-                  <span>Registre des Baux & État de Solvabilité</span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between avoid-break">
+                <h3 className="font-extrabold text-xs print:text-[10px] text-slate-900 font-heading flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5 text-blue-600 print:hidden" />
+                  <span>Registre des Baux & Solvabilité</span>
                 </h3>
-                <span className="text-xs text-slate-500">{filteredTenants.length} enregistrements</span>
+                <span className="text-[10px] print:text-[8px] text-slate-500">{filteredTenants.length} baux</span>
               </div>
 
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-900 text-white font-bold text-[10px] uppercase">
+              <div className="border border-slate-200 rounded-lg overflow-hidden text-[10px] print:text-[8px]">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-900 text-white font-bold text-[9px] print:text-[7.5px] uppercase">
                     <tr>
-                      <th className="py-2.5 px-3">Locataire & Contact</th>
-                      <th className="py-2.5 px-3">Bien Loué / Unité</th>
-                      <th className="py-2.5 px-3">Échéance</th>
-                      <th className="py-2.5 px-3 text-right">Loyer Mensuel</th>
-                      <th className="py-2.5 px-3 text-right">Caution</th>
-                      <th className="py-2.5 px-3">Dernier Mois Payé</th>
-                      <th className="py-2.5 px-3 text-center">Statut</th>
+                      <th className="py-1.5 px-2">Locataire</th>
+                      <th className="py-1.5 px-2">Bien / Unité</th>
+                      <th className="py-1.5 px-2">Échéance</th>
+                      <th className="py-1.5 px-2 text-right">Loyer Mensuel</th>
+                      <th className="py-1.5 px-2 text-right">Caution</th>
+                      <th className="py-1.5 px-2">Dernier Mois</th>
+                      <th className="py-1.5 px-2 text-center">Statut</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 font-medium">
                     {filteredTenants.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-6 text-center text-slate-400">
+                        <td colSpan={7} className="py-4 text-center text-slate-400">
                           Aucun locataire ne correspond aux filtres.
                         </td>
                       </tr>
                     ) : (
                       filteredTenants.map((t) => (
                         <tr key={t.id} className="hover:bg-slate-50">
-                          <td className="py-2 px-3">
+                          <td className="py-1 px-2">
                             <span className="font-bold text-slate-950 block">{t.name}</span>
-                            <span className="text-[10px] text-slate-500 font-mono">Tél : {t.phone}</span>
+                            <span className="text-[8px] text-slate-500 font-mono">{t.phone}</span>
                           </td>
-                          <td className="py-2 px-3">
-                            <span className="font-bold text-slate-900 block truncate max-w-[180px]">{t.propertyTitle}</span>
-                            <span className="text-[10px] text-slate-500">Unité : {t.unitNumber || 'Principale'}</span>
+                          <td className="py-1 px-2">
+                            <span className="font-bold text-slate-900 block truncate max-w-[140px]">{t.propertyTitle}</span>
+                            <span className="text-[8px] text-slate-500">Unité : {t.unitNumber || 'Principale'}</span>
                           </td>
-                          <td className="py-2 px-3 text-slate-700 whitespace-nowrap">
-                            Le {t.rentPaymentDay || 5} du mois
+                          <td className="py-1 px-2 text-slate-700 whitespace-nowrap">
+                            Le {t.rentPaymentDay || 5}/m
                           </td>
-                          <td className="py-2 px-3 text-right font-mono font-bold text-slate-950 whitespace-nowrap">
+                          <td className="py-1 px-2 text-right font-mono font-bold text-slate-950 whitespace-nowrap">
                             {formatFCFA(t.monthlyRent)}
                           </td>
-                          <td className="py-2 px-3 text-right font-mono text-slate-700 whitespace-nowrap">
+                          <td className="py-1 px-2 text-right font-mono text-slate-700 whitespace-nowrap">
                             {formatFCFA(t.depositAmount)}
                           </td>
-                          <td className="py-2 px-3 whitespace-nowrap">
-                            <span className="text-slate-800 text-[11px]">
+                          <td className="py-1 px-2 whitespace-nowrap">
+                            <span className="text-slate-800 text-[9px] print:text-[8px]">
                               {t.lastPaymentMonth || 'Non renseigné'}
                             </span>
                           </td>
-                          <td className="py-2 px-3 text-center whitespace-nowrap">
-                            <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-black uppercase ${
+                          <td className="py-1 px-2 text-center whitespace-nowrap">
+                            <span className={`inline-block px-1.5 py-0.2 rounded text-[8px] font-black uppercase ${
                               t.status === 'actif' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
                             }`}>
                               {t.status === 'actif' ? 'À Jour' : 'En Retard'}
@@ -329,53 +329,53 @@ export const TenantExportModal: React.FC<TenantExportModalProps> = ({ isOpen, on
 
           {/* Section 2: Receipts Accounting Journal */}
           {(activeTab === 'both' || activeTab === 'receipts') && (
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between">
-                <h3 className="font-extrabold text-sm text-slate-900 font-heading flex items-center gap-1.5">
-                  <Receipt className="w-4 h-4 text-emerald-600" />
-                  <span>Journal des Quittances de Loyer Émises (Historique)</span>
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between avoid-break">
+                <h3 className="font-extrabold text-xs print:text-[10px] text-slate-900 font-heading flex items-center gap-1.5">
+                  <Receipt className="w-3.5 h-3.5 text-emerald-600 print:hidden" />
+                  <span>Journal des Quittances de Loyer Émises</span>
                 </h3>
-                <span className="text-xs text-slate-500">{receipts.length} quittances</span>
+                <span className="text-[10px] print:text-[8px] text-slate-500">{receipts.length} quittances</span>
               </div>
 
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-800 text-white font-bold text-[10px] uppercase">
+              <div className="border border-slate-200 rounded-lg overflow-hidden text-[10px] print:text-[8px]">
+                <table className="w-full text-left">
+                  <thead className="bg-slate-800 text-white font-bold text-[9px] print:text-[7.5px] uppercase">
                     <tr>
-                      <th className="py-2.5 px-3">N° Quittance</th>
-                      <th className="py-2.5 px-3">Date Paiement</th>
-                      <th className="py-2.5 px-3">Locataire</th>
-                      <th className="py-2.5 px-3">Période Loyer</th>
-                      <th className="py-2.5 px-3">Mode Règlement</th>
-                      <th className="py-2.5 px-3 text-right">Montant Encaissé</th>
+                      <th className="py-1.5 px-2">N° Quittance</th>
+                      <th className="py-1.5 px-2">Date</th>
+                      <th className="py-1.5 px-2">Locataire</th>
+                      <th className="py-1.5 px-2">Période</th>
+                      <th className="py-1.5 px-2">Règlement</th>
+                      <th className="py-1.5 px-2 text-right">Montant</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 font-medium">
                     {receipts.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="py-6 text-center text-slate-400">
+                        <td colSpan={6} className="py-4 text-center text-slate-400">
                           Aucune quittance émise.
                         </td>
                       </tr>
                     ) : (
                       receipts.map((r) => (
                         <tr key={r.id} className="hover:bg-slate-50">
-                          <td className="py-2 px-3 font-mono font-bold text-slate-950 whitespace-nowrap">
+                          <td className="py-1 px-2 font-mono font-bold text-slate-950 whitespace-nowrap">
                             {r.receiptNumber}
                           </td>
-                          <td className="py-2 px-3 whitespace-nowrap text-slate-600">
+                          <td className="py-1 px-2 whitespace-nowrap text-slate-600">
                             {formatDate(r.paymentDate)}
                           </td>
-                          <td className="py-2 px-3 font-bold text-slate-900">
+                          <td className="py-1 px-2 font-bold text-slate-900 truncate max-w-[120px]">
                             {r.tenantName}
                           </td>
-                          <td className="py-2 px-3 whitespace-nowrap text-slate-800 font-medium">
+                          <td className="py-1 px-2 whitespace-nowrap text-slate-800 font-medium">
                             {r.periodMonth}
                           </td>
-                          <td className="py-2 px-3 whitespace-nowrap text-slate-600 text-[11px]">
+                          <td className="py-1 px-2 whitespace-nowrap text-slate-600 text-[9px] print:text-[7.5px]">
                             {r.paymentMethod} {r.transactionRef ? `(${r.transactionRef})` : ''}
                           </td>
-                          <td className="py-2 px-3 text-right font-mono font-bold text-emerald-700 whitespace-nowrap">
+                          <td className="py-1 px-2 text-right font-mono font-bold text-emerald-700 whitespace-nowrap">
                             {formatFCFA(r.amount)}
                           </td>
                         </tr>
@@ -388,18 +388,18 @@ export const TenantExportModal: React.FC<TenantExportModalProps> = ({ isOpen, on
           )}
 
           {/* Legal Signoff & Stamp Footer */}
-          <div className="pt-8 border-t border-slate-200 flex justify-between items-end gap-6 text-xs text-slate-600">
-            <div className="space-y-1 max-w-sm">
-              <p className="font-bold text-slate-900">Attestation de Gestion Locative</p>
-              <p className="text-[10px] leading-relaxed text-slate-500">
+          <div className="pt-3 border-t border-slate-200 flex justify-between items-end gap-4 text-xs text-slate-600 avoid-break print:pt-2">
+            <div className="space-y-0.5 max-w-sm">
+              <p className="font-bold text-slate-900 text-[10px] print:text-[8px]">Attestation de Gestion Locative</p>
+              <p className="text-[9px] print:text-[7px] leading-tight text-slate-500">
                 Certifié sincère et conforme aux registres de caisse et relevés bancaires de l'agence {agencyConfig.name}. Document valant état des lieux financier pour les propriétaires et la comptabilité générale.
               </p>
             </div>
 
-            <div className="text-center space-y-3 min-w-[200px]">
-              <p className="font-bold text-slate-900 text-xs">Le Responsable Gestion Locative & Comptabilité</p>
+            <div className="text-center space-y-1 min-w-[150px]">
+              <p className="font-bold text-slate-900 text-[10px] print:text-[8px]">Gestion Locative & Comptabilité</p>
               {agencyConfig.stampUrl ? (
-                <div className="w-24 h-24 mx-auto flex items-center justify-center">
+                <div className="w-16 h-16 mx-auto flex items-center justify-center">
                   <img
                     src={agencyConfig.stampUrl}
                     alt="Cachet"
@@ -408,7 +408,7 @@ export const TenantExportModal: React.FC<TenantExportModalProps> = ({ isOpen, on
                   />
                 </div>
               ) : (
-                <div className="w-24 h-16 mx-auto border border-dashed border-slate-300 rounded-lg flex items-center justify-center text-[10px] text-slate-400">
+                <div className="w-20 h-10 mx-auto border border-dashed border-slate-300 rounded flex items-center justify-center text-[8px] text-slate-400">
                   Cachet & Signature
                 </div>
               )}

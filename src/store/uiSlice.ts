@@ -5,6 +5,7 @@ export type AdminTab =
   | 'overview' 
   | 'parcelles' 
   | 'properties' 
+  | 'sales_receipts'
   | 'locations' 
   | 'owners' 
   | 'contracts' 
@@ -47,6 +48,8 @@ interface UiState {
   selectedContractForPrint: LegalContract | null;
   isPayoutPrintModalOpen: boolean;
   selectedPayoutForPrint: OwnerPayout | null;
+  isSaleReceiptModalOpen: boolean;
+  isRecordSaleModalOpen: boolean;
 
   // Admin Authentication / Password Protection
   isAdminAuthenticated: boolean;
@@ -91,6 +94,8 @@ const initialState: UiState = {
   selectedContractForPrint: null,
   isPayoutPrintModalOpen: false,
   selectedPayoutForPrint: null,
+  isSaleReceiptModalOpen: false,
+  isRecordSaleModalOpen: false,
 
   isAdminAuthenticated: getInitialAdminAuth(),
   isAdminAuthModalOpen: false,
@@ -217,6 +222,22 @@ export const uiSlice = createSlice({
       state.selectedPayoutForPrint = null;
     },
 
+    // Sale Receipt Print & View Modal
+    openSaleReceiptModal: (state) => {
+      state.isSaleReceiptModalOpen = true;
+    },
+    closeSaleReceiptModal: (state) => {
+      state.isSaleReceiptModalOpen = false;
+    },
+
+    // Record Sale Modal
+    openRecordSaleModal: (state) => {
+      state.isRecordSaleModalOpen = true;
+    },
+    closeRecordSaleModal: (state) => {
+      state.isRecordSaleModalOpen = false;
+    },
+
     // Admin Authentication
     setAdminAuthenticated: (state, action: PayloadAction<boolean>) => {
       state.isAdminAuthenticated = action.payload;
@@ -300,6 +321,10 @@ export const {
   closeContractPrintModal,
   openPayoutPrintModal,
   closePayoutPrintModal,
+  openSaleReceiptModal,
+  closeSaleReceiptModal,
+  openRecordSaleModal,
+  closeRecordSaleModal,
   setAdminAuthenticated,
   openAdminAuthModal,
   closeAdminAuthModal,

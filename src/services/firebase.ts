@@ -1,11 +1,14 @@
-import { initializeApp, getApps, getApp, FirebaseApp, deleteApp } from 'firebase/app';
+import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getFirestore, Firestore, doc, getDocFromServer, setDoc } from 'firebase/firestore';
+import { getAuth, Auth } from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
+import defaultAppletConfig from '../../firebase-applet-config.json';
 
 export interface FirebaseConfigOptions {
   apiKey: string;
   authDomain?: string;
   projectId: string;
+  firestoreDatabaseId?: string;
   storageBucket?: string;
   messagingSenderId?: string;
   appId?: string;
@@ -29,12 +32,26 @@ export const getDefaultConfig = (): FirebaseConfigOptions => {
     console.error('Error reading custom firebase config:', e);
   }
 
-  // 2. Check environment variables (Vercel / Vite env)
+  // 2. Default to provisioned firebase-applet-config.json
+  if (defaultAppletConfig && defaultAppletConfig.projectId && defaultAppletConfig.apiKey) {
+    return {
+      apiKey: defaultAppletConfig.apiKey,
+      authDomain: defaultAppletConfig.authDomain,
+      projectId: defaultAppletConfig.projectId,
+      firestoreDatabaseId: defaultAppletConfig.firestoreDatabaseId,
+      storageBucket: defaultAppletConfig.storageBucket,
+      messagingSenderId: defaultAppletConfig.messagingSenderId,
+      appId: defaultAppletConfig.appId,
+    };
+  }
+
+  // 3. Fallback to env
   return {
     apiKey: metaEnv.VITE_FIREBASE_API_KEY || '',
-    authDomain: metaEnv.VITE_FIREBASE_AUTH_DOMAIN || (metaEnv.VITE_FIREBASE_PROJECT_ID ? `${metaEnv.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com` : ''),
+    authDomain: metaEnv.VITE_FIREBASE_AUTH_DOMAIN || '',
     projectId: metaEnv.VITE_FIREBASE_PROJECT_ID || '',
-    storageBucket: metaEnv.VITE_FIREBASE_STORAGE_BUCKET || (metaEnv.VITE_FIREBASE_PROJECT_ID ? `${metaEnv.VITE_FIREBASE_PROJECT_ID}.appspot.com` : ''),
+    firestoreDatabaseId: metaEnv.VITE_FIREBASE_DATABASE_ID || '',
+    storageBucket: metaEnv.VITE_FIREBASE_STORAGE_BUCKET || '',
     messagingSenderId: metaEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
     appId: metaEnv.VITE_FIREBASE_APP_ID || '',
   };
@@ -42,6 +59,7 @@ export const getDefaultConfig = (): FirebaseConfigOptions => {
 
 let app: FirebaseApp | null = null;
 let db: Firestore | null = null;
+let auth: Auth | null = null;
 let storage: FirebaseStorage | null = null;
 let isConfigured = false;
 let currentConfig: FirebaseConfigOptions = getDefaultConfig();
@@ -53,6 +71,7 @@ export const initFirebase = (config?: FirebaseConfigOptions) => {
   if (!activeConfig.projectId || !activeConfig.apiKey) {
     isConfigured = false;
     db = null;
+    auth = null;
     storage = null;
     app = null;
     return false;
@@ -65,14 +84,33 @@ export const initFirebase = (config?: FirebaseConfigOptions) => {
     } else {
       app = initializeApp(activeConfig);
     }
-    db = getFirestore(app);
-    storage = getStorage(app);
+    
+    // CRITICAL: Always pass firestoreDatabaseId if present
+    if (activeConfig.firestoreDatabaseId) {
+      db = getFirestore(app, activeConfig.firestoreDatabaseId);
+    } else {
+      db = getFirestore(app);
+    }
+
+    try {
+      auth = getAuth(app);
+    } catch (authErr) {
+      console.warn('Auth init note:', authErr);
+    }
+
+    try {
+      storage = getStorage(app);
+    } catch (storageErr) {
+      console.warn('Storage init note:', storageErr);
+    }
+
     isConfigured = true;
     return true;
   } catch (error) {
     console.warn('Firebase initialization error:', error);
     isConfigured = false;
     db = null;
+    auth = null;
     storage = null;
     return false;
   }
@@ -114,6 +152,7 @@ export const testFirebaseConnection = async (): Promise<{ success: boolean; mess
       lastCheckedAt: new Date().toISOString(),
       status: 'active',
       client: 'Mali Immo Prestige Cloud Engine',
+      projectId: currentConfig.projectId,
     }, { merge: true });
 
     await getDocFromServer(testRef);
@@ -132,5 +171,6 @@ export const testFirebaseConnection = async (): Promise<{ success: boolean; mess
 
 export const getActiveFirebaseConfig = () => currentConfig;
 
-export { app, db, storage, isConfigured };
+export { app, db, auth, storage, isConfigured };
+
 

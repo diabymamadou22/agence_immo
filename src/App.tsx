@@ -4,6 +4,7 @@ import { store, useAppDispatch, useAppSelector } from './store';
 import { setProperties } from './store/propertiesSlice';
 import { setLeads } from './store/leadsSlice';
 import { setTenants, setReceipts } from './store/tenantsSlice';
+import { setSalesReceipts } from './store/salesSlice';
 import { setOwners, setPayouts } from './store/ownersSlice';
 import { setContracts } from './store/contractsSlice';
 import { setExpenses } from './store/financialsSlice';
@@ -30,6 +31,7 @@ import { AdminHeader } from './components/admin/AdminHeader';
 import { AdminDashboardOverview } from './components/admin/AdminDashboardOverview';
 import { AdminParcelleManager } from './components/admin/AdminParcelleManager';
 import { AdminPropertyManager } from './components/admin/AdminPropertyManager';
+import { AdminSaleReceiptsList } from './components/admin/AdminSaleReceiptsList';
 import { AdminTenantManager } from './components/admin/AdminTenantManager';
 import { AdminLeadManager } from './components/admin/AdminLeadManager';
 import { AdminNotaryFeeView } from './components/admin/AdminNotaryFeeView';
@@ -41,6 +43,8 @@ import { AdminBackupManager } from './components/admin/AdminBackupManager';
 import { PropertyFormModal } from './components/admin/PropertyFormModal';
 import { RecordPaymentModal } from './components/admin/RecordPaymentModal';
 import { RentReceiptModal } from './components/admin/RentReceiptModal';
+import { RecordSaleModal } from './components/admin/RecordSaleModal';
+import { SaleReceiptModal } from './components/admin/SaleReceiptModal';
 import { ContractPrintModal } from './components/admin/ContractPrintModal';
 import { PayoutPrintModal } from './components/admin/PayoutPrintModal';
 import { AdminAuthModal } from './components/admin/AdminAuthModal';
@@ -84,6 +88,13 @@ const AppContent: React.FC = () => {
       }
     });
 
+    // 4b. Sales Receipts
+    const unsubscribeSales = firestoreService.subscribeSaleReceipts((sales) => {
+      if (sales && sales.length > 0) {
+        dispatch(setSalesReceipts(sales));
+      }
+    });
+
     // 5. Owners
     const unsubscribeOwners = firestoreService.subscribeOwners((owners) => {
       if (owners && owners.length > 0) {
@@ -124,6 +135,7 @@ const AppContent: React.FC = () => {
       unsubscribeLeads();
       unsubscribeTenants();
       unsubscribeReceipts();
+      unsubscribeSales();
       unsubscribeOwners();
       unsubscribePayouts();
       unsubscribeContracts();
@@ -202,6 +214,7 @@ const AppContent: React.FC = () => {
             {activeAdminTab === 'overview' && <AdminDashboardOverview />}
             {activeAdminTab === 'parcelles' && <AdminParcelleManager />}
             {activeAdminTab === 'properties' && <AdminPropertyManager />}
+            {activeAdminTab === 'sales_receipts' && <AdminSaleReceiptsList />}
             {activeAdminTab === 'locations' && <AdminTenantManager />}
             {activeAdminTab === 'owners' && <AdminOwnerManager />}
             {activeAdminTab === 'contracts' && <AdminContractGenerator />}
@@ -229,6 +242,8 @@ const AppContent: React.FC = () => {
       <PropertyFormModal />
       <RecordPaymentModal />
       <RentReceiptModal />
+      <RecordSaleModal />
+      <SaleReceiptModal />
       <ContractPrintModal />
       <PayoutPrintModal />
       <ToastContainer />
@@ -237,11 +252,7 @@ const AppContent: React.FC = () => {
 };
 
 export function App() {
-  return (
-    <Provider store={store}>
-      <AppContent />
-    </Provider>
-  );
+  return <AppContent />;
 }
 
 export default App;

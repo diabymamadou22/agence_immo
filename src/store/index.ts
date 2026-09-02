@@ -8,6 +8,7 @@ import agencyReducer from './agencySlice';
 import ownersReducer from './ownersSlice';
 import contractsReducer from './contractsSlice';
 import financialsReducer from './financialsSlice';
+import salesReducer from './salesSlice';
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +20,7 @@ export const store = configureStore({
     owners: ownersReducer,
     contracts: contractsReducer,
     financials: financialsReducer,
+    sales: salesReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

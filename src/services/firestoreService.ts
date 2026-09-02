@@ -20,7 +20,8 @@ import {
   OwnerPayout, 
   LegalContract, 
   AgencyExpense, 
-  AgencyConfig 
+  AgencyConfig,
+  SaleReceipt
 } from '../types';
 
 export const COLLECTIONS = {
@@ -28,6 +29,7 @@ export const COLLECTIONS = {
   LEADS: 'leads',
   TENANTS: 'tenants',
   RECEIPTS: 'receipts',
+  SALES: 'sales',
   OWNERS: 'owners',
   PAYOUTS: 'payouts',
   CONTRACTS: 'contracts',
@@ -169,6 +171,52 @@ export const firestoreService = {
       await deleteDoc(doc(db, COLLECTIONS.RECEIPTS, receiptId));
     } catch (e) {
       console.warn('Firestore deleteReceipt fallback:', e);
+    }
+  },
+
+  // ================= SALES & SALE RECEIPTS =================
+  async fetchSaleReceipts(): Promise<SaleReceipt[]> {
+    if (!db || !isConfigured) return [];
+    try {
+      const q = query(collection(db, COLLECTIONS.SALES), orderBy('saleDate', 'desc'));
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => doc.data() as SaleReceipt);
+    } catch (e) {
+      console.warn('Firestore fetchSaleReceipts fallback:', e);
+      return [];
+    }
+  },
+
+  async saveSaleReceipt(sale: SaleReceipt): Promise<void> {
+    if (!db || !isConfigured) return;
+    try {
+      await setDoc(doc(db, COLLECTIONS.SALES, sale.id), sale, { merge: true });
+    } catch (e) {
+      console.warn('Firestore saveSaleReceipt fallback:', e);
+    }
+  },
+
+  async deleteSaleReceipt(saleId: string): Promise<void> {
+    if (!db || !isConfigured) return;
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.SALES, saleId));
+    } catch (e) {
+      console.warn('Firestore deleteSaleReceipt fallback:', e);
+    }
+  },
+
+  subscribeSaleReceipts(onUpdate: (sales: SaleReceipt[]) => void): () => void {
+    if (!db || !isConfigured) return () => {};
+    try {
+      const q = query(collection(db, COLLECTIONS.SALES), orderBy('saleDate', 'desc'));
+      const unsub = onSnapshot(q, (snapshot) => {
+        const sales = snapshot.docs.map(doc => doc.data() as SaleReceipt);
+        onUpdate(sales);
+      }, (err) => console.warn('Sales subscription error:', err));
+      return unsub;
+    } catch (e) {
+      console.warn('Firestore subscribeSaleReceipts error:', e);
+      return () => {};
     }
   },
 

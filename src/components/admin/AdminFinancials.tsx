@@ -6,6 +6,7 @@ import { firestoreService } from '../../services/firestoreService';
 import { formatFCFA, formatDate } from '../../utils/formatters';
 import { AgencyExpense, PaymentMethod } from '../../types';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
+import { FinancialChart } from './FinancialChart';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -238,6 +239,16 @@ export const AdminFinancials: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Monthly Revenues vs Expenses Visualizer (Recharts) */}
+      <FinancialChart
+        properties={properties}
+        tenants={tenants}
+        receipts={receipts}
+        payouts={payouts}
+        expenses={expenses}
+        agencyConfig={agencyConfig}
+      />
 
       {/* New Expense Modal/Section */}
       {isAddingExpense && (

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { openPropertyForm, addToast } from '../../store/uiSlice';
+import { openPropertyForm, addToast, openRecordSaleModal, openSaleReceiptModal } from '../../store/uiSlice';
 import { deleteProperty, updatePropertyStatus, setSelectedPropertyId } from '../../store/propertiesSlice';
+import { setActiveReceiptForPrint, setSelectedPropertyForSale } from '../../store/salesSlice';
 import { firestoreService } from '../../services/firestoreService';
 import { Property, PropertyStatus, PropertyType, DealType } from '../../types';
 import { 
@@ -14,6 +15,7 @@ import {
 import { exportPropertiesToCSV } from '../../utils/exportUtils';
 import { PropertyExportModal } from './PropertyExportModal';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
+import { AdminSaleReceiptsList } from './AdminSaleReceiptsList';
 import { 
   Building2, 
   Plus, 
@@ -26,14 +28,17 @@ import {
   Maximize2,
   MapPin,
   FileSpreadsheet,
-  Printer
+  Printer,
+  Receipt
 } from 'lucide-react';
 
 export const AdminPropertyManager: React.FC = () => {
   const dispatch = useAppDispatch();
   const properties = useAppSelector((state) => state.properties.items);
+  const sales = useAppSelector((state) => state.sales.items);
   const agencyConfig = useAppSelector((state) => state.agency.config);
 
+  const [activeTab, setActiveTab] = useState<'inventory' | 'receipts'>('inventory');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [filterDeal, setFilterDeal] = useState<string>('all');
@@ -115,6 +120,19 @@ export const AdminPropertyManager: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Reçu de Vente Button */}
+          <button
+            onClick={() => {
+              dispatch(setSelectedPropertyForSale(null));
+              dispatch(openRecordSaleModal());
+            }}
+            className="px-3.5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Émettre et imprimer un reçu de vente pour appartement ou villa"
+          >
+            <Receipt className="w-4 h-4 text-slate-950" />
+            <span>Émettre Reçu de Vente</span>
+          </button>
+
           {/* CSV Export */}
           <button
             onClick={handleExportCSV}
@@ -146,7 +164,38 @@ export const AdminPropertyManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Bar */}
+      {/* Sub-Tabs: Inventaire vs Reçus de Vente */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+        <button
+          onClick={() => setActiveTab('inventory')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'inventory'
+              ? 'bg-slate-900 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Building2 className="w-3.5 h-3.5 text-amber-400" />
+          <span>Catalogue des Propriétés & Bâtis ({properties.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('receipts')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'receipts'
+              ? 'bg-slate-900 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Receipt className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Reçus de Vente Appartements & Foncier ({sales.length})</span>
+        </button>
+      </div>
+
+      {activeTab === 'receipts' ? (
+        <AdminSaleReceiptsList />
+      ) : (
+        <>
+          {/* Filter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs grid grid-cols-1 sm:grid-cols-4 gap-3">
         <div className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -298,6 +347,32 @@ export const AdminPropertyManager: React.FC = () => {
                       {/* Actions */}
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {/* Reçu de vente action (for sales or sold items) */}
+                          {prop.dealType === 'vente' && (() => {
+                            const existingSale = sales.find((s) => s.propertyId === prop.id || s.propertyReference === prop.reference);
+                            return (
+                              <button
+                                onClick={() => {
+                                  if (existingSale) {
+                                    dispatch(setActiveReceiptForPrint(existingSale));
+                                    dispatch(openSaleReceiptModal());
+                                  } else {
+                                    dispatch(setSelectedPropertyForSale(prop));
+                                    dispatch(openRecordSaleModal());
+                                  }
+                                }}
+                                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                  existingSale || prop.status === 'vendu'
+                                    ? 'bg-amber-100 text-amber-900 hover:bg-amber-200'
+                                    : 'text-slate-600 hover:text-amber-700 hover:bg-amber-50'
+                                }`}
+                                title={existingSale ? `Imprimer le Reçu de Vente (${existingSale.receiptNumber})` : 'Émettre un Reçu de Vente'}
+                              >
+                                <Receipt className="w-4 h-4" />
+                              </button>
+                            );
+                          })()}
+
                           <button
                             onClick={() => dispatch(setSelectedPropertyId(prop.id))}
                             className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
@@ -329,6 +404,8 @@ export const AdminPropertyManager: React.FC = () => {
           </table>
         </div>
       </div>
+        </>
+      )}
 
       {/* Confirmation Modal for Property Deletion */}
       <ConfirmDeleteModal

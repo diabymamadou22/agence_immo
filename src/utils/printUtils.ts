@@ -39,8 +39,16 @@ export const printElement = (elementOrId: HTMLElement | string, documentTitle: s
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   ${stylesHtml}
   <style>
-    @page { size: A4 portrait; margin: 10mm 10mm 12mm 10mm; }
-    *, *::before, *::after { box-sizing: border-box !important; }
+    @page { 
+      size: A4 portrait; 
+      margin: 6mm 8mm 6mm 8mm; 
+    }
+    *, *::before, *::after { 
+      box-sizing: border-box !important; 
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
     html, body {
       background: #ffffff !important;
       color: #0f172a !important;
@@ -49,10 +57,9 @@ export const printElement = (elementOrId: HTMLElement | string, documentTitle: s
       padding: 0 !important;
       width: 100% !important;
       height: auto !important;
+      font-size: 11px !important;
+      line-height: 1.35 !important;
       overflow: visible !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-      color-adjust: exact !important;
     }
     .print\\:hidden, .no-print, button, nav, header, footer { display: none !important; }
     .page-break, .page-break-before { page-break-before: always !important; break-before: page !important; }
@@ -62,6 +69,22 @@ export const printElement = (elementOrId: HTMLElement | string, documentTitle: s
     thead { display: table-header-group !important; }
     tfoot { display: table-footer-group !important; }
     img { max-width: 100% !important; height: auto !important; }
+    
+    /* Ensure printable document fits A4 width cleanly without horizontal overflow */
+    .printable-document {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 auto !important;
+      padding: 0 !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Single page documents (Reçus de vente, Quittances, Reversements) must stay on 1 page */
+    .single-page-a4 {
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      max-height: 275mm !important;
+    }
   </style>
 </head>
 <body class="bg-white text-slate-900 p-4">

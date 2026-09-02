@@ -223,6 +223,66 @@ export interface AgencyExpense {
   notes?: string;
 }
 
+// Sales Receipts & Purchase Deeds (Reçus de Vente Foncier & Bâti)
+export type SaleOperationType = 'vente_totale' | 'acompte' | 'solde' | 'versement_echelonne';
+
+export interface SaleReceipt {
+  id: string;
+  receiptNumber: string; // Ex: RECU-VTE-2024-001
+  saleDate: string; // ISO date
+  operationType: SaleOperationType; // Vente totale / Acompte / Solde / Tranche
+  
+  // Property Information
+  propertyId: string;
+  propertyReference: string;
+  propertyTitle: string;
+  propertyType: PropertyType; // 'parcelle' | 'appartement' | 'maison' | etc.
+  city: string;
+  commune?: string;
+  neighborhood: string;
+  address?: string;
+  surface: number; // m²
+  dimensions?: string; // ex: 15m x 20m
+  
+  // Cadastre / Land specifics (particularly for parcelles & appartements)
+  lotissement?: string;
+  section?: string;
+  lotNumber?: string;
+  ilotNumber?: string;
+  doorNumber?: string; // N° Porte / Appartement
+  buildingFloor?: string; // Étage / Immeuble
+  documentType: DocumentType;
+  documentNumber?: string; // TF N° 12458/BKO
+  
+  // Buyer / Client Details (All client info)
+  buyerName: string; // Nom & Prénoms de l'acquéreur
+  buyerPhone: string; // Téléphone
+  buyerNinaOrId?: string; // Numéro NINA / CNIB / Passeport
+  buyerAddress?: string; // Adresse / Quartier / Ville
+  buyerEmail?: string;
+  buyerProfession?: string; // Profession / Qualité
+  buyerNationality?: string; // Malienne, etc.
+  
+  // Seller / Owner / Mandator Info
+  sellerName?: string;
+  sellerPhone?: string;
+  
+  // Financials
+  totalAgreedPrice: number; // Prix de vente total convenu en FCFA
+  amountPaid: number; // Montant versé / encaissé en FCFA
+  remainingBalance: number; // Solde restant dû (totalAgreedPrice - amountPaid) en FCFA
+  paymentMethod: PaymentMethod;
+  transactionReference?: string; // N° Chèque, Référence Virement, TxID Orange Money/Wave
+  notaryOffice?: string; // Étude Notariale (ex: Étude Me Mamadou Diaby, Notaire à Bamako)
+  
+  // Agent & Agency
+  issuedBy: string; // Nom de l'agent / Gestionnaire
+  status: 'valide' | 'annule';
+  notes?: string;
+  clauses?: string[];
+  createdAt: string;
+}
+
 // Agency White-Label & SaaS Profile
 export interface AgencyConfig {
   name: string;

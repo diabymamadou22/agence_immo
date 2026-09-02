@@ -10,29 +10,32 @@
   }
 }
 
-/* Print styles specifically for Reçus de loyer, Actes, Mandats, Rapports & Fiches Parcelles */
+/* Print styles specifically for Reçus de vente, Reçus de loyer, Actes, Mandats, Rapports & Fiches Parcelles */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm 10mm 12mm 10mm;
+    margin: 6mm 8mm 6mm 8mm;
   }
 
   *, *::before, *::after {
     box-sizing: border-box !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   html, body {
     background: #ffffff !important;
     color: #0f172a !important;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
     margin: 0 !important;
     padding: 0 !important;
     width: 100% !important;
     height: auto !important;
     min-height: auto !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
     overflow: visible !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    color-adjust: exact !important;
   }
 
   /* Hide UI navigation, footers, toolbars, buttons, toast alerts and screen-only controls */
@@ -63,6 +66,7 @@
 
   .print-card, 
   [role="dialog"],
+  #printable-sale-receipt,
   #printable-rent-receipt,
   #printable-contract,
   #printable-payout,
@@ -100,9 +104,17 @@
     break-inside: avoid !important;
   }
 
+  /* Single page printable documents (Reçus vente, Quittances, Reversements) must stay on 1 page */
+  .single-page-a4 {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    max-height: 275mm !important;
+  }
+
   /* Table formatting for print */
   table {
     width: 100% !important;
+    max-width: 100% !important;
     border-collapse: collapse !important;
     page-break-inside: auto;
   }
@@ -118,6 +130,11 @@
 
   tfoot {
     display: table-footer-group !important;
+  }
+
+  img {
+    max-width: 100% !important;
+    height: auto !important;
   }
 }
 

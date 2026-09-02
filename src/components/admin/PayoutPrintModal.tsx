@@ -60,99 +60,103 @@ export const PayoutPrintModal: React.FC = () => {
         </div>
 
         {/* Printable Statement */}
-        <div ref={printRef} className="p-8 sm:p-12 overflow-y-auto space-y-8 text-slate-900 bg-white font-sans text-xs sm:text-sm">
+        <div 
+          ref={printRef} 
+          id="printable-payout"
+          className="p-6 sm:p-8 overflow-y-auto space-y-5 text-slate-900 bg-white font-sans text-xs sm:text-sm print:p-3 print:space-y-2.5 single-page-a4"
+        >
           {/* Header */}
-          <div className="border-b-2 border-slate-900 pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div className="space-y-1">
+          <div className="border-b-2 border-slate-900 pb-3 flex items-start justify-between gap-4 print:pb-1.5">
+            <div className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <Building2 className="w-6 h-6 text-amber-600" />
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 uppercase font-heading tracking-tight">
+                <Building2 className="w-5 h-5 text-amber-600 print:w-4 print:h-4" />
+                <h1 className="text-lg sm:text-xl font-black text-slate-900 uppercase font-heading tracking-tight print:text-sm">
                   {agencyConfig.name}
                 </h1>
               </div>
-              <p className="text-xs font-semibold text-slate-600 italic">
+              <p className="text-[10px] font-semibold text-slate-600 italic print:text-[8px]">
                 {agencyConfig.slogan}
               </p>
-              <p className="text-[11px] text-slate-500 font-mono">
+              <p className="text-[9.5px] text-slate-500 font-mono print:text-[8px]">
                 RCCM : {agencyConfig.rccm} • NIF : {agencyConfig.nif}
               </p>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-[9.5px] text-slate-500 print:text-[8px]">
                 {agencyConfig.address} • Tel: {agencyConfig.phoneDisplay}
               </p>
             </div>
 
-            <div className="text-right space-y-1 self-end sm:self-center border border-slate-300 p-3 rounded-xl bg-slate-50">
-              <span className="text-[10px] font-black uppercase text-slate-500 block">BORDEREAU OFFICIEL</span>
-              <span className="text-sm font-mono font-black text-slate-900">{payout.payoutNumber}</span>
-              <span className="text-[10px] text-slate-500 block">Date : {formatDate(payout.payoutDate)}</span>
+            <div className="text-right space-y-0.5 shrink-0 border border-slate-300 p-2 rounded-lg bg-slate-50 print:p-1.5">
+              <span className="text-[9px] font-black uppercase text-slate-500 block print:text-[7.5px]">BORDEREAU OFFICIEL</span>
+              <span className="text-xs font-mono font-black text-slate-900 print:text-[10px]">{payout.payoutNumber}</span>
+              <span className="text-[9px] text-slate-500 block print:text-[7.5px]">Date : {formatDate(payout.payoutDate)}</span>
             </div>
           </div>
 
           {/* Title */}
-          <div className="text-center py-3 bg-amber-500/10 border border-amber-500/30 rounded-xl">
-            <h2 className="text-base sm:text-lg font-black uppercase tracking-wider text-slate-900 font-heading">
+          <div className="text-center py-2 bg-amber-500/10 border border-amber-500/30 rounded-lg print:py-1">
+            <h2 className="text-xs sm:text-sm font-black uppercase tracking-wider text-slate-900 font-heading print:text-[11px]">
               BORDEREAU DE REVERSEMENT MENSUEL DES LOYERS
             </h2>
-            <span className="text-xs text-slate-700 font-bold">
+            <span className="text-[10px] text-slate-700 font-bold print:text-[8.5px]">
               Période concernée : {payout.periodMonth}
             </span>
           </div>
 
           {/* Beneficiary */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-0.5 print:p-2">
+            <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 print:text-[8px]">
               BÉNÉFICIAIRE / PROPRIÉTAIRE DU PARC IMMOBILIER :
             </span>
-            <p className="text-base font-black text-slate-900">{payout.ownerName}</p>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs sm:text-sm font-black text-slate-900 print:text-[11px]">{payout.ownerName}</p>
+            <p className="text-[10px] text-slate-600 print:text-[8.5px]">
               Mode de règlement : <strong className="text-slate-800">{payout.paymentMethod}</strong> (Réf : {payout.transactionReference || 'Direct'})
             </p>
           </div>
 
           {/* Financial Breakdown Table */}
-          <div className="border border-slate-200 rounded-xl overflow-hidden">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900 text-white font-extrabold uppercase">
+          <div className="border border-slate-200 rounded-lg overflow-hidden text-xs print:text-[9px]">
+            <table className="w-full text-left">
+              <thead className="bg-slate-900 text-white font-extrabold uppercase text-[10px] print:text-[8.5px]">
                 <tr>
-                  <th className="py-3 px-4">Désignation des Opérations</th>
-                  <th className="py-3 px-4 text-right">Montant (FCFA)</th>
+                  <th className="py-2 px-3 print:py-1.5 print:px-2">Désignation des Opérations</th>
+                  <th className="py-2 px-3 text-right print:py-1.5 print:px-2">Montant (FCFA)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium">
                 <tr>
-                  <td className="py-3.5 px-4 text-slate-800 font-bold">
+                  <td className="py-2 px-3 text-slate-800 font-bold print:py-1.5 print:px-2">
                     Total Loyers Bruts Encaissés ({payout.periodMonth})
                   </td>
-                  <td className="py-3.5 px-4 text-right font-black text-slate-900 text-sm">
+                  <td className="py-2 px-3 text-right font-black text-slate-900 text-xs sm:text-sm print:py-1.5 print:px-2 print:text-[10.5px]">
                     {formatFCFA(payout.grossRentCollected)}
                   </td>
                 </tr>
 
                 <tr className="bg-amber-50/40 text-amber-900">
-                  <td className="py-3.5 px-4">
+                  <td className="py-2 px-3 print:py-1.5 print:px-2">
                     Déduction Commission de Gestion Agence ({payout.agencyCommissionPercent}%)
                   </td>
-                  <td className="py-3.5 px-4 text-right font-bold text-amber-700">
+                  <td className="py-2 px-3 text-right font-bold text-amber-700 print:py-1.5 print:px-2">
                     -{formatFCFA(payout.agencyCommissionAmount)}
                   </td>
                 </tr>
 
                 {payout.maintenanceDeductions > 0 && (
                   <tr className="bg-rose-50/40 text-rose-900">
-                    <td className="py-3.5 px-4">
+                    <td className="py-2 px-3 print:py-1.5 print:px-2">
                       Déduction Travaux & Entretien Conservatoire
                     </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-rose-700">
+                    <td className="py-2 px-3 text-right font-bold text-rose-700 print:py-1.5 print:px-2">
                       -{formatFCFA(payout.maintenanceDeductions)}
                     </td>
                   </tr>
                 )}
 
-                <tr className="bg-slate-900 text-white font-bold text-sm">
-                  <td className="py-4 px-4 uppercase tracking-wider">
+                <tr className="bg-slate-900 text-white font-bold text-xs print:text-[10px]">
+                  <td className="py-2.5 px-3 uppercase tracking-wider print:py-1.5 print:px-2">
                     NET REVERSÉ AU PROPRIÉTAIRE (FCFA)
                   </td>
-                  <td className="py-4 px-4 text-right font-black text-amber-400 text-base font-heading">
+                  <td className="py-2.5 px-3 text-right font-black text-amber-400 text-sm font-heading print:py-1.5 print:px-2 print:text-xs">
                     {formatFCFA(payout.netPaidToOwner)}
                   </td>
                 </tr>
@@ -161,27 +165,27 @@ export const PayoutPrintModal: React.FC = () => {
           </div>
 
           {/* Signatures & Stamp */}
-          <div className="pt-8 grid grid-cols-2 gap-8 border-t-2 border-slate-200 items-end">
-            <div className="text-center space-y-16">
-              <p className="text-xs font-bold uppercase text-slate-700">Pour Acquit le Bénéficiaire</p>
-              <div className="border-t border-slate-400 pt-2 text-[10px] text-slate-500">(Signature et Date)</div>
+          <div className="pt-4 grid grid-cols-2 gap-6 border-t-2 border-slate-200 items-end print:pt-2">
+            <div className="text-center space-y-6 print:space-y-4">
+              <p className="text-[10px] font-bold uppercase text-slate-700 print:text-[8.5px]">Pour Acquit le Bénéficiaire</p>
+              <div className="border-t border-slate-400 pt-1 text-[9px] text-slate-500 print:text-[7.5px]">(Signature et Date)</div>
             </div>
 
             {/* Stamp */}
             <div className="flex flex-col items-center justify-center">
-              <div className="w-32 h-32 rounded-full border-4 border-dashed border-slate-800 flex flex-col items-center justify-center p-2 text-center rotate-[-3deg]">
-                <span className="text-[7px] font-black text-slate-900 uppercase leading-tight font-heading">
+              <div className="w-24 h-24 rounded-full border-2 border-dashed border-slate-800 flex flex-col items-center justify-center p-1.5 text-center rotate-[-2deg] print:w-20 print:h-20">
+                <span className="text-[6.5px] font-black text-slate-900 uppercase leading-tight font-heading print:text-[5.5px]">
                   {agencyConfig.name}
                 </span>
-                <div className="w-6 h-0.5 bg-amber-500 my-0.5" />
-                <span className="text-[7px] font-black text-emerald-700 uppercase tracking-wider">
+                <div className="w-4 h-0.5 bg-amber-500 my-0.5" />
+                <span className="text-[6.5px] font-black text-emerald-700 uppercase tracking-wider print:text-[5.5px]">
                   PAYÉ & CERTIFIÉ
                 </span>
-                <span className="text-[6px] font-mono text-slate-400 mt-0.5">
+                <span className="text-[5.5px] font-mono text-slate-400 mt-0.5 print:text-[5px]">
                   BAMAKO (MALI)
                 </span>
               </div>
-              <span className="text-[10px] font-bold text-slate-600 mt-1">La Direction Financière</span>
+              <span className="text-[9px] font-bold text-slate-600 mt-0.5 print:text-[7.5px]">La Direction Financière</span>
             </div>
           </div>
         </div>
