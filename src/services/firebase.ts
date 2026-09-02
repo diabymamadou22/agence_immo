@@ -1,5 +1,5 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore, doc, getDocFromServer, setDoc } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, Firestore, doc, getDocFromServer, setDoc } from 'firebase/firestore';
 import { getAuth, Auth } from 'firebase/auth';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import defaultAppletConfig from '../../firebase-applet-config.json';
@@ -19,7 +19,36 @@ const LOCAL_STORAGE_FIREBASE_KEY = 'mali_immo_firebase_custom_config';
 const metaEnv = (import.meta as any).env || {};
 
 export const getDefaultConfig = (): FirebaseConfigOptions => {
-  // 1. Check if user saved custom config in app localStorage
+  // 1. Check if default provisioned firebase-applet-config.json exists
+  if (defaultAppletConfig && defaultAppletConfig.projectId && defaultAppletConfig.apiKey) {
+    // If a saved localStorage config exists, check if it's the obsolete test project or mismatched
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_FIREBASE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed?.projectId === 'utility-abstraction-kcf5x') {
+          // Purge obsolete previous project to align all devices automatically
+          localStorage.removeItem(LOCAL_STORAGE_FIREBASE_KEY);
+        } else if (parsed && parsed.projectId && parsed.apiKey && parsed.projectId !== defaultAppletConfig.projectId) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Custom config read notice:', e);
+    }
+
+    return {
+      apiKey: defaultAppletConfig.apiKey,
+      authDomain: defaultAppletConfig.authDomain,
+      projectId: defaultAppletConfig.projectId,
+      firestoreDatabaseId: defaultAppletConfig.firestoreDatabaseId,
+      storageBucket: defaultAppletConfig.storageBucket,
+      messagingSenderId: defaultAppletConfig.messagingSenderId,
+      appId: defaultAppletConfig.appId,
+    };
+  }
+
+  // 2. Check if user saved custom config in app localStorage
   try {
     const saved = localStorage.getItem(LOCAL_STORAGE_FIREBASE_KEY);
     if (saved) {
@@ -30,19 +59,6 @@ export const getDefaultConfig = (): FirebaseConfigOptions => {
     }
   } catch (e) {
     console.error('Error reading custom firebase config:', e);
-  }
-
-  // 2. Default to provisioned firebase-applet-config.json
-  if (defaultAppletConfig && defaultAppletConfig.projectId && defaultAppletConfig.apiKey) {
-    return {
-      apiKey: defaultAppletConfig.apiKey,
-      authDomain: defaultAppletConfig.authDomain,
-      projectId: defaultAppletConfig.projectId,
-      firestoreDatabaseId: defaultAppletConfig.firestoreDatabaseId,
-      storageBucket: defaultAppletConfig.storageBucket,
-      messagingSenderId: defaultAppletConfig.messagingSenderId,
-      appId: defaultAppletConfig.appId,
-    };
   }
 
   // 3. Fallback to env
@@ -85,11 +101,22 @@ export const initFirebase = (config?: FirebaseConfigOptions) => {
       app = initializeApp(activeConfig);
     }
     
-    // CRITICAL: Always pass firestoreDatabaseId if present
-    if (activeConfig.firestoreDatabaseId) {
-      db = getFirestore(app, activeConfig.firestoreDatabaseId);
-    } else {
-      db = getFirestore(app);
+    // CRITICAL: Always pass firestoreDatabaseId if present, and configure long-polling
+    // to prevent streaming connection drops behind proxies and iframes
+    const dbId = activeConfig.firestoreDatabaseId;
+    try {
+      if (dbId) {
+        db = initializeFirestore(app, {
+          experimentalForceLongPolling: true,
+        }, dbId);
+      } else {
+        db = initializeFirestore(app, {
+          experimentalForceLongPolling: true,
+        });
+      }
+    } catch (fsErr) {
+      // If Firestore was already initialized on this FirebaseApp, retrieve the existing instance
+      db = dbId ? getFirestore(app, dbId) : getFirestore(app);
     }
 
     try {
@@ -161,7 +188,7 @@ export const testFirebaseConnection = async (): Promise<{ success: boolean; mess
       message: `Connexion Cloud Firestore établie avec succès ! (Projet : ${currentConfig.projectId})`,
     };
   } catch (error: any) {
-    console.error('Test connection error:', error);
+    console.warn('Test connection notice:', error);
     return {
       success: false,
       message: error?.message || "Échec de connexion au Cloud Firestore. Vérifiez les règles Firestore ou la clé API.",

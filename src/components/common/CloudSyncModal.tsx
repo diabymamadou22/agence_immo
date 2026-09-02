@@ -37,6 +37,7 @@ export const CloudSyncModal: React.FC = () => {
   const properties = useAppSelector((state) => state.properties.items);
   const tenants = useAppSelector((state) => state.tenants.items);
   const receipts = useAppSelector((state) => state.tenants.receipts);
+  const sales = useAppSelector((state) => state.sales.items);
   const owners = useAppSelector((state) => state.owners.items);
   const payouts = useAppSelector((state) => state.owners.payouts);
   const contracts = useAppSelector((state) => state.contracts.items);
@@ -97,6 +98,7 @@ export const CloudSyncModal: React.FC = () => {
         properties,
         tenants,
         receipts,
+        sales,
         owners,
         payouts,
         contracts,

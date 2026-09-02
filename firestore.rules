@@ -17,8 +17,13 @@ service cloud.firestore {
       allow read, write: if true;
     }
     
-    // Rent Receipts & Payments (Quittances)
+    // Rent Receipts & Payments (Quittances de location)
     match /receipts/{receiptId} {
+      allow read, write: if true;
+    }
+
+    // Property Sales Receipts (Reçus de vente de parcelles/biens)
+    match /sales/{saleId} {
       allow read, write: if true;
     }
 

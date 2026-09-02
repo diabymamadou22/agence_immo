@@ -57,9 +57,32 @@ const AppContent: React.FC = () => {
   const activeAdminTab = useAppSelector((state) => state.ui.activeAdminTab);
   const isAdminAuthenticated = useAppSelector((state) => state.ui.isAdminAuthenticated);
   const agencyConfig = useAppSelector((state) => state.agency.config);
+  const properties = useAppSelector((state) => state.properties.items);
+  const tenants = useAppSelector((state) => state.tenants.items);
+  const receipts = useAppSelector((state) => state.tenants.receipts);
+  const sales = useAppSelector((state) => state.sales.items);
+  const owners = useAppSelector((state) => state.owners.items);
+  const payouts = useAppSelector((state) => state.owners.payouts);
+  const contracts = useAppSelector((state) => state.contracts.items);
+  const expenses = useAppSelector((state) => state.financials.expenses);
+  const leads = useAppSelector((state) => state.leads.items);
 
   // Initialize Firestore listeners for multi-device real-time sync across all collections
   useEffect(() => {
+    // 0. Auto-seed Cloud Firestore if empty so all devices share the identical base catalog
+    firestoreService.ensureInitialDataSeeded({
+      properties,
+      tenants,
+      receipts,
+      sales,
+      owners,
+      payouts,
+      contracts,
+      expenses,
+      leads,
+      agencyConfig,
+    }).catch((err) => console.warn('Auto-seed check notice:', err));
+
     // 1. Properties & Parcelles
     const unsubscribeProps = firestoreService.subscribeProperties((props) => {
       if (props && props.length > 0) {

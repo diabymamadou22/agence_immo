@@ -373,12 +373,9 @@ export const firestoreService = {
     try {
       const q = collection(db, COLLECTIONS.PROPERTIES);
       const unsub = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const list = snapshot.docs.map(doc => doc.data() as Property);
-          // Sort by createdAt desc
-          list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-          onUpdate(list);
-        }
+        const list = snapshot.docs.map(doc => doc.data() as Property);
+        list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        onUpdate(list);
       }, (err) => console.warn('Properties subscription error:', err));
       return unsub;
     } catch (e) {
@@ -392,11 +389,9 @@ export const firestoreService = {
     try {
       const q = collection(db, COLLECTIONS.LEADS);
       const unsub = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const list = snapshot.docs.map(doc => doc.data() as Lead);
-          list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-          onUpdate(list);
-        }
+        const list = snapshot.docs.map(doc => doc.data() as Lead);
+        list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        onUpdate(list);
       }, (err) => console.warn('Leads subscription error:', err));
       return unsub;
     } catch (e) {
@@ -410,11 +405,9 @@ export const firestoreService = {
     try {
       const q = collection(db, COLLECTIONS.TENANTS);
       const unsub = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const list = snapshot.docs.map(doc => doc.data() as Tenant);
-          list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-          onUpdate(list);
-        }
+        const list = snapshot.docs.map(doc => doc.data() as Tenant);
+        list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        onUpdate(list);
       }, (err) => console.warn('Tenants subscription error:', err));
       return unsub;
     } catch (e) {
@@ -428,11 +421,9 @@ export const firestoreService = {
     try {
       const q = collection(db, COLLECTIONS.RECEIPTS);
       const unsub = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const list = snapshot.docs.map(doc => doc.data() as RentReceipt);
-          list.sort((a, b) => (b.paymentDate || '').localeCompare(a.paymentDate || ''));
-          onUpdate(list);
-        }
+        const list = snapshot.docs.map(doc => doc.data() as RentReceipt);
+        list.sort((a, b) => (b.paymentDate || '').localeCompare(a.paymentDate || ''));
+        onUpdate(list);
       }, (err) => console.warn('Receipts subscription error:', err));
       return unsub;
     } catch (e) {
@@ -446,11 +437,9 @@ export const firestoreService = {
     try {
       const q = collection(db, COLLECTIONS.OWNERS);
       const unsub = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const list = snapshot.docs.map(doc => doc.data() as Owner);
-          list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-          onUpdate(list);
-        }
+        const list = snapshot.docs.map(doc => doc.data() as Owner);
+        list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        onUpdate(list);
       }, (err) => console.warn('Owners subscription error:', err));
       return unsub;
     } catch (e) {
@@ -464,11 +453,9 @@ export const firestoreService = {
     try {
       const q = collection(db, COLLECTIONS.PAYOUTS);
       const unsub = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const list = snapshot.docs.map(doc => doc.data() as OwnerPayout);
-          list.sort((a, b) => (b.payoutDate || '').localeCompare(a.payoutDate || ''));
-          onUpdate(list);
-        }
+        const list = snapshot.docs.map(doc => doc.data() as OwnerPayout);
+        list.sort((a, b) => (b.payoutDate || '').localeCompare(a.payoutDate || ''));
+        onUpdate(list);
       }, (err) => console.warn('Payouts subscription error:', err));
       return unsub;
     } catch (e) {
@@ -482,11 +469,9 @@ export const firestoreService = {
     try {
       const q = collection(db, COLLECTIONS.CONTRACTS);
       const unsub = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const list = snapshot.docs.map(doc => doc.data() as LegalContract);
-          list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-          onUpdate(list);
-        }
+        const list = snapshot.docs.map(doc => doc.data() as LegalContract);
+        list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        onUpdate(list);
       }, (err) => console.warn('Contracts subscription error:', err));
       return unsub;
     } catch (e) {
@@ -500,11 +485,9 @@ export const firestoreService = {
     try {
       const q = collection(db, COLLECTIONS.EXPENSES);
       const unsub = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          const list = snapshot.docs.map(doc => doc.data() as AgencyExpense);
-          list.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-          onUpdate(list);
-        }
+        const list = snapshot.docs.map(doc => doc.data() as AgencyExpense);
+        list.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        onUpdate(list);
       }, (err) => console.warn('Expenses subscription error:', err));
       return unsub;
     } catch (e) {
@@ -528,11 +511,41 @@ export const firestoreService = {
     }
   },
 
+  // ================= AUTO-SEED INITIAL DATA IF CLOUD IS EMPTY =================
+  async ensureInitialDataSeeded(fallbackData: {
+    properties: Property[];
+    tenants: Tenant[];
+    receipts: RentReceipt[];
+    sales: SaleReceipt[];
+    owners: Owner[];
+    payouts: OwnerPayout[];
+    contracts: LegalContract[];
+    expenses: AgencyExpense[];
+    leads: Lead[];
+    agencyConfig?: AgencyConfig;
+  }): Promise<boolean> {
+    if (!db || !isConfigured) return false;
+    try {
+      const q = collection(db, COLLECTIONS.PROPERTIES);
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        console.info('Base Firestore cloud database is empty. Auto-seeding initial master catalog...');
+        await this.pushAllLocalDataToCloud(fallbackData);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.warn('Auto-seed check note:', e);
+      return false;
+    }
+  },
+
   // ================= PUSH ALL LOCAL DATA TO CLOUD =================
   async pushAllLocalDataToCloud(data: {
     properties: Property[];
     tenants: Tenant[];
     receipts: RentReceipt[];
+    sales?: SaleReceipt[];
     owners: Owner[];
     payouts: OwnerPayout[];
     contracts: LegalContract[];
@@ -559,43 +572,51 @@ export const firestoreService = {
         totalPushed++;
       }
 
-      // 3. Receipts
+      // 3. Rent Receipts
       for (const receipt of data.receipts) {
         await setDoc(doc(db, COLLECTIONS.RECEIPTS, receipt.id), receipt, { merge: true });
         totalPushed++;
       }
 
-      // 4. Owners
+      // 4. Sales Receipts
+      if (data.sales && Array.isArray(data.sales)) {
+        for (const sale of data.sales) {
+          await setDoc(doc(db, COLLECTIONS.SALES, sale.id), sale, { merge: true });
+          totalPushed++;
+        }
+      }
+
+      // 5. Owners
       for (const owner of data.owners) {
         await setDoc(doc(db, COLLECTIONS.OWNERS, owner.id), owner, { merge: true });
         totalPushed++;
       }
 
-      // 5. Payouts
+      // 6. Payouts
       for (const payout of data.payouts) {
         await setDoc(doc(db, COLLECTIONS.PAYOUTS, payout.id), payout, { merge: true });
         totalPushed++;
       }
 
-      // 6. Contracts
+      // 7. Contracts
       for (const contract of data.contracts) {
         await setDoc(doc(db, COLLECTIONS.CONTRACTS, contract.id), contract, { merge: true });
         totalPushed++;
       }
 
-      // 7. Expenses
+      // 8. Expenses
       for (const exp of data.expenses) {
         await setDoc(doc(db, COLLECTIONS.EXPENSES, exp.id), exp, { merge: true });
         totalPushed++;
       }
 
-      // 8. Leads
+      // 9. Leads
       for (const lead of data.leads) {
         await setDoc(doc(db, COLLECTIONS.LEADS, lead.id), lead, { merge: true });
         totalPushed++;
       }
 
-      // 9. Agency Config
+      // 10. Agency Config
       if (data.agencyConfig) {
         await setDoc(doc(db, COLLECTIONS.AGENCY_CONFIG, 'main_config'), data.agencyConfig, { merge: true });
         totalPushed++;
