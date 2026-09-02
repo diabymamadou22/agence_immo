@@ -135,8 +135,14 @@ export const RentReceiptModal: React.FC = () => {
 
             {/* Document Title & Reference */}
             <div className="text-right space-y-0.5 shrink-0">
-              <span className="inline-block px-2.5 py-0.5 bg-slate-900 text-white rounded text-[11px] font-black uppercase tracking-wider print:text-[9.5px]">
-                QUITTANCE DE LOYER
+              <span className={`inline-block px-2.5 py-0.5 text-white rounded text-[11px] font-black uppercase tracking-wider print:text-[9.5px] ${
+                activeReceipt.paymentType === 'partiel' || (activeReceipt.remainingBalance && activeReceipt.remainingBalance > 0)
+                  ? 'bg-amber-600'
+                  : 'bg-slate-900'
+              }`}>
+                {activeReceipt.paymentType === 'partiel' || (activeReceipt.remainingBalance && activeReceipt.remainingBalance > 0)
+                  ? 'QUITTANCE D\'ACOMPTE (PARTIEL)'
+                  : 'QUITTANCE DE LOYER'}
               </span>
               <p className="font-mono font-bold text-xs text-slate-900 print:text-[10px]">
                 N° : {activeReceipt.receiptNumber}
@@ -171,7 +177,9 @@ export const RentReceiptModal: React.FC = () => {
             {/* Amount Box */}
             <div className="p-3 rounded-xl bg-slate-900 text-white flex items-center justify-between gap-2 shadow-xs print:p-2">
               <div>
-                <span className="text-[9px] uppercase font-bold text-amber-400 block print:text-[8px]">Montant Total Reçu :</span>
+                <span className="text-[9px] uppercase font-bold text-amber-400 block print:text-[8px]">
+                  {activeReceipt.paymentType === 'partiel' ? 'Acompte Partiel Encaissé :' : 'Montant Total Reçu :'}
+                </span>
                 <span className="text-lg sm:text-xl font-black font-heading text-white print:text-sm">{formatFCFA(activeReceipt.amount)}</span>
               </div>
               <div className="text-right">
@@ -180,9 +188,24 @@ export const RentReceiptModal: React.FC = () => {
               </div>
             </div>
 
-            <p className="text-[11px] print:text-[9px]">
-              Ce montant correspond au règlement intégral du loyer pour le terme de : <strong className="text-slate-900 bg-amber-100 px-1.5 py-0.5 rounded">{activeReceipt.periodMonth}</strong>.
-            </p>
+            {activeReceipt.paymentType === 'partiel' || (activeReceipt.remainingBalance && activeReceipt.remainingBalance > 0) ? (
+              <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-950 flex items-center justify-between print:p-1.5">
+                <div>
+                  <span className="text-[10px] font-bold uppercase block print:text-[8px]">Nature du Versement :</span>
+                  <span className="text-xs font-black print:text-[9px]">Acompte Partiel sur Loyer ({activeReceipt.periodMonth})</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-rose-600 uppercase font-bold block print:text-[8px]">Reliquat Restant Dû :</span>
+                  <span className="text-sm font-black text-rose-700 font-heading print:text-xs">
+                    {formatFCFA(activeReceipt.remainingBalance || 0)}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-[11px] print:text-[9px]">
+                Ce montant correspond au règlement intégral du loyer pour le terme de : <strong className="text-slate-900 bg-amber-100 px-1.5 py-0.5 rounded">{activeReceipt.periodMonth}</strong>.
+              </p>
+            )}
           </div>
 
           {/* Breakdown Table */}
@@ -196,13 +219,29 @@ export const RentReceiptModal: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
+                {activeReceipt.totalDue && activeReceipt.totalDue > activeReceipt.amount && (
+                  <tr>
+                    <td className="p-2 text-slate-600 print:p-1.5">Loyer total contractuel exigible ({activeReceipt.periodMonth})</td>
+                    <td className="p-2 text-slate-500 font-mono print:p-1.5">Échéance</td>
+                    <td className="p-2 text-right font-bold text-slate-700 print:p-1.5">{formatFCFA(activeReceipt.totalDue)}</td>
+                  </tr>
+                )}
                 <tr>
-                  <td className="p-2 font-medium print:p-1.5">Loyer mensuel principal ({activeReceipt.periodMonth})</td>
+                  <td className="p-2 font-medium print:p-1.5">
+                    {activeReceipt.paymentType === 'partiel' ? `Acompte versé (${activeReceipt.periodMonth})` : `Loyer mensuel principal (${activeReceipt.periodMonth})`}
+                  </td>
                   <td className="p-2 font-mono capitalize print:p-1.5">
                     {activeReceipt.paymentMethod.replace('_', ' ')} {activeReceipt.transactionRef && `(${activeReceipt.transactionRef})`}
                   </td>
                   <td className="p-2 text-right font-extrabold text-slate-900 print:p-1.5">{formatFCFA(activeReceipt.amount)}</td>
                 </tr>
+                {activeReceipt.remainingBalance && activeReceipt.remainingBalance > 0 ? (
+                  <tr className="bg-amber-50/50">
+                    <td className="p-2 font-bold text-rose-700 print:p-1.5">Reliquat restant à solder (Dû par le preneur)</td>
+                    <td className="p-2 text-amber-800 font-medium text-[10px] print:p-1.5">En instance</td>
+                    <td className="p-2 text-right font-black text-rose-600 print:p-1.5">{formatFCFA(activeReceipt.remainingBalance)}</td>
+                  </tr>
+                ) : null}
                 <tr>
                   <td className="p-2 text-slate-500 print:p-1.5">Charges communes & gestion</td>
                   <td className="p-2 text-slate-500 print:p-1.5">Incluses</td>
@@ -211,8 +250,8 @@ export const RentReceiptModal: React.FC = () => {
               </tbody>
               <tfoot className="bg-slate-50 font-bold text-slate-900 border-t border-slate-200">
                 <tr>
-                  <td colSpan={2} className="p-2 text-right uppercase text-[9px] print:p-1.5 print:text-[8px]">Net Réglé :</td>
-                  <td className="p-2 text-right font-black text-xs text-slate-950 print:p-1.5 print:text-[10px]">{formatFCFA(activeReceipt.amount)}</td>
+                  <td colSpan={2} className="p-2 text-right uppercase text-[9px] print:p-1.5 print:text-[8px]">Net Réglé ce jour :</td>
+                  <td className="p-2 text-right font-black text-xs text-emerald-700 print:p-1.5 print:text-[10px]">{formatFCFA(activeReceipt.amount)}</td>
                 </tr>
               </tfoot>
             </table>
@@ -220,7 +259,9 @@ export const RentReceiptModal: React.FC = () => {
 
           {/* Legal Notice */}
           <p className="text-[9px] text-slate-500 leading-snug italic print:text-[7.5px]">
-            * Cette quittance annule tous les reçus provisoires antérieurs pour la même période et n'emporte pas novation du contrat de bail initial conformément aux usages immobiliers au Mali.
+            {activeReceipt.paymentType === 'partiel' || (activeReceipt.remainingBalance && activeReceipt.remainingBalance > 0)
+              ? `* Ce document atteste uniquement de l'encaissement de l'acompte susmentionné. Le preneur demeure débiteur du reliquat de ${formatFCFA(activeReceipt.remainingBalance || 0)} jusqu'à parfait règlement sans novation du bail initial.`
+              : '* Cette quittance annule tous les reçus provisoires antérieurs pour la même période et n\'emporte pas novation du contrat de bail initial conformément aux usages immobiliers au Mali.'}
           </p>
 
           {/* Signatures & Stamp */}

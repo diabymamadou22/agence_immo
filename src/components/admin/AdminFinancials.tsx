@@ -154,9 +154,15 @@ export const AdminFinancials: React.FC = () => {
     .filter((r) => r.paymentMethod === 'Espèces')
     .reduce((acc, r) => acc + r.amount, 0);
 
-  const handleSaveExpense = (e: React.FormEvent) => {
+  const handleSaveExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(addExpense(expenseForm));
+    const expenseId = `exp-${Date.now()}`;
+    const newExpense: AgencyExpense = {
+      ...expenseForm,
+      id: expenseId,
+    };
+    dispatch(addExpense(newExpense));
+    await firestoreService.saveExpense(newExpense);
     setIsAddingExpense(false);
     dispatch(
       addToast({

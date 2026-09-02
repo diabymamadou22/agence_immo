@@ -151,6 +151,8 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
   },
 ];
 
+export const INITIAL_AGENCY_CONFIG: AgencyConfig = AGENCY_PRESETS[0].config;
+
 const loadSavedAgencyConfig = (): AgencyConfig => {
   try {
     const saved = localStorage.getItem(LOCAL_STORAGE_AGENCY_KEY);
@@ -178,10 +180,6 @@ const loadSavedAgencyConfig = (): AgencyConfig => {
 const saveAgencyConfig = (config: AgencyConfig) => {
   try {
     localStorage.setItem(LOCAL_STORAGE_AGENCY_KEY, JSON.stringify(config));
-    // Asynchronously update Firestore if connected
-    firestoreService.saveAgencyConfig(config).catch((err) => {
-      console.warn('Firestore agencyConfig save notice:', err);
-    });
   } catch (e) {
     console.error('Error saving agency config:', e);
   }

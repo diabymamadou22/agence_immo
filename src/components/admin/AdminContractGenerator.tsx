@@ -134,7 +134,9 @@ export const AdminContractGenerator: React.FC = () => {
       ? formData.clausesText.split('\n').filter((l) => l.trim().length > 0)
       : defaultClauses;
 
-    const newContract: Omit<LegalContract, 'id' | 'createdAt'> = {
+    const contractId = `cnt-${Date.now()}`;
+    const completeContract: LegalContract = {
+      id: contractId,
       contractType: formData.contractType,
       reference: ref,
       title: formData.title || `${getContractTypeBadge(formData.contractType).label} - ${prop?.title || 'Bien Immobilier'}`,
@@ -150,9 +152,11 @@ export const AdminContractGenerator: React.FC = () => {
       endDate: formData.endDate,
       clauses,
       status: 'actif',
+      createdAt: new Date().toISOString(),
     };
 
-    dispatch(addContract(newContract));
+    dispatch(addContract(completeContract));
+    firestoreService.saveContract(completeContract);
     setIsCreating(false);
     dispatch(
       addToast({

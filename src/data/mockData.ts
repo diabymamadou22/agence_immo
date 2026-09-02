@@ -652,3 +652,5 @@ export const INITIAL_SALE_RECEIPTS: SaleReceipt[] = [
   }
 ];
 
+export const INITIAL_SALES_RECEIPTS = INITIAL_SALE_RECEIPTS;
+

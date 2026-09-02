@@ -103,6 +103,7 @@ export interface Lead {
 
 export type PaymentMethod = 'Orange Money' | 'Moov Money' | 'Wave' | 'Virement Bancaire' | 'Espèces' | 'Chèque';
 export type PaymentStatus = 'paye' | 'en_retard' | 'en_attente' | 'partiel';
+export type RentPaymentType = 'total' | 'partiel' | 'solde';
 
 export interface RentReceipt {
   id: string;
@@ -112,7 +113,11 @@ export interface RentReceipt {
   propertyId: string;
   propertyTitle: string;
   periodMonth: string; // Ex: Août 2024
-  amount: number; // In FCFA
+  amount: number; // Montant versé in FCFA
+  totalDue?: number; // Montant total exigible pour le mois in FCFA
+  amountPaid?: number; // Identique à amount
+  remainingBalance?: number; // Reliquat restant dû in FCFA
+  paymentType?: RentPaymentType; // 'total' | 'partiel' | 'solde'
   paymentDate: string;
   paymentMethod: PaymentMethod;
   transactionRef?: string;
@@ -137,8 +142,9 @@ export interface Tenant {
   depositAmount: number; // Caution in FCFA
   advanceMonths: number;
   rentPaymentDay: number; // Ex: le 5 du mois
-  status: 'actif' | 'inactif' | 'retard';
+  status: 'actif' | 'inactif' | 'retard' | 'partiel';
   lastPaymentMonth?: string;
+  pendingBalance?: number; // Reliquat impayé cumulé in FCFA (si paiement partiel)
   receipts: RentReceipt[];
   notes?: string;
 }
