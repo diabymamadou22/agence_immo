@@ -79,10 +79,10 @@ export const AdminOwnerManager: React.FC = () => {
     e.preventDefault();
     const newOwner: Owner = {
       ...ownerForm,
-      id: `owner-${Date.now()}`,
+      id: `own-${Date.now()}`,
       createdAt: new Date().toISOString().split('T')[0],
     };
-    dispatch(addOwner(ownerForm));
+    dispatch(addOwner(newOwner));
     await firestoreService.saveOwner(newOwner);
     setIsAddingOwner(false);
     dispatch(

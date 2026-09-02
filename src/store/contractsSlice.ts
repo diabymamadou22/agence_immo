@@ -110,10 +110,11 @@ export const contractsSlice = createSlice({
   initialState,
   reducers: {
     addContract: (state, action: PayloadAction<Omit<LegalContract, 'id' | 'createdAt'>>) => {
+      const payloadAny = action.payload as any;
       const newContract: LegalContract = {
         ...action.payload,
-        id: `cnt-${Date.now()}`,
-        createdAt: new Date().toISOString(),
+        id: payloadAny.id || `cnt-${Date.now()}`,
+        createdAt: payloadAny.createdAt || new Date().toISOString(),
       };
       state.items.unshift(newContract);
       saveContracts(state.items);

@@ -172,10 +172,11 @@ export const ownersSlice = createSlice({
   initialState,
   reducers: {
     addOwner: (state, action: PayloadAction<Omit<Owner, 'id' | 'createdAt'>>) => {
+      const payloadAny = action.payload as any;
       const newOwner: Owner = {
         ...action.payload,
-        id: `own-${Date.now()}`,
-        createdAt: new Date().toISOString(),
+        id: payloadAny.id || `own-${Date.now()}`,
+        createdAt: payloadAny.createdAt || new Date().toISOString(),
       };
       state.items.unshift(newOwner);
       saveOwners(state.items);

@@ -79,9 +79,10 @@ export const financialsSlice = createSlice({
   initialState,
   reducers: {
     addExpense: (state, action: PayloadAction<Omit<AgencyExpense, 'id'>>) => {
+      const payloadAny = action.payload as any;
       const newExpense: AgencyExpense = {
         ...action.payload,
-        id: `exp-${Date.now()}`,
+        id: payloadAny.id || `exp-${Date.now()}`,
       };
       state.expenses.unshift(newExpense);
       saveExpenses(state.expenses);

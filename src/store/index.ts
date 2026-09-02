@@ -9,6 +9,7 @@ import ownersReducer from './ownersSlice';
 import contractsReducer from './contractsSlice';
 import financialsReducer from './financialsSlice';
 import salesReducer from './salesSlice';
+import { firestoreSyncMiddleware } from './syncMiddleware';
 
 export const store = configureStore({
   reducer: {
@@ -25,7 +26,7 @@ export const store = configureStore({
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false,
-    }),
+    }).concat(firestoreSyncMiddleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

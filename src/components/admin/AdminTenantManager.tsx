@@ -95,12 +95,15 @@ export const AdminTenantManager: React.FC = () => {
       lastPaymentMonth: 'En attente',
     };
 
-    dispatch(addTenant(newTenantData));
-    await firestoreService.saveTenant({
+    const newTenantId = `ten-${Date.now()}`;
+    const fullTenant: any = {
       ...newTenantData,
-      id: `tenant-${Date.now()}`,
+      id: newTenantId,
       receipts: [],
-    });
+    };
+
+    dispatch(addTenant(fullTenant));
+    await firestoreService.saveTenant(fullTenant);
     dispatch(addToast({
       type: 'success',
       message: `Locataire ${name} ajouté avec succès au contrat de location.`,

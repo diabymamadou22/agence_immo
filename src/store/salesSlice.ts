@@ -55,12 +55,13 @@ export const salesSlice = createSlice({
       const year = new Date().getFullYear();
       const count = state.items.length + 1;
       const receiptNumber = `RECU-VTE-${year}-${String(count).padStart(3, '0')}`;
+      const payloadAny = action.payload as any;
 
       const newReceipt: SaleReceipt = {
         ...action.payload,
-        id: `sale-rec-${Date.now()}`,
-        receiptNumber,
-        createdAt: new Date().toISOString(),
+        id: payloadAny.id || `sale-rec-${Date.now()}`,
+        receiptNumber: payloadAny.receiptNumber || receiptNumber,
+        createdAt: payloadAny.createdAt || new Date().toISOString(),
       };
 
       state.items.unshift(newReceipt);

@@ -26,7 +26,7 @@ export const firestoreSyncMiddleware: Middleware = (storeAPI) => (next) => (acti
     // 1. PROPERTIES
     if (type === 'properties/addProperty' || type === 'properties/updateProperty') {
       const state = storeAPI.getState();
-      const updatedItem = action.payload.id 
+      const updatedItem = action.payload?.id 
         ? state.properties.items.find((p: any) => p.id === action.payload.id)
         : state.properties.items[0];
       if (updatedItem) {
@@ -39,7 +39,7 @@ export const firestoreSyncMiddleware: Middleware = (storeAPI) => (next) => (acti
       }
     } else if (type === 'properties/updatePropertyStatus') {
       const state = storeAPI.getState();
-      const item = state.properties.items.find((p: any) => p.id === action.payload.id);
+      const item = state.properties.items.find((p: any) => p.id === action.payload?.id);
       if (item) {
         firestoreService.saveProperty(item).catch(handleSyncErr);
       }
@@ -48,7 +48,7 @@ export const firestoreSyncMiddleware: Middleware = (storeAPI) => (next) => (acti
     // 2. TENANTS
     else if (type === 'tenants/addTenant' || type === 'tenants/updateTenant') {
       const state = storeAPI.getState();
-      const updatedTenant = action.payload.id 
+      const updatedTenant = action.payload?.id 
         ? state.tenants.items.find((t: any) => t.id === action.payload.id)
         : state.tenants.items[0];
       if (updatedTenant) {
@@ -65,7 +65,7 @@ export const firestoreSyncMiddleware: Middleware = (storeAPI) => (next) => (acti
       if (receipt) {
         firestoreService.saveReceipt(receipt).catch(handleSyncErr);
       }
-      const tenant = state.tenants.items.find((t: any) => t.id === action.payload.tenantId);
+      const tenant = state.tenants.items.find((t: any) => t.id === action.payload?.tenantId);
       if (tenant) {
         firestoreService.saveTenant(tenant).catch(handleSyncErr);
       }
@@ -85,7 +85,7 @@ export const firestoreSyncMiddleware: Middleware = (storeAPI) => (next) => (acti
       }
     } else if (type === 'sales/updateSaleReceipt') {
       const state = storeAPI.getState();
-      const sale = state.sales.items.find((s: any) => s.id === action.payload.id) || action.payload;
+      const sale = state.sales.items.find((s: any) => s.id === action.payload?.id) || action.payload;
       if (sale) {
         firestoreService.saveSaleReceipt(sale).catch(handleSyncErr);
       }
@@ -104,7 +104,7 @@ export const firestoreSyncMiddleware: Middleware = (storeAPI) => (next) => (acti
         firestoreService.saveLead(lead).catch(handleSyncErr);
       }
     } else if (type === 'leads/updateLeadStatus') {
-      firestoreService.updateLeadStatus(action.payload.id, action.payload.status, action.payload.notes).catch(handleSyncErr);
+      firestoreService.updateLeadStatus(action.payload?.id, action.payload?.status, action.payload?.notes).catch(handleSyncErr);
     } else if (type === 'leads/deleteLead') {
       firestoreService.deleteLead(action.payload).catch(handleSyncErr);
     }
@@ -112,7 +112,7 @@ export const firestoreSyncMiddleware: Middleware = (storeAPI) => (next) => (acti
     // 4. OWNERS
     else if (type === 'owners/addOwner' || type === 'owners/updateOwner') {
       const state = storeAPI.getState();
-      const owner = action.payload.id 
+      const owner = action.payload?.id 
         ? state.owners.items.find((o: any) => o.id === action.payload.id)
         : state.owners.items[0];
       if (owner) {
@@ -133,7 +133,7 @@ export const firestoreSyncMiddleware: Middleware = (storeAPI) => (next) => (acti
     // 5. CONTRACTS
     else if (type === 'contracts/addContract' || type === 'contracts/updateContract') {
       const state = storeAPI.getState();
-      const contract = action.payload.id 
+      const contract = action.payload?.id 
         ? state.contracts.items.find((c: any) => c.id === action.payload.id)
         : state.contracts.items[0];
       if (contract) {

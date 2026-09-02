@@ -85,12 +85,13 @@ export const propertiesSlice = createSlice({
       const year = new Date().getFullYear();
       const ref = `ML-${cityPrefix}-${year}-${String(count).padStart(3, '0')}`;
       
+      const payloadAny = action.payload as any;
       const newProperty: Property = {
         ...action.payload,
-        id: `prop-${Date.now()}`,
-        reference: ref,
-        viewsCount: 1,
-        createdAt: new Date().toISOString(),
+        id: payloadAny.id || `prop-${Date.now()}`,
+        reference: payloadAny.reference || ref,
+        viewsCount: payloadAny.viewsCount || 1,
+        createdAt: payloadAny.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
       

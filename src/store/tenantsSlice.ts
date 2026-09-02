@@ -71,10 +71,11 @@ export const tenantsSlice = createSlice({
       saveToLocalStorage(state.items, state.receipts);
     },
     addTenant: (state, action: PayloadAction<Omit<Tenant, 'id' | 'receipts'>>) => {
+      const payloadAny = action.payload as any;
       const newTenant: Tenant = {
         ...action.payload,
-        id: `ten-${Date.now()}`,
-        receipts: [],
+        id: payloadAny.id || `ten-${Date.now()}`,
+        receipts: payloadAny.receipts || [],
       };
       state.items.unshift(newTenant);
       saveToLocalStorage(state.items, state.receipts);

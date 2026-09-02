@@ -187,8 +187,18 @@ export const RecordSaleModal: React.FC = () => {
       ],
     };
 
-    // Add to Redux state
-    dispatch(addSaleReceipt(newSaleData));
+    const saleId = `sale-rec-${Date.now()}`;
+    const year = new Date().getFullYear();
+    const receiptNum = `RECU-VTE-${year}-${Math.floor(100 + Math.random() * 900)}`;
+    const fullSaleData: any = {
+      ...newSaleData,
+      id: saleId,
+      receiptNumber: receiptNum,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Add to Redux state (syncMiddleware will also ensure cloud sync)
+    dispatch(addSaleReceipt(fullSaleData));
 
     // Update Property status to 'vendu' or 'reserve'
     if (updatePropStatus && prop) {
@@ -207,12 +217,7 @@ export const RecordSaleModal: React.FC = () => {
 
     // Save receipt to Firestore if live
     if (firestoreService.isLive()) {
-      firestoreService.saveSaleReceipt({
-        ...newSaleData,
-        id: `sale-rec-${Date.now()}`,
-        receiptNumber: `RECU-VTE-${new Date().getFullYear()}-${Math.floor(100 + Math.random() * 900)}`,
-        createdAt: new Date().toISOString(),
-      });
+      firestoreService.saveSaleReceipt(fullSaleData);
     }
 
     dispatch(addToast({
