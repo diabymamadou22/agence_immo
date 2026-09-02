@@ -20,9 +20,12 @@ import {
   Home, 
   Landmark,
   PlusCircle,
-  Lock
+  Lock,
+  Cloud,
+  CloudCheck
 } from 'lucide-react';
 import { cleanPhoneNumberForTel, cleanWhatsAppNumber } from '../../utils/formatters';
+import { firestoreService } from '../../services/firestoreService';
 
 export const Header: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -60,6 +63,13 @@ export const Header: React.FC = () => {
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               {agencyConfig.name} • {agencyConfig.city}
             </span>
+            <span className="hidden sm:inline text-slate-500">|</span>
+            {firestoreService.isLive() ? (
+              <span className="hidden lg:flex items-center gap-1 text-[11px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-800/60 font-medium">
+                <Cloud className="w-3 h-3 text-emerald-400 animate-pulse" />
+                <span>Multi-Appareils Connecté</span>
+              </span>
+            ) : null}
             <span className="hidden sm:inline text-slate-500">|</span>
             <span className="hidden sm:inline">RCCM: {agencyConfig.rccm}</span>
             <span className="hidden md:inline text-slate-500">|</span>

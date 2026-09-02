@@ -1,10 +1,11 @@
 import React from 'react';
-import { useAppDispatch } from '../../store';
+import { useAppDispatch, useAppSelector } from '../../store';
 import { openNotaryModal } from '../../store/uiSlice';
 import { ShieldCheck, FileCheck, CheckCircle2, AlertTriangle, Calculator, Building, Landmark } from 'lucide-react';
 
 export const LandPlotGuideBanner: React.FC = () => {
   const dispatch = useAppDispatch();
+  const agencyConfig = useAppSelector((state) => state.agency.config);
 
   return (
     <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-700 shadow-xl overflow-hidden relative">
@@ -29,7 +30,7 @@ export const LandPlotGuideBanner: React.FC = () => {
             Comment Acheter une Parcelle en Toute Sérénité à Bamako ?
           </h3>
           <p className="text-sm text-slate-300 leading-relaxed max-w-3xl">
-            Au Mali, l'acquisition foncière exige une vigilance absolue. Mali Immo Prestige effectue toutes les vérifications préliminaires avant la mise en vente de chaque terrain.
+            Au Mali, l'acquisition foncière exige une vigilance absolue. {agencyConfig.name} effectue toutes les vérifications préliminaires avant la mise en vente de chaque terrain.
           </p>
         </div>
 

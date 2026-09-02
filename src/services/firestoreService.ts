@@ -371,10 +371,12 @@ export const firestoreService = {
   subscribeProperties(onUpdate: (props: Property[]) => void): () => void {
     if (!db || !isConfigured) return () => {};
     try {
-      const q = query(collection(db, COLLECTIONS.PROPERTIES), orderBy('createdAt', 'desc'));
+      const q = collection(db, COLLECTIONS.PROPERTIES);
       const unsub = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
           const list = snapshot.docs.map(doc => doc.data() as Property);
+          // Sort by createdAt desc
+          list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
           onUpdate(list);
         }
       }, (err) => console.warn('Properties subscription error:', err));
@@ -388,10 +390,11 @@ export const firestoreService = {
   subscribeLeads(onUpdate: (leads: Lead[]) => void): () => void {
     if (!db || !isConfigured) return () => {};
     try {
-      const q = query(collection(db, COLLECTIONS.LEADS), orderBy('createdAt', 'desc'));
+      const q = collection(db, COLLECTIONS.LEADS);
       const unsub = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
           const list = snapshot.docs.map(doc => doc.data() as Lead);
+          list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
           onUpdate(list);
         }
       }, (err) => console.warn('Leads subscription error:', err));
@@ -405,10 +408,11 @@ export const firestoreService = {
   subscribeTenants(onUpdate: (tenants: Tenant[]) => void): () => void {
     if (!db || !isConfigured) return () => {};
     try {
-      const q = query(collection(db, COLLECTIONS.TENANTS), orderBy('name', 'asc'));
+      const q = collection(db, COLLECTIONS.TENANTS);
       const unsub = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
           const list = snapshot.docs.map(doc => doc.data() as Tenant);
+          list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
           onUpdate(list);
         }
       }, (err) => console.warn('Tenants subscription error:', err));
@@ -422,10 +426,11 @@ export const firestoreService = {
   subscribeReceipts(onUpdate: (receipts: RentReceipt[]) => void): () => void {
     if (!db || !isConfigured) return () => {};
     try {
-      const q = query(collection(db, COLLECTIONS.RECEIPTS), orderBy('paymentDate', 'desc'));
+      const q = collection(db, COLLECTIONS.RECEIPTS);
       const unsub = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
           const list = snapshot.docs.map(doc => doc.data() as RentReceipt);
+          list.sort((a, b) => (b.paymentDate || '').localeCompare(a.paymentDate || ''));
           onUpdate(list);
         }
       }, (err) => console.warn('Receipts subscription error:', err));
@@ -439,10 +444,11 @@ export const firestoreService = {
   subscribeOwners(onUpdate: (owners: Owner[]) => void): () => void {
     if (!db || !isConfigured) return () => {};
     try {
-      const q = query(collection(db, COLLECTIONS.OWNERS), orderBy('createdAt', 'desc'));
+      const q = collection(db, COLLECTIONS.OWNERS);
       const unsub = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
           const list = snapshot.docs.map(doc => doc.data() as Owner);
+          list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
           onUpdate(list);
         }
       }, (err) => console.warn('Owners subscription error:', err));
@@ -456,10 +462,11 @@ export const firestoreService = {
   subscribePayouts(onUpdate: (payouts: OwnerPayout[]) => void): () => void {
     if (!db || !isConfigured) return () => {};
     try {
-      const q = query(collection(db, COLLECTIONS.PAYOUTS), orderBy('payoutDate', 'desc'));
+      const q = collection(db, COLLECTIONS.PAYOUTS);
       const unsub = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
           const list = snapshot.docs.map(doc => doc.data() as OwnerPayout);
+          list.sort((a, b) => (b.payoutDate || '').localeCompare(a.payoutDate || ''));
           onUpdate(list);
         }
       }, (err) => console.warn('Payouts subscription error:', err));
@@ -473,10 +480,11 @@ export const firestoreService = {
   subscribeContracts(onUpdate: (contracts: LegalContract[]) => void): () => void {
     if (!db || !isConfigured) return () => {};
     try {
-      const q = query(collection(db, COLLECTIONS.CONTRACTS), orderBy('createdAt', 'desc'));
+      const q = collection(db, COLLECTIONS.CONTRACTS);
       const unsub = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
           const list = snapshot.docs.map(doc => doc.data() as LegalContract);
+          list.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
           onUpdate(list);
         }
       }, (err) => console.warn('Contracts subscription error:', err));
@@ -490,10 +498,11 @@ export const firestoreService = {
   subscribeExpenses(onUpdate: (expenses: AgencyExpense[]) => void): () => void {
     if (!db || !isConfigured) return () => {};
     try {
-      const q = query(collection(db, COLLECTIONS.EXPENSES), orderBy('date', 'desc'));
+      const q = collection(db, COLLECTIONS.EXPENSES);
       const unsub = onSnapshot(q, (snapshot) => {
         if (!snapshot.empty) {
           const list = snapshot.docs.map(doc => doc.data() as AgencyExpense);
+          list.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
           onUpdate(list);
         }
       }, (err) => console.warn('Expenses subscription error:', err));

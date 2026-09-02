@@ -32,6 +32,9 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
       waveMerchant: 'WAVE-BKO-001',
       defaultRentalCommissionPercent: 10,
       defaultSaleCommissionPercent: 5,
+      specialties: ['vente', 'location', 'gestion'],
+      primarySpecialty: 'toutes',
+      specialtyDetails: 'Transactions foncières (Parcelles TF & Titres définitifs), location résidentielle et gestion locative avec quittances officielles.',
       themeColor: 'amber',
       officialStampText: 'MALI IMMO PRESTIGE SARL • DIRECTION GÉNÉRALE • VISA & SCEAU OFFICIEL',
       isCustomBranding: false,
@@ -65,6 +68,9 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
       waveMerchant: 'WAVE-BKO-002',
       defaultRentalCommissionPercent: 8,
       defaultSaleCommissionPercent: 5,
+      specialties: ['vente', 'gestion'],
+      primarySpecialty: 'vente',
+      specialtyDetails: 'Vente de parcelles viabilisées, domaines sécurisés et gestion de patrimoine foncier.',
       themeColor: 'emerald',
       officialStampText: 'MANDE HABITAT & TERROIRS SAS • DÉPARTEMENT JURIDIQUE & TRANSACTION',
       isCustomBranding: true,
@@ -98,6 +104,9 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
       waveMerchant: 'WAVE-KTI-001',
       defaultRentalCommissionPercent: 10,
       defaultSaleCommissionPercent: 6,
+      specialties: ['vente'],
+      primarySpecialty: 'vente',
+      specialtyDetails: 'Spécialiste exclusif en vente et immatriculation de parcelles, fermes et terrains agricoles.',
       themeColor: 'blue',
       officialStampText: 'KOULIKORO FONCIER SARL • SERVICE CONSERVATION & TRANSACTIONS',
       isCustomBranding: true,
@@ -131,6 +140,9 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
       waveMerchant: 'WAVE-BKO-003',
       defaultRentalCommissionPercent: 10,
       defaultSaleCommissionPercent: 5,
+      specialties: ['location', 'gestion'],
+      primarySpecialty: 'gestion',
+      specialtyDetails: 'Gestion locative haut de gamme, syndic de copropriété et baux diplomatiques.',
       themeColor: 'slate',
       officialStampText: 'SAHEL IMMOBILIER INTERNATIONAL • CONSEIL D\'ADMINISTRATION',
       isCustomBranding: true,
@@ -148,6 +160,11 @@ const loadSavedAgencyConfig = (): AgencyConfig => {
         return {
           ...AGENCY_PRESETS[0].config,
           ...parsed,
+          specialties: parsed.specialties && Array.isArray(parsed.specialties) && parsed.specialties.length > 0
+            ? parsed.specialties
+            : (AGENCY_PRESETS[0].config.specialties || ['vente', 'location', 'gestion']),
+          primarySpecialty: parsed.primarySpecialty || AGENCY_PRESETS[0].config.primarySpecialty || 'toutes',
+          specialtyDetails: parsed.specialtyDetails !== undefined ? parsed.specialtyDetails : AGENCY_PRESETS[0].config.specialtyDetails,
           adminPassword: parsed.adminPassword || '00223',
         };
       }

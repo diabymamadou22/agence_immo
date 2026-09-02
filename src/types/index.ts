@@ -314,9 +314,9 @@ export interface AgencyConfig {
   defaultRentalCommissionPercent: number; // e.g. 10%
   defaultSaleCommissionPercent: number; // e.g. 5%
 
-  // Agency Specialties & Core Services
-  specialties?: ('vente' | 'location' | 'gestion')[];
-  primarySpecialty?: 'vente' | 'location' | 'gestion' | 'toutes';
+  // Agency Specialties & Core Services (Vente, Location, Gestion)
+  specialties: ('vente' | 'location' | 'gestion')[];
+  primarySpecialty: 'vente' | 'location' | 'gestion' | 'toutes';
   specialtyDetails?: string;
 
   // Visual Theme / Stamp

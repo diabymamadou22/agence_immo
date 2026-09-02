@@ -29,7 +29,12 @@ import {
   EyeOff,
   ShieldCheck,
   Globe,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Briefcase,
+  Tag,
+  Key,
+  Check,
+  FileCheck
 } from 'lucide-react';
 
 export const AdminAgencySettings: React.FC = () => {
@@ -59,6 +64,36 @@ export const AdminAgencySettings: React.FC = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value,
+    }));
+  };
+
+  const handleToggleSpecialty = (item: 'vente' | 'location' | 'gestion') => {
+    const current = formData.specialties || ['vente', 'location', 'gestion'];
+    let updated: ('vente' | 'location' | 'gestion')[];
+    if (current.includes(item)) {
+      if (current.length === 1) {
+        dispatch(
+          addToast({
+            type: 'warning',
+            message: 'Votre agence doit conserver au moins une spécialité active.',
+          })
+        );
+        return;
+      }
+      updated = current.filter((s) => s !== item);
+    } else {
+      updated = [...current, item];
+    }
+    setFormData((prev) => ({
+      ...prev,
+      specialties: updated,
+    }));
+  };
+
+  const handleSelectPrimarySpecialty = (specialty: 'vente' | 'location' | 'gestion' | 'toutes') => {
+    setFormData((prev) => ({
+      ...prev,
+      primarySpecialty: specialty,
     }));
   };
 
@@ -252,6 +287,31 @@ export const AdminAgencySettings: React.FC = () => {
               <span className="font-mono text-slate-700">RCCM : {formData.rccm || 'Non renseigné'}</span>
               <span className="text-slate-300">•</span>
               <span className="font-mono text-slate-700">NIF : {formData.nif || 'Non renseigné'}</span>
+            </div>
+
+            {/* Specialties Badges Preview */}
+            <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1">
+                <Briefcase className="w-3 h-3 text-amber-500" />
+                Spécialités :
+              </span>
+              {(formData.specialties || ['vente', 'location', 'gestion']).map((s) => (
+                <span
+                  key={s}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wide border ${
+                    s === 'vente'
+                      ? 'bg-amber-100 text-amber-900 border-amber-300'
+                      : s === 'location'
+                      ? 'bg-blue-100 text-blue-900 border-blue-300'
+                      : 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                  }`}
+                >
+                  {s === 'vente' ? 'Vente' : s === 'location' ? 'Location' : 'Gestion'}
+                </span>
+              ))}
+              <span className="text-[10px] font-bold text-slate-500 ml-1">
+                (Principale : {formData.primarySpecialty === 'vente' ? 'Vente' : formData.primarySpecialty === 'location' ? 'Location' : formData.primarySpecialty === 'gestion' ? 'Gestion' : 'Toutes'})
+              </span>
             </div>
           </div>
         </div>
@@ -497,9 +557,127 @@ export const AdminAgencySettings: React.FC = () => {
               </div>
             </div>
 
+            {/* Spécialités & Cœur de Métier de l'Agence */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-500/5 via-slate-50 to-amber-500/10 border-2 border-amber-500/30 space-y-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="w-7 h-7 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-bold">
+                      <Briefcase className="w-4 h-4" />
+                    </span>
+                    <h4 className="font-extrabold text-slate-900 font-heading text-sm sm:text-base">
+                      Spécialité & Cœur de Métier de l'Agence
+                    </h4>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-slate-950 uppercase tracking-wide">
+                      Affiché sur l'Accueil Client
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 leading-relaxed">
+                    Définissez la spécialité de votre agence (Vente, Location, Gestion). Cette indication valorise votre expertise auprès des clients et investisseurs sur la page d'accueil.
+                  </p>
+                </div>
+              </div>
+
+              {/* Spécialité Principale */}
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2.5">
+                  Spécialité Principale Affichée *
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {[
+                    { id: 'toutes', label: 'Vente, Location & Gestion', desc: 'Agence polyvalente intégrale', icon: Sparkles },
+                    { id: 'vente', label: 'Spécialiste Vente & Foncier', desc: 'Parcelles TF & Villas', icon: Tag },
+                    { id: 'location', label: 'Spécialiste Location', desc: 'Baux Habitation & Pro', icon: Key },
+                    { id: 'gestion', label: 'Spécialiste Gestion Locative', desc: 'Recouvrement & Quittances', icon: FileCheck },
+                  ].map((item) => {
+                    const isSelected = (formData.primarySpecialty || 'toutes') === item.id;
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleSelectPrimarySpecialty(item.id as any)}
+                        className={`p-3.5 rounded-xl text-left border-2 transition-all cursor-pointer flex flex-col justify-between ${
+                          isSelected
+                            ? 'border-amber-500 bg-amber-500/15 shadow-xs ring-2 ring-amber-500/20'
+                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <Icon className={`w-4 h-4 ${isSelected ? 'text-amber-600 font-bold' : 'text-slate-400'}`} />
+                          <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                            isSelected ? 'border-amber-600 bg-amber-600 text-white' : 'border-slate-300'
+                          }`}>
+                            {isSelected && <Check className="w-2.5 h-2.5" />}
+                          </div>
+                        </div>
+                        <div className="font-extrabold text-xs text-slate-900 font-heading">{item.label}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">{item.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Activités proposées (Checkboxes) */}
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">
+                  Activités Immobilières Autorisées (Cochez pour activer)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    { id: 'vente' as const, label: 'Vente Immobilière & Foncière', badge: 'Vente', desc: 'Parcelles Titre Foncier, terrains agricoles & villas' },
+                    { id: 'location' as const, label: 'Location Résidentielle & Pro', badge: 'Location', desc: 'Mise en location, baux d’habitation & baux commerciaux' },
+                    { id: 'gestion' as const, label: 'Gestion Locative Sécurisée', badge: 'Gestion', desc: 'Suivi des loyers, quittances officielles & reversements' },
+                  ].map((srv) => {
+                    const isChecked = (formData.specialties || ['vente', 'location', 'gestion']).includes(srv.id);
+                    return (
+                      <div
+                        key={srv.id}
+                        onClick={() => handleToggleSpecialty(srv.id)}
+                        className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer select-none flex items-start gap-3 ${
+                          isChecked
+                            ? 'border-slate-900 bg-slate-900 text-white shadow-xs'
+                            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          className="mt-1 rounded accent-amber-500 cursor-pointer pointer-events-none"
+                        />
+                        <div className="space-y-0.5">
+                          <span className="font-extrabold text-xs font-heading block">{srv.label}</span>
+                          <p className={`text-[11px] ${isChecked ? 'text-slate-300' : 'text-slate-500'}`}>
+                            {srv.desc}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Description personnalisée de la spécialité */}
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Détail de la Spécialité (Texte explicatif affiché sur la page d'accueil)
+                </label>
+                <input
+                  type="text"
+                  name="specialtyDetails"
+                  value={formData.specialtyDetails || ''}
+                  onChange={handleChange}
+                  placeholder="Ex: Spécialiste de la vente de parcelles avec Titre Foncier inattaquable et de la gestion locative à Bamako."
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900 text-sm font-medium"
+                />
+              </div>
+            </div>
+
             <div>
               <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2">
-                Texte d'Accroche / Description de l'Agence
+                Texte d'Accroche / Description Complémentaire de l'Agence
               </label>
               <textarea
                 name="tagline"
