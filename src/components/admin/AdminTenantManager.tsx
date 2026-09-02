@@ -16,6 +16,7 @@ import { Tenant, RentReceipt, PaymentMethod } from '../../types';
 import { formatFCFA, formatDate, AGENCY_INFO } from '../../utils/formatters';
 import { exportTenantsToCSV, exportReceiptsToCSV } from '../../utils/exportUtils';
 import { TenantExportModal } from './TenantExportModal';
+import { TenantReportModal } from './TenantReportModal';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { 
   Users, 
@@ -48,6 +49,8 @@ export const AdminTenantManager: React.FC = () => {
   // Form State to add tenant
   const [isAddingTenant, setIsAddingTenant] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedTenantForReport, setSelectedTenantForReport] = useState<string | null>(null);
   const [tenantToDelete, setTenantToDelete] = useState<Tenant | null>(null);
   const [receiptToDelete, setReceiptToDelete] = useState<RentReceipt | null>(null);
   const [name, setName] = useState('');
@@ -172,6 +175,18 @@ export const AdminTenantManager: React.FC = () => {
     }));
   };
 
+  const handleOpenTenantReport = (tenantId?: string) => {
+    if (tenants.length === 0) {
+      dispatch(addToast({
+        type: 'warning',
+        message: 'Aucun locataire disponible pour générer un rapport.',
+      }));
+      return;
+    }
+    setSelectedTenantForReport(tenantId || tenants[0].id);
+    setIsReportModalOpen(true);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -192,8 +207,20 @@ export const AdminTenantManager: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Générer Rapport Locataire PDF */}
+          <button
+            type="button"
+            onClick={() => handleOpenTenantReport()}
+            className="px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Générer une fiche récapitulative au format PDF pour un locataire sélectionné"
+          >
+            <FileText className="w-4 h-4" />
+            <span>Générer rapport</span>
+          </button>
+
           {/* CSV Export Locataires */}
           <button
+            type="button"
             onClick={handleExportTenantsCSV}
             className="px-3 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             title="Exporter les locataires en format CSV"
@@ -204,6 +231,7 @@ export const AdminTenantManager: React.FC = () => {
 
           {/* CSV Export Quittances */}
           <button
+            type="button"
             onClick={handleExportReceiptsCSV}
             className="px-3 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             title="Exporter le journal des quittances en format CSV"
@@ -214,6 +242,7 @@ export const AdminTenantManager: React.FC = () => {
 
           {/* État Comptable PDF */}
           <button
+            type="button"
             onClick={() => setIsExportModalOpen(true)}
             className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             title="Générer l'état comptable des loyers et imprimer en PDF"
@@ -223,8 +252,9 @@ export const AdminTenantManager: React.FC = () => {
           </button>
 
           <button
+            type="button"
             onClick={() => setIsAddingTenant(!isAddingTenant)}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>{isAddingTenant ? 'Fermer le formulaire' : 'Nouveau Locataire / Bail'}</span>
@@ -406,7 +436,8 @@ export const AdminTenantManager: React.FC = () => {
           </span>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop Table View (>= md) */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-700">
             <thead className="bg-slate-900 text-white font-bold uppercase tracking-wider text-[10px]">
               <tr>
@@ -482,9 +513,22 @@ export const AdminTenantManager: React.FC = () => {
                     {/* Actions */}
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {/* Generate Tenant Summary Report PDF */}
+                        <button
+                          id={`btn-report-${tenant.id}`}
+                          type="button"
+                          onClick={() => handleOpenTenantReport(tenant.id)}
+                          className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                          title="Générer la fiche récapitulative au format PDF pour ce locataire"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-blue-600" />
+                          <span>Générer rapport</span>
+                        </button>
+
                         {/* Record Payment */}
                         <button
                           id={`btn-pay-${tenant.id}`}
+                          type="button"
                           onClick={() => dispatch(openPaymentModal(tenant.id))}
                           className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
                           title="Encaisser un loyer"
@@ -494,6 +538,7 @@ export const AdminTenantManager: React.FC = () => {
                         </button>
 
                         <button
+                          type="button"
                           onClick={() => setTenantToDelete(tenant)}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                           title="Supprimer définitivement le contrat"
@@ -507,6 +552,123 @@ export const AdminTenantManager: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile & Small Screens Card View (< md) */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {tenants.length === 0 ? (
+            <div className="p-8 text-center text-slate-400">
+              <Users className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+              <p className="text-sm font-semibold">Aucun locataire enregistré.</p>
+              <p className="text-xs text-slate-400 mt-1">Cliquez sur « Nouveau Locataire / Bail » pour enregistrer un contrat.</p>
+            </div>
+          ) : (
+            tenants.map((tenant) => (
+              <div key={`card-tenant-${tenant.id}`} className="p-4 space-y-3 hover:bg-slate-50/60 transition-colors">
+                {/* Header: Name + Status Badge */}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 text-sm">
+                      {tenant.name}
+                    </h4>
+                    <div className="flex items-center gap-1 text-slate-500 text-xs mt-0.5 font-medium">
+                      <Building className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                      <span className="font-bold text-slate-700">{tenant.propertyTitle}</span>
+                      <span className="text-slate-400">• Unité {tenant.unitNumber || 'Principale'}</span>
+                    </div>
+                  </div>
+
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase shrink-0 ${
+                    tenant.status === 'actif'
+                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                      : 'bg-rose-100 text-rose-800 border border-rose-200 font-black'
+                  }`}>
+                    {tenant.status === 'actif' ? 'À Jour' : 'En Retard'}
+                  </span>
+                </div>
+
+                {/* Contact details */}
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
+                  <a
+                    href={`tel:${tenant.phone}`}
+                    className="flex items-center gap-1 text-blue-600 font-bold hover:underline"
+                  >
+                    <Phone className="w-3 h-3 text-blue-500" />
+                    <span>{tenant.phone}</span>
+                  </a>
+                  {tenant.email && (
+                    <div className="flex items-center gap-1 text-slate-500 text-[11px]">
+                      <Mail className="w-3 h-3 text-slate-400" />
+                      <span className="truncate max-w-[150px]">{tenant.email}</span>
+                    </div>
+                  )}
+                  {tenant.ninaNumber && (
+                    <span className="text-slate-500 font-mono text-[11px]">
+                      NINA: <strong className="text-slate-700">{tenant.ninaNumber}</strong>
+                    </span>
+                  )}
+                </div>
+
+                {/* Financial Summary Grid */}
+                <div className="grid grid-cols-3 gap-2 bg-slate-50/80 p-2.5 rounded-xl border border-slate-200/80 text-center">
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Loyer Mensuel</span>
+                    <span className="font-extrabold text-xs text-slate-900 font-heading block mt-0.5">
+                      {formatFCFA(tenant.monthlyRent)}
+                    </span>
+                    <span className="text-[9px] text-slate-400 font-medium">le {tenant.rentPaymentDay}/mois</span>
+                  </div>
+
+                  <div className="border-x border-slate-200">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Caution</span>
+                    <span className="font-bold text-xs text-slate-700 block mt-0.5">
+                      {formatFCFA(tenant.depositAmount)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase block">Dernier Mois</span>
+                    <span className="font-bold text-xs text-slate-800 block mt-0.5 truncate px-1">
+                      {tenant.lastPaymentMonth || 'Aucun'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Mobile Actions Bar */}
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                  {/* Generate Report */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenTenantReport(tenant.id)}
+                    className="flex-1 py-2 px-3 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Rapport</span>
+                  </button>
+
+                  {/* Record Payment */}
+                  <button
+                    type="button"
+                    onClick={() => dispatch(openPaymentModal(tenant.id))}
+                    className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <Receipt className="w-3.5 h-3.5" />
+                    <span>Encaisser</span>
+                  </button>
+
+                  {/* Delete Tenant */}
+                  <button
+                    type="button"
+                    onClick={() => setTenantToDelete(tenant)}
+                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors cursor-pointer shrink-0"
+                    title="Supprimer le contrat"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 
@@ -609,6 +771,13 @@ export const AdminTenantManager: React.FC = () => {
       <TenantExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
+      />
+
+      {/* Fiche Récapitulative Individuelle du Locataire (Rapport PDF) */}
+      <TenantReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        initialTenantId={selectedTenantForReport}
       />
     </div>
   );
