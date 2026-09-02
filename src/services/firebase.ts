@@ -21,20 +21,19 @@ const metaEnv = (import.meta as any).env || {};
 export const getDefaultConfig = (): FirebaseConfigOptions => {
   // 1. Check if default provisioned firebase-applet-config.json exists
   if (defaultAppletConfig && defaultAppletConfig.projectId && defaultAppletConfig.apiKey) {
-    // If a saved localStorage config exists, check if it's the obsolete test project or mismatched
+    // Purge any mismatched or stale local configs to ensure all devices share the exact same database
     try {
-      const saved = localStorage.getItem(LOCAL_STORAGE_FIREBASE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed?.projectId === 'utility-abstraction-kcf5x') {
-          // Purge obsolete previous project to align all devices automatically
-          localStorage.removeItem(LOCAL_STORAGE_FIREBASE_KEY);
-        } else if (parsed && parsed.projectId && parsed.apiKey && parsed.projectId !== defaultAppletConfig.projectId) {
-          return parsed;
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const saved = window.localStorage.getItem(LOCAL_STORAGE_FIREBASE_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed?.projectId !== defaultAppletConfig.projectId || parsed?.firestoreDatabaseId !== defaultAppletConfig.firestoreDatabaseId) {
+            window.localStorage.removeItem(LOCAL_STORAGE_FIREBASE_KEY);
+          }
         }
       }
     } catch (e) {
-      console.warn('Custom config read notice:', e);
+      console.warn('Custom config cleanup notice:', e);
     }
 
     return {
@@ -50,11 +49,13 @@ export const getDefaultConfig = (): FirebaseConfigOptions => {
 
   // 2. Check if user saved custom config in app localStorage
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_FIREBASE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed && parsed.projectId && parsed.apiKey) {
-        return parsed;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const saved = window.localStorage.getItem(LOCAL_STORAGE_FIREBASE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.projectId && parsed.apiKey) {
+          return parsed;
+        }
       }
     }
   } catch (e) {

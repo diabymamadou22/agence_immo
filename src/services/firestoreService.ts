@@ -38,6 +38,31 @@ export const COLLECTIONS = {
   LOTISSEMENTS: 'lotissements',
 };
 
+/**
+ * Strips undefined values recursively so Firestore never rejects the write with:
+ * "Unsupported field value: undefined"
+ */
+export function sanitizeForFirestore<T>(data: T): T {
+  if (data === null || data === undefined) {
+    return null as any;
+  }
+  if (typeof data !== 'object') {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data
+      .filter((item) => item !== undefined)
+      .map((item) => sanitizeForFirestore(item)) as any;
+  }
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(data as Record<string, any>)) {
+    if (value !== undefined) {
+      clean[key] = sanitizeForFirestore(value);
+    }
+  }
+  return clean as T;
+}
+
 export const firestoreService = {
   // Check if live firestore is connected
   isLive: () => Boolean(isConfigured && db),
@@ -58,9 +83,10 @@ export const firestoreService = {
   async saveProperty(property: Property): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await setDoc(doc(db, COLLECTIONS.PROPERTIES, property.id), property, { merge: true });
+      const clean = sanitizeForFirestore(property);
+      await setDoc(doc(db, COLLECTIONS.PROPERTIES, clean.id), clean, { merge: true });
     } catch (e) {
-      console.warn('Firestore saveProperty fallback:', e);
+      console.error('Firestore saveProperty error:', e);
     }
   },
 
@@ -89,16 +115,21 @@ export const firestoreService = {
   async saveLead(lead: Lead): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await setDoc(doc(db, COLLECTIONS.LEADS, lead.id), lead, { merge: true });
+      const clean = sanitizeForFirestore(lead);
+      await setDoc(doc(db, COLLECTIONS.LEADS, clean.id), clean, { merge: true });
     } catch (e) {
-      console.warn('Firestore saveLead fallback:', e);
+      console.error('Firestore saveLead error:', e);
     }
   },
 
   async updateLeadStatus(leadId: string, status: string, notes?: string): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await updateDoc(doc(db, COLLECTIONS.LEADS, leadId), { status, ...(notes ? { notes } : {}) });
+      const updateData: any = { status };
+      if (notes !== undefined && notes !== null) {
+        updateData.notes = notes;
+      }
+      await updateDoc(doc(db, COLLECTIONS.LEADS, leadId), updateData);
     } catch (e) {
       console.warn('Firestore updateLeadStatus fallback:', e);
     }
@@ -129,9 +160,10 @@ export const firestoreService = {
   async saveTenant(tenant: Tenant): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await setDoc(doc(db, COLLECTIONS.TENANTS, tenant.id), tenant, { merge: true });
+      const clean = sanitizeForFirestore(tenant);
+      await setDoc(doc(db, COLLECTIONS.TENANTS, clean.id), clean, { merge: true });
     } catch (e) {
-      console.warn('Firestore saveTenant fallback:', e);
+      console.error('Firestore saveTenant error:', e);
     }
   },
 
@@ -159,9 +191,10 @@ export const firestoreService = {
   async saveReceipt(receipt: RentReceipt): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await setDoc(doc(db, COLLECTIONS.RECEIPTS, receipt.id), receipt, { merge: true });
+      const clean = sanitizeForFirestore(receipt);
+      await setDoc(doc(db, COLLECTIONS.RECEIPTS, clean.id), clean, { merge: true });
     } catch (e) {
-      console.warn('Firestore saveReceipt fallback:', e);
+      console.error('Firestore saveReceipt error:', e);
     }
   },
 
@@ -190,9 +223,10 @@ export const firestoreService = {
   async saveSaleReceipt(sale: SaleReceipt): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await setDoc(doc(db, COLLECTIONS.SALES, sale.id), sale, { merge: true });
+      const clean = sanitizeForFirestore(sale);
+      await setDoc(doc(db, COLLECTIONS.SALES, clean.id), clean, { merge: true });
     } catch (e) {
-      console.warn('Firestore saveSaleReceipt fallback:', e);
+      console.error('Firestore saveSaleReceipt error:', e);
     }
   },
 
@@ -236,9 +270,10 @@ export const firestoreService = {
   async saveOwner(owner: Owner): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await setDoc(doc(db, COLLECTIONS.OWNERS, owner.id), owner, { merge: true });
+      const clean = sanitizeForFirestore(owner);
+      await setDoc(doc(db, COLLECTIONS.OWNERS, clean.id), clean, { merge: true });
     } catch (e) {
-      console.warn('Firestore saveOwner fallback:', e);
+      console.error('Firestore saveOwner error:', e);
     }
   },
 
@@ -266,9 +301,10 @@ export const firestoreService = {
   async savePayout(payout: OwnerPayout): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await setDoc(doc(db, COLLECTIONS.PAYOUTS, payout.id), payout, { merge: true });
+      const clean = sanitizeForFirestore(payout);
+      await setDoc(doc(db, COLLECTIONS.PAYOUTS, clean.id), clean, { merge: true });
     } catch (e) {
-      console.warn('Firestore savePayout fallback:', e);
+      console.error('Firestore savePayout error:', e);
     }
   },
 
@@ -297,9 +333,10 @@ export const firestoreService = {
   async saveContract(contract: LegalContract): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await setDoc(doc(db, COLLECTIONS.CONTRACTS, contract.id), contract, { merge: true });
+      const clean = sanitizeForFirestore(contract);
+      await setDoc(doc(db, COLLECTIONS.CONTRACTS, clean.id), clean, { merge: true });
     } catch (e) {
-      console.warn('Firestore saveContract fallback:', e);
+      console.error('Firestore saveContract error:', e);
     }
   },
 
@@ -328,9 +365,10 @@ export const firestoreService = {
   async saveExpense(expense: AgencyExpense): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await setDoc(doc(db, COLLECTIONS.EXPENSES, expense.id), expense, { merge: true });
+      const clean = sanitizeForFirestore(expense);
+      await setDoc(doc(db, COLLECTIONS.EXPENSES, clean.id), clean, { merge: true });
     } catch (e) {
-      console.warn('Firestore saveExpense fallback:', e);
+      console.error('Firestore saveExpense error:', e);
     }
   },
 
@@ -361,9 +399,10 @@ export const firestoreService = {
   async saveAgencyConfig(config: AgencyConfig): Promise<void> {
     if (!db || !isConfigured) return;
     try {
-      await setDoc(doc(db, COLLECTIONS.AGENCY_CONFIG, 'main_config'), config, { merge: true });
+      const clean = sanitizeForFirestore(config);
+      await setDoc(doc(db, COLLECTIONS.AGENCY_CONFIG, 'main_config'), clean, { merge: true });
     } catch (e) {
-      console.warn('Firestore saveAgencyConfig fallback:', e);
+      console.error('Firestore saveAgencyConfig error:', e);
     }
   },
 
@@ -562,63 +601,63 @@ export const firestoreService = {
 
       // 1. Properties
       for (const prop of data.properties) {
-        await setDoc(doc(db, COLLECTIONS.PROPERTIES, prop.id), prop, { merge: true });
+        await setDoc(doc(db, COLLECTIONS.PROPERTIES, prop.id), sanitizeForFirestore(prop), { merge: true });
         totalPushed++;
       }
 
       // 2. Tenants
       for (const tenant of data.tenants) {
-        await setDoc(doc(db, COLLECTIONS.TENANTS, tenant.id), tenant, { merge: true });
+        await setDoc(doc(db, COLLECTIONS.TENANTS, tenant.id), sanitizeForFirestore(tenant), { merge: true });
         totalPushed++;
       }
 
       // 3. Rent Receipts
       for (const receipt of data.receipts) {
-        await setDoc(doc(db, COLLECTIONS.RECEIPTS, receipt.id), receipt, { merge: true });
+        await setDoc(doc(db, COLLECTIONS.RECEIPTS, receipt.id), sanitizeForFirestore(receipt), { merge: true });
         totalPushed++;
       }
 
       // 4. Sales Receipts
       if (data.sales && Array.isArray(data.sales)) {
         for (const sale of data.sales) {
-          await setDoc(doc(db, COLLECTIONS.SALES, sale.id), sale, { merge: true });
+          await setDoc(doc(db, COLLECTIONS.SALES, sale.id), sanitizeForFirestore(sale), { merge: true });
           totalPushed++;
         }
       }
 
       // 5. Owners
       for (const owner of data.owners) {
-        await setDoc(doc(db, COLLECTIONS.OWNERS, owner.id), owner, { merge: true });
+        await setDoc(doc(db, COLLECTIONS.OWNERS, owner.id), sanitizeForFirestore(owner), { merge: true });
         totalPushed++;
       }
 
       // 6. Payouts
       for (const payout of data.payouts) {
-        await setDoc(doc(db, COLLECTIONS.PAYOUTS, payout.id), payout, { merge: true });
+        await setDoc(doc(db, COLLECTIONS.PAYOUTS, payout.id), sanitizeForFirestore(payout), { merge: true });
         totalPushed++;
       }
 
       // 7. Contracts
       for (const contract of data.contracts) {
-        await setDoc(doc(db, COLLECTIONS.CONTRACTS, contract.id), contract, { merge: true });
+        await setDoc(doc(db, COLLECTIONS.CONTRACTS, contract.id), sanitizeForFirestore(contract), { merge: true });
         totalPushed++;
       }
 
       // 8. Expenses
       for (const exp of data.expenses) {
-        await setDoc(doc(db, COLLECTIONS.EXPENSES, exp.id), exp, { merge: true });
+        await setDoc(doc(db, COLLECTIONS.EXPENSES, exp.id), sanitizeForFirestore(exp), { merge: true });
         totalPushed++;
       }
 
       // 9. Leads
       for (const lead of data.leads) {
-        await setDoc(doc(db, COLLECTIONS.LEADS, lead.id), lead, { merge: true });
+        await setDoc(doc(db, COLLECTIONS.LEADS, lead.id), sanitizeForFirestore(lead), { merge: true });
         totalPushed++;
       }
 
       // 10. Agency Config
       if (data.agencyConfig) {
-        await setDoc(doc(db, COLLECTIONS.AGENCY_CONFIG, 'main_config'), data.agencyConfig, { merge: true });
+        await setDoc(doc(db, COLLECTIONS.AGENCY_CONFIG, 'main_config'), sanitizeForFirestore(data.agencyConfig), { merge: true });
         totalPushed++;
       }
 

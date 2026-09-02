@@ -85,63 +85,63 @@ const AppContent: React.FC = () => {
 
     // 1. Properties & Parcelles
     const unsubscribeProps = firestoreService.subscribeProperties((props) => {
-      if (props && props.length > 0) {
+      if (props && Array.isArray(props)) {
         dispatch(setProperties(props));
       }
     });
 
     // 2. Leads & Visits
     const unsubscribeLeads = firestoreService.subscribeLeads((leads) => {
-      if (leads && leads.length > 0) {
+      if (leads && Array.isArray(leads)) {
         dispatch(setLeads(leads));
       }
     });
 
     // 3. Tenants
     const unsubscribeTenants = firestoreService.subscribeTenants((tenants) => {
-      if (tenants && tenants.length > 0) {
+      if (tenants && Array.isArray(tenants)) {
         dispatch(setTenants(tenants));
       }
     });
 
     // 4. Receipts
     const unsubscribeReceipts = firestoreService.subscribeReceipts((receipts) => {
-      if (receipts && receipts.length > 0) {
+      if (receipts && Array.isArray(receipts)) {
         dispatch(setReceipts(receipts));
       }
     });
 
     // 4b. Sales Receipts
     const unsubscribeSales = firestoreService.subscribeSaleReceipts((sales) => {
-      if (sales && sales.length > 0) {
+      if (sales && Array.isArray(sales)) {
         dispatch(setSalesReceipts(sales));
       }
     });
 
     // 5. Owners
     const unsubscribeOwners = firestoreService.subscribeOwners((owners) => {
-      if (owners && owners.length > 0) {
+      if (owners && Array.isArray(owners)) {
         dispatch(setOwners(owners));
       }
     });
 
     // 6. Payouts
     const unsubscribePayouts = firestoreService.subscribePayouts((payouts) => {
-      if (payouts && payouts.length > 0) {
+      if (payouts && Array.isArray(payouts)) {
         dispatch(setPayouts(payouts));
       }
     });
 
     // 7. Contracts
     const unsubscribeContracts = firestoreService.subscribeContracts((contracts) => {
-      if (contracts && contracts.length > 0) {
+      if (contracts && Array.isArray(contracts)) {
         dispatch(setContracts(contracts));
       }
     });
 
     // 8. Expenses
     const unsubscribeExpenses = firestoreService.subscribeExpenses((expenses) => {
-      if (expenses && expenses.length > 0) {
+      if (expenses && Array.isArray(expenses)) {
         dispatch(setExpenses(expenses));
       }
     });
