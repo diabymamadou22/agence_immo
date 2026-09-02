@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { closePayoutPrintModal } from '../../store/uiSlice';
 import { formatFCFA, formatDate } from '../../utils/formatters';
@@ -20,7 +20,26 @@ export const PayoutPrintModal: React.FC = () => {
 
   const printRef = useRef<HTMLDivElement>(null);
 
+  // Close with ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        dispatch(closePayoutPrintModal());
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, dispatch]);
+
   if (!isOpen || !payout) return null;
+
+  const handleClose = () => {
+    dispatch(closePayoutPrintModal());
+  };
 
   const handlePrint = () => {
     if (printRef.current) {
@@ -31,30 +50,39 @@ export const PayoutPrintModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 print:p-0 print:bg-white">
-      <div className="bg-white w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] print:max-h-none print:shadow-none print:border-none print:rounded-none">
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex items-start sm:items-center justify-center p-2 sm:p-4 md:p-6 animate-fadeIn print:p-0 print:bg-white"
+      onClick={handleClose}
+    >
+      <div 
+        className="bg-white w-full max-w-3xl rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[94vh] sm:max-h-[90vh] my-auto print:max-h-none print:shadow-none print:border-none print:rounded-none"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Screen Header */}
-        <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 print:hidden">
+        <div className="p-3 sm:p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0 sticky top-0 z-30 print:hidden">
           <div className="flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-amber-400" />
-            <h3 className="font-extrabold text-sm sm:text-base font-heading">
-              Bordereau de Reversement des Loyers ({payout.payoutNumber})
+            <Receipt className="w-5 h-5 text-amber-400 shrink-0" />
+            <h3 className="font-extrabold text-xs sm:text-sm font-heading truncate max-w-[220px] sm:max-w-none">
+              Bordereau de Reversement ({payout.payoutNumber})
             </h3>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+              className="px-3 sm:px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimer Bordereau</span>
+              <span className="hidden sm:inline">Imprimer Bordereau</span>
+              <span className="sm:hidden">Imprimer</span>
             </button>
             <button
-              onClick={() => dispatch(closePayoutPrintModal())}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
+              onClick={handleClose}
+              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+              title="Fermer la fenêtre (Échap)"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Fermer</span>
             </button>
           </div>
         </div>
@@ -63,7 +91,7 @@ export const PayoutPrintModal: React.FC = () => {
         <div 
           ref={printRef} 
           id="printable-payout"
-          className="p-6 sm:p-8 overflow-y-auto space-y-5 text-slate-900 bg-white font-sans text-xs sm:text-sm print:p-3 print:space-y-2.5 single-page-a4"
+          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-5 text-slate-900 bg-white font-sans text-xs sm:text-sm print:p-3 print:space-y-2.5 single-page-a4"
         >
           {/* Header */}
           <div className="border-b-2 border-slate-900 pb-3 flex items-start justify-between gap-4 print:pb-1.5">
@@ -187,6 +215,27 @@ export const PayoutPrintModal: React.FC = () => {
               </div>
               <span className="text-[9px] font-bold text-slate-600 mt-0.5 print:text-[7.5px]">La Direction Financière</span>
             </div>
+          </div>
+        </div>
+
+        {/* Bottom Actions Footer (Fixed at the bottom for easy exit) */}
+        <div className="p-3 sm:p-4 bg-slate-100 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0 sticky bottom-0 z-30 print:hidden">
+          <button
+            onClick={handleClose}
+            className="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+          >
+            <X className="w-4 h-4" />
+            <span>Fermer / Quitter</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrint}
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Imprimer Bordereau</span>
+            </button>
           </div>
         </div>
       </div>

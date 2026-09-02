@@ -4,6 +4,7 @@ import { addExpense, deleteExpense } from '../../store/financialsSlice';
 import { addToast } from '../../store/uiSlice';
 import { firestoreService } from '../../services/firestoreService';
 import { formatFCFA, formatDate } from '../../utils/formatters';
+import { exportMonthlyFinancialsToCSV, exportExpensesToCSV, computeMonthlyFinancialBreakdown } from '../../utils/exportUtils';
 import { AgencyExpense, PaymentMethod } from '../../types';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { FinancialChart } from './FinancialChart';
@@ -23,7 +24,8 @@ import {
   Users,
   Building,
   Smartphone,
-  Wallet
+  Wallet,
+  FileSpreadsheet
 } from 'lucide-react';
 
 export const AdminFinancials: React.FC = () => {
@@ -47,6 +49,60 @@ export const AdminFinancials: React.FC = () => {
     receiptNumber: '',
     notes: '',
   });
+
+  const handleExportMonthlyReportCSV = () => {
+    try {
+      const monthlyData = computeMonthlyFinancialBreakdown(
+        properties,
+        tenants,
+        receipts,
+        payouts,
+        expenses,
+        agencyConfig
+      );
+      exportMonthlyFinancialsToCSV(
+        monthlyData,
+        `rapport_comptable_revenus_depenses_${new Date().toISOString().split('T')[0]}`
+      );
+      dispatch(
+        addToast({
+          type: 'success',
+          message: 'Rapport mensuel des revenus et dépenses exporté en CSV (Excel) avec succès !',
+        })
+      );
+    } catch (error) {
+      console.error('Erreur lors de l\'export CSV:', error);
+      dispatch(
+        addToast({
+          type: 'error',
+          message: 'Erreur lors de la génération du fichier CSV.',
+        })
+      );
+    }
+  };
+
+  const handleExportExpensesCSV = () => {
+    try {
+      exportExpensesToCSV(
+        expenses,
+        `journal_depenses_exploitation_${new Date().toISOString().split('T')[0]}`
+      );
+      dispatch(
+        addToast({
+          type: 'success',
+          message: 'Journal des dépenses d\'exploitation exporté en CSV avec succès !',
+        })
+      );
+    } catch (error) {
+      console.error('Erreur lors de l\'export des dépenses CSV:', error);
+      dispatch(
+        addToast({
+          type: 'error',
+          message: 'Erreur lors de l\'export des dépenses en CSV.',
+        })
+      );
+    }
+  };
 
   const handleConfirmDeleteExpense = async () => {
     if (!expenseToDelete) return;
@@ -148,13 +204,26 @@ export const AdminFinancials: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsAddingExpense(true)}
-          className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer self-start md:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Enregistrer une Dépense</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+          <button
+            type="button"
+            onClick={handleExportMonthlyReportCSV}
+            className="px-4 sm:px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+            title="Télécharger le rapport des revenus et dépenses mensuelles pour la comptabilité (CSV Excel)"
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            <span>Exporter en CSV</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsAddingExpense(true)}
+            className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Enregistrer une Dépense</span>
+          </button>
+        </div>
       </div>
 
       {/* 4 Main Financial KPI Cards */}
@@ -416,14 +485,25 @@ export const AdminFinancials: React.FC = () => {
 
         {/* Right: Expenses Ledger Table */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden flex flex-col justify-between">
-          <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <CreditCard className="w-4 h-4 text-amber-500" />
               <h3 className="font-extrabold text-base text-slate-900 font-heading">
                 Journal des Dépenses d'Exploitation
               </h3>
             </div>
-            <span className="text-xs text-slate-500 font-semibold">{expenses.length} dépenses</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-500 font-semibold hidden sm:inline">{expenses.length} dépenses</span>
+              <button
+                type="button"
+                onClick={handleExportExpensesCSV}
+                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Télécharger le journal des dépenses en fichier CSV Excel"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Export Dépenses CSV</span>
+              </button>
+            </div>
           </div>
 
           <div className="overflow-x-auto">

@@ -13,7 +13,12 @@ import {
 } from 'recharts';
 import { Property, Tenant, RentReceipt, OwnerPayout, AgencyExpense, AgencyConfig } from '../../types';
 import { formatFCFA } from '../../utils/formatters';
-import { TrendingUp, ArrowDownRight, Wallet, BarChart3, Calendar, Percent } from 'lucide-react';
+import { 
+  computeMonthlyFinancialBreakdown, 
+  exportMonthlyFinancialsToCSV,
+  MonthlyFinancialSummaryItem 
+} from '../../utils/exportUtils';
+import { TrendingUp, ArrowDownRight, Wallet, BarChart3, Calendar, Percent, FileSpreadsheet } from 'lucide-react';
 
 interface FinancialChartProps {
   properties: Property[];
@@ -23,29 +28,6 @@ interface FinancialChartProps {
   expenses: AgencyExpense[];
   agencyConfig: AgencyConfig;
 }
-
-interface MonthlyDataPoint {
-  monthKey: string;      // "2024-08"
-  label: string;         // "Août 2024"
-  shortLabel: string;    // "Août"
-  revenus: number;       // Agency gross commission & fees
-  depenses: number;      // Agency expenses
-  benefice: number;      // revenus - depenses
-  rentalCommissions: number;
-  salesCommissions: number;
-  chargesDetailCount: number;
-  marginPercent: number;
-}
-
-const MONTH_NAMES_FR = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-];
-
-const SHORT_MONTH_NAMES_FR = [
-  'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
-  'Juil', 'Août', 'Sept', 'Oct', 'Nov', 'Déc'
-];
 
 export const FinancialChart: React.FC<FinancialChartProps> = ({
   properties,
@@ -59,124 +41,25 @@ export const FinancialChart: React.FC<FinancialChartProps> = ({
   const [timeRange, setTimeRange] = useState<'6m' | '12m' | 'all'>('6m');
 
   // Compute monthly data dynamically from real entities
+  const allMonthlyPoints = useMemo(() => {
+    return computeMonthlyFinancialBreakdown(
+      properties,
+      tenants,
+      receipts,
+      payouts,
+      expenses,
+      agencyConfig
+    );
+  }, [properties, tenants, receipts, payouts, expenses, agencyConfig]);
+
   const monthlyData = useMemo(() => {
-    const map = new Map<string, {
-      monthKey: string;
-      year: number;
-      month: number;
-      rentalCommissions: number;
-      salesCommissions: number;
-      dossierFees: number;
-      depenses: number;
-      chargesCount: number;
-    }>();
-
-    // Helper to get or create map entry
-    const getEntry = (year: number, month: number) => {
-      const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
-      if (!map.has(monthKey)) {
-        map.set(monthKey, {
-          monthKey,
-          year,
-          month,
-          rentalCommissions: 0,
-          salesCommissions: 0,
-          dossierFees: 0,
-          depenses: 0,
-          chargesCount: 0,
-        });
-      }
-      return map.get(monthKey)!;
-    };
-
-    // 1. Process payouts (commissions earned by agency from owners' rentals)
-    payouts.forEach((p) => {
-      const pDate = p.payoutDate ? new Date(p.payoutDate) : new Date();
-      if (!isNaN(pDate.getTime())) {
-        const entry = getEntry(pDate.getFullYear(), pDate.getMonth());
-        entry.rentalCommissions += (p.agencyCommissionAmount || 0);
-      }
-    });
-
-    // 1b. If some receipts don't have payouts yet, calculate default 10% agency management commission
-    receipts.forEach((r) => {
-      const rDate = r.paymentDate ? new Date(r.paymentDate) : new Date();
-      if (!isNaN(rDate.getTime())) {
-        const entry = getEntry(rDate.getFullYear(), rDate.getMonth());
-        // Add dossier/admin fees per receipt if no payout
-        if (payouts.length === 0) {
-          entry.rentalCommissions += Math.round(r.amount * 0.10);
-        }
-      }
-    });
-
-    // 2. Process sold properties (sales commissions earned on conclusion)
-    properties
-      .filter((p) => p.status === 'vendu' && p.dealType === 'vente')
-      .forEach((p) => {
-        const dateStr = p.updatedAt || p.createdAt || '2024-08-01';
-        const pDate = new Date(dateStr);
-        if (!isNaN(pDate.getTime())) {
-          const entry = getEntry(pDate.getFullYear(), pDate.getMonth());
-          const commissionRate = agencyConfig.defaultSaleCommissionPercent || 5;
-          entry.salesCommissions += Math.round(p.price * (commissionRate / 100));
-        }
-      });
-
-    // 3. Process expenses
-    expenses.forEach((e) => {
-      const eDate = e.date ? new Date(e.date) : new Date();
-      if (!isNaN(eDate.getTime())) {
-        const entry = getEntry(eDate.getFullYear(), eDate.getMonth());
-        entry.depenses += (e.amount || 0);
-        entry.chargesCount += 1;
-      }
-    });
-
-    // Ensure we have a continuous stream of recent months if data is sparse
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
-
-    // Default to at least last 6 months spanning through current
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(currentYear, currentMonth - i, 1);
-      getEntry(d.getFullYear(), d.getMonth());
-    }
-
-    // Sort entries chronologically
-    const sortedEntries = Array.from(map.values()).sort((a, b) => {
-      return a.monthKey.localeCompare(b.monthKey);
-    });
-
-    // Format into chart data points
-    const points: MonthlyDataPoint[] = sortedEntries.map((item) => {
-      const totalRevenus = item.rentalCommissions + item.salesCommissions + item.dossierFees;
-      const benefice = totalRevenus - item.depenses;
-      const margin = totalRevenus > 0 ? Math.round((benefice / totalRevenus) * 100) : 0;
-
-      return {
-        monthKey: item.monthKey,
-        label: `${MONTH_NAMES_FR[item.month]} ${item.year}`,
-        shortLabel: `${SHORT_MONTH_NAMES_FR[item.month]} ${String(item.year).slice(2)}`,
-        revenus: totalRevenus,
-        depenses: item.depenses,
-        benefice: benefice,
-        rentalCommissions: item.rentalCommissions,
-        salesCommissions: item.salesCommissions,
-        chargesDetailCount: item.chargesCount,
-        marginPercent: margin,
-      };
-    });
-
-    // Filter by selected range
     if (timeRange === '6m') {
-      return points.slice(-6);
+      return allMonthlyPoints.slice(-6);
     } else if (timeRange === '12m') {
-      return points.slice(-12);
+      return allMonthlyPoints.slice(-12);
     }
-    return points;
-  }, [properties, receipts, payouts, expenses, agencyConfig, timeRange]);
+    return allMonthlyPoints;
+  }, [allMonthlyPoints, timeRange]);
 
   // Aggregate stats for period
   const totalPeriodRevenue = monthlyData.reduce((acc, d) => acc + d.revenus, 0);
@@ -187,7 +70,7 @@ export const FinancialChart: React.FC<FinancialChartProps> = ({
   // Custom tooltip component
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const dataPoint = payload[0]?.payload as MonthlyDataPoint;
+      const dataPoint = payload[0]?.payload as MonthlyFinancialSummaryItem;
       if (!dataPoint) return null;
 
       return (
@@ -261,7 +144,7 @@ export const FinancialChart: React.FC<FinancialChartProps> = ({
           </p>
         </div>
 
-        {/* View Switchers */}
+        {/* View Switchers & Export Button */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Time range switcher */}
           <div className="flex items-center p-1 bg-slate-100 rounded-xl text-xs font-bold text-slate-600">
@@ -312,6 +195,17 @@ export const FinancialChart: React.FC<FinancialChartProps> = ({
               Aires
             </button>
           </div>
+
+          {/* Export CSV Button */}
+          <button
+            type="button"
+            onClick={() => exportMonthlyFinancialsToCSV(monthlyData, `rapport_mensuel_revenus_depenses_${timeRange}`)}
+            className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border border-emerald-200"
+            title="Exporter ces données mensuelles en fichier CSV Excel"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Export CSV</span>
+          </button>
         </div>
       </div>
 

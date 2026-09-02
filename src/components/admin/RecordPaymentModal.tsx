@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { closePaymentModal, openReceiptModal, addToast } from '../../store/uiSlice';
 import { recordRentPayment, setActiveReceiptForPrint } from '../../store/tenantsSlice';
@@ -19,6 +19,21 @@ export const RecordPaymentModal: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('orange_money');
   const [transactionRef, setTransactionRef] = useState('');
   const [notes, setNotes] = useState('Loyer réglé sans réserve.');
+
+  // Close with ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        dispatch(closePaymentModal());
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, dispatch]);
 
   if (!isOpen || !tenant) return null;
 
@@ -56,19 +71,23 @@ export const RecordPaymentModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-md p-4 flex items-center justify-center animate-fadeIn">
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-2 sm:p-4 flex items-start sm:items-center justify-center animate-fadeIn"
+      onClick={() => dispatch(closePaymentModal())}
+    >
       <div 
-        className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden"
+        className="bg-white rounded-2xl sm:rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[94vh] sm:max-h-[90vh] flex flex-col"
         id="record-payment-modal"
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="p-5 bg-gradient-to-r from-emerald-900 to-slate-900 text-white flex items-center justify-between border-b border-emerald-800">
+        <div className="p-4 sm:p-5 bg-gradient-to-r from-emerald-900 to-slate-900 text-white flex items-center justify-between border-b border-emerald-800 shrink-0 sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-bold">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center font-bold shrink-0">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-base font-heading">
+              <h3 className="font-extrabold text-sm sm:text-base font-heading">
                 Encaisser un Loyer & Générer Quittance
               </h3>
               <p className="text-xs text-emerald-200">
@@ -79,14 +98,16 @@ export const RecordPaymentModal: React.FC = () => {
 
           <button
             onClick={() => dispatch(closePaymentModal())}
-            className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer"
+            className="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white bg-slate-800/80 hover:bg-rose-600 transition-colors text-xs font-bold flex items-center gap-1 cursor-pointer"
+            title="Fermer la fenêtre (Échap)"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
+            <span className="hidden sm:inline">Fermer</span>
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
           {/* Tenant & Property Overview */}
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1 text-xs">
             <div className="flex justify-between">

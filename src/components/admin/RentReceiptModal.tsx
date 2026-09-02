@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { closeReceiptModal } from '../../store/uiSlice';
 import { formatFCFA, formatDate } from '../../utils/formatters';
@@ -13,7 +13,26 @@ export const RentReceiptModal: React.FC = () => {
 
   const printRef = useRef<HTMLDivElement>(null);
 
+  // Close with ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        dispatch(closeReceiptModal());
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, dispatch]);
+
   if (!isOpen || !activeReceipt) return null;
+
+  const handleClose = () => {
+    dispatch(closeReceiptModal());
+  };
 
   const handlePrint = () => {
     if (printRef.current) {
@@ -35,15 +54,19 @@ export const RentReceiptModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-4 flex items-center justify-center animate-fadeIn print:p-0 print:bg-white">
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-2 sm:p-4 md:p-6 flex items-start sm:items-center justify-center animate-fadeIn print:p-0 print:bg-white"
+      onClick={handleClose}
+    >
       <div 
-        className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col print:shadow-none print:border-none print:rounded-none"
+        className="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full max-h-[94vh] sm:max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto print:max-h-none print:shadow-none print:border-none print:rounded-none"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Screen Controls Header */}
-        <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 print:hidden">
+        {/* Sticky Screen Controls Header */}
+        <div className="p-3 sm:p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0 sticky top-0 z-30 print:hidden">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            <span className="font-extrabold text-xs font-heading">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+            <span className="font-extrabold text-xs font-heading truncate max-w-[200px] sm:max-w-none">
               Quittance de Loyer N° {activeReceipt.receiptNumber}
             </span>
           </div>
@@ -51,17 +74,20 @@ export const RentReceiptModal: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-extrabold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+              className="px-3 sm:px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-extrabold flex items-center gap-1.5 sm:gap-2 shadow-sm transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimer / Exporter PDF</span>
+              <span className="hidden sm:inline">Imprimer / PDF</span>
+              <span className="sm:hidden">Imprimer</span>
             </button>
 
             <button
-              onClick={() => dispatch(closeReceiptModal())}
-              className="p-2 rounded-xl text-slate-400 hover:text-white bg-slate-800 transition-colors cursor-pointer"
+              onClick={handleClose}
+              className="px-3 py-2 rounded-xl text-slate-200 hover:text-white bg-slate-800 hover:bg-rose-600 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+              title="Fermer la fenêtre (Échap)"
             >
               <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Fermer</span>
             </button>
           </div>
         </div>
@@ -70,7 +96,7 @@ export const RentReceiptModal: React.FC = () => {
         <div 
           ref={printRef} 
           id="printable-rent-receipt" 
-          className="p-6 sm:p-8 space-y-5 bg-white text-slate-900 font-sans print:p-3 print:space-y-2.5 text-xs sm:text-sm single-page-a4"
+          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-5 bg-white text-slate-900 font-sans print:p-3 print:space-y-2.5 text-xs sm:text-sm single-page-a4"
         >
           {/* Agency Letterhead */}
           <div className="flex items-start justify-between gap-4 pb-3 border-b-2 border-slate-900 print:pb-1.5">
@@ -216,6 +242,27 @@ export const RentReceiptModal: React.FC = () => {
                 <span className="text-[8px] text-slate-500 block print:text-[6.5px]">BAMAKO (MALI)</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Bottom Actions Footer (Fixed at the bottom for easy exit) */}
+        <div className="p-3 sm:p-4 bg-slate-100 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0 sticky bottom-0 z-30 print:hidden">
+          <button
+            onClick={handleClose}
+            className="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+          >
+            <X className="w-4 h-4" />
+            <span>Fermer / Quitter</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrint}
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Imprimer Quittance</span>
+            </button>
           </div>
         </div>
       </div>

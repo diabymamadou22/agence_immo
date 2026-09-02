@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
 import { closeSaleReceiptModal } from '../../store/uiSlice';
 import { 
@@ -27,7 +27,8 @@ import {
   QrCode,
   Phone,
   Mail,
-  BadgeCheck
+  BadgeCheck,
+  LogOut
 } from 'lucide-react';
 
 export const SaleReceiptModal: React.FC = () => {
@@ -38,7 +39,26 @@ export const SaleReceiptModal: React.FC = () => {
 
   const printRef = useRef<HTMLDivElement>(null);
 
+  // Close with ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        dispatch(closeSaleReceiptModal());
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, dispatch]);
+
   if (!isOpen || !activeReceipt) return null;
+
+  const handleClose = () => {
+    dispatch(closeSaleReceiptModal());
+  };
 
   const handlePrint = () => {
     const title = `Recu_Vente_${activeReceipt.receiptNumber}_${activeReceipt.buyerName.replace(/\s+/g, '_')}`;
@@ -54,34 +74,40 @@ export const SaleReceiptModal: React.FC = () => {
   const isParcelle = activeReceipt.propertyType === 'parcelle';
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-4 flex items-center justify-center animate-fadeIn print:p-0 print:bg-white">
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-2 sm:p-4 md:p-6 flex items-start sm:items-center justify-center animate-fadeIn print:p-0 print:bg-white"
+      onClick={handleClose}
+    >
       <div 
-        className="bg-white rounded-3xl max-w-3xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col print:shadow-none print:border-none print:rounded-none"
+        className="bg-white rounded-2xl sm:rounded-3xl max-w-3xl w-full max-h-[94vh] sm:max-h-[90vh] shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto print:max-h-none print:shadow-none print:border-none print:rounded-none"
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Screen Controls Header */}
-        <div className="p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 print:hidden">
+        {/* Sticky Screen Controls Header */}
+        <div className="p-3 sm:p-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0 sticky top-0 z-30 print:hidden">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="font-extrabold text-xs font-heading">
-              Reçu Officiel de Vente Immobilière & Foncier • N° {activeReceipt.receiptNumber}
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
+            <span className="font-extrabold text-xs font-heading truncate max-w-[220px] sm:max-w-none">
+              Reçu Officiel de Vente • N° {activeReceipt.receiptNumber}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+              className="px-3 sm:px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black flex items-center gap-1.5 sm:gap-2 shadow-sm transition-all cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimer le Reçu / PDF</span>
+              <span className="hidden sm:inline">Imprimer le Reçu / PDF</span>
+              <span className="sm:hidden">Imprimer</span>
             </button>
 
             <button
-              onClick={() => dispatch(closeSaleReceiptModal())}
-              className="p-2 rounded-xl text-slate-400 hover:text-white bg-slate-800 transition-colors cursor-pointer"
-              title="Fermer"
+              onClick={handleClose}
+              className="px-3 py-2 rounded-xl text-slate-200 hover:text-white bg-slate-800 hover:bg-rose-600 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+              title="Fermer la fenêtre (Échap)"
             >
               <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Fermer</span>
             </button>
           </div>
         </div>
@@ -90,7 +116,7 @@ export const SaleReceiptModal: React.FC = () => {
         <div 
           ref={printRef} 
           id="printable-sale-receipt" 
-          className="p-6 sm:p-8 space-y-4 bg-white text-slate-900 font-sans print:p-2.5 print:space-y-2 text-xs sm:text-sm relative overflow-hidden single-page-a4"
+          className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4 bg-white text-slate-900 font-sans print:p-2.5 print:space-y-2 text-xs sm:text-sm relative single-page-a4"
         >
           {/* Subtle Watermark for Official Print */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] select-none print:hidden">
@@ -406,6 +432,27 @@ export const SaleReceiptModal: React.FC = () => {
           <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[8px] text-slate-400 font-mono print:pt-1 print:text-[7px]">
             <span>Certificat délivré par {agencyConfig.name} • Système Sécurisé Mali Immo</span>
             <span>Réf : {activeReceipt.id} • Validé</span>
+          </div>
+        </div>
+
+        {/* Bottom Actions Footer (Fixed at the bottom for easy exit) */}
+        <div className="p-3 sm:p-4 bg-slate-100 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0 sticky bottom-0 z-30 print:hidden">
+          <button
+            onClick={handleClose}
+            className="px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-xs"
+          >
+            <X className="w-4 h-4" />
+            <span>Fermer / Quitter</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrint}
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Imprimer le document</span>
+            </button>
           </div>
         </div>
       </div>

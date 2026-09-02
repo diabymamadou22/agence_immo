@@ -102,6 +102,21 @@ export const RecordSaleModal: React.FC = () => {
     }
   };
 
+  // Close with ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        dispatch(closeRecordSaleModal());
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, dispatch]);
+
   if (!isOpen) return null;
 
   const remainingBalance = Math.max(0, totalAgreedPrice - amountPaid);
@@ -213,16 +228,22 @@ export const RecordSaleModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm p-4 flex items-center justify-center animate-fadeIn">
-      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-8">
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md p-2 sm:p-4 flex items-start sm:items-center justify-center animate-fadeIn"
+      onClick={() => dispatch(closeRecordSaleModal())}
+    >
+      <div 
+        className="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[94vh] sm:max-h-[90vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="p-5 bg-slate-950 text-white flex items-center justify-between border-b border-slate-800">
+        <div className="p-4 sm:p-5 bg-slate-950 text-white flex items-center justify-between border-b border-slate-800 shrink-0 sticky top-0 z-30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30 shrink-0">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-black text-lg font-heading text-white">
+              <h3 className="font-black text-base sm:text-lg font-heading text-white">
                 Émettre un Reçu de Vente Immobilière
               </h3>
               <p className="text-xs text-slate-400">
@@ -233,9 +254,11 @@ export const RecordSaleModal: React.FC = () => {
 
           <button
             onClick={() => dispatch(closeRecordSaleModal())}
-            className="p-2 rounded-xl text-slate-400 hover:text-white bg-slate-800 transition-colors cursor-pointer"
+            className="px-3 py-1.5 rounded-xl text-slate-300 hover:text-white bg-slate-800 hover:bg-rose-600 transition-colors text-xs font-bold flex items-center gap-1 cursor-pointer"
+            title="Fermer la fenêtre (Échap)"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
+            <span className="hidden sm:inline">Fermer</span>
           </button>
         </div>
 
