@@ -1,17 +1,22 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { closeReceiptModal } from '../../store/uiSlice';
+import { closeReceiptModal, addToast } from '../../store/uiSlice';
 import { formatFCFA, formatDate } from '../../utils/formatters';
 import { printElement } from '../../utils/printUtils';
-import { X, Printer, Building2, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { sendRentReceiptWhatsApp } from '../../utils/whatsappUtils';
+import { downloadElementAsPdf } from '../../utils/pdfExport';
+import { X, Printer, Building2, ShieldCheck, CheckCircle2, MessageCircle, Download, Loader2 } from 'lucide-react';
 
 export const RentReceiptModal: React.FC = () => {
   const dispatch = useAppDispatch();
   const isOpen = useAppSelector((state) => state.ui.isReceiptModalOpen);
   const activeReceipt = useAppSelector((state) => state.tenants.activeReceiptForPrint);
   const agencyConfig = useAppSelector((state) => state.agency.config);
+  const tenants = useAppSelector((state) => state.tenants.items);
+  const matchedTenant = tenants.find((t) => t.id === activeReceipt?.tenantId);
 
   const printRef = useRef<HTMLDivElement>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   // Close with ESC key
   useEffect(() => {
@@ -39,6 +44,33 @@ export const RentReceiptModal: React.FC = () => {
       printElement(printRef.current, `Quittance_Loyer_${activeReceipt.receiptNumber}`);
     } else {
       printElement('printable-rent-receipt', `Quittance_Loyer_${activeReceipt.receiptNumber}`);
+    }
+  };
+
+  const handleWhatsAppShare = () => {
+    sendRentReceiptWhatsApp(activeReceipt, agencyConfig, matchedTenant?.phone);
+    dispatch(addToast({
+      type: 'success',
+      message: 'Discussion WhatsApp ouverte avec la quittance pré-remplie.'
+    }));
+  };
+
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      const fileName = `Quittance_Loyer_${activeReceipt.receiptNumber}_${activeReceipt.tenantName.replace(/\s+/g, '_')}`;
+      const success = await downloadElementAsPdf(printRef.current || 'printable-rent-receipt', fileName);
+      if (success) {
+        dispatch(addToast({
+          type: 'success',
+          message: 'Téléchargement de la quittance PDF réussi !'
+        }));
+      } else {
+        // Fallback to print if canvas fails
+        handlePrint();
+      }
+    } finally {
+      setIsDownloadingPdf(false);
     }
   };
 
@@ -71,19 +103,42 @@ export const RentReceiptModal: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={handleWhatsAppShare}
+              className="px-2.5 sm:px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              title="Envoyer la quittance officielle par WhatsApp au locataire"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="hidden md:inline">WhatsApp</span>
+            </button>
+
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+              className="px-2.5 sm:px-3.5 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              title="Télécharger le fichier PDF directement"
+            >
+              {isDownloadingPdf ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">{isDownloadingPdf ? 'Création...' : 'Télécharger PDF'}</span>
+            </button>
+
             <button
               onClick={handlePrint}
-              className="px-3 sm:px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-extrabold flex items-center gap-1.5 sm:gap-2 shadow-sm transition-all cursor-pointer"
+              className="px-2.5 sm:px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              title="Imprimer sur papier"
             >
               <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">Imprimer / PDF</span>
-              <span className="sm:hidden">Imprimer</span>
+              <span className="hidden sm:inline">Imprimer</span>
             </button>
 
             <button
               onClick={handleClose}
-              className="px-3 py-2 rounded-xl text-slate-200 hover:text-white bg-slate-800 hover:bg-rose-600 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+              className="px-2.5 sm:px-3 py-2 rounded-xl text-slate-200 hover:text-white bg-slate-800 hover:bg-rose-600 transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer"
               title="Fermer la fenêtre (Échap)"
             >
               <X className="w-4 h-4" />
@@ -296,13 +351,36 @@ export const RentReceiptModal: React.FC = () => {
             <span>Fermer / Quitter</span>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleWhatsAppShare}
+              className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+              title="Envoyer au locataire par WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Envoyer WhatsApp</span>
+            </button>
+
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+              className="px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+              title="Télécharger le fichier PDF"
+            >
+              {isDownloadingPdf ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span>{isDownloadingPdf ? 'Création...' : 'Télécharger PDF'}</span>
+            </button>
+
             <button
               onClick={handlePrint}
-              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+              className="px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimer Quittance</span>
+              <span>Imprimer</span>
             </button>
           </div>
         </div>

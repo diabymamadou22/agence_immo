@@ -15,6 +15,7 @@ import { firestoreService } from '../../services/firestoreService';
 import { Tenant, RentReceipt, PaymentMethod } from '../../types';
 import { formatFCFA, formatDate, AGENCY_INFO } from '../../utils/formatters';
 import { exportTenantsToCSV, exportReceiptsToCSV } from '../../utils/exportUtils';
+import { sendRentReminderWhatsApp } from '../../utils/whatsappUtils';
 import { TenantExportModal } from './TenantExportModal';
 import { TenantReportModal } from './TenantReportModal';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
@@ -34,7 +35,8 @@ import {
   DollarSign,
   Building,
   UserCheck,
-  FileSpreadsheet
+  FileSpreadsheet,
+  MessageCircle
 } from 'lucide-react';
 
 export const AdminTenantManager: React.FC = () => {
@@ -528,6 +530,25 @@ export const AdminTenantManager: React.FC = () => {
                           <span>Générer rapport</span>
                         </button>
 
+                        {/* Relancer si retard */}
+                        {tenant.status === 'retard' && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              sendRentReminderWhatsApp(tenant, agencyConfig);
+                              dispatch(addToast({
+                                type: 'success',
+                                message: `Relance WhatsApp ouverte pour ${tenant.name}`
+                              }));
+                            }}
+                            className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-lg text-[11px] font-black flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
+                            title="Envoyer un rappel de loyer par WhatsApp"
+                          >
+                            <MessageCircle className="w-3.5 h-3.5 text-rose-600" />
+                            <span>Relancer</span>
+                          </button>
+                        )}
+
                         {/* Record Payment */}
                         <button
                           id={`btn-pay-${tenant.id}`}
@@ -638,7 +659,25 @@ export const AdminTenantManager: React.FC = () => {
                 </div>
 
                 {/* Mobile Actions Bar */}
-                <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-100">
+                  {/* WhatsApp Reminder if late */}
+                  {tenant.status === 'retard' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        sendRentReminderWhatsApp(tenant, agencyConfig);
+                        dispatch(addToast({
+                          type: 'success',
+                          message: `Relance WhatsApp ouverte pour ${tenant.name}`
+                        }));
+                      }}
+                      className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Envoyer Relance WhatsApp</span>
+                    </button>
+                  )}
+
                   {/* Generate Report */}
                   <button
                     type="button"

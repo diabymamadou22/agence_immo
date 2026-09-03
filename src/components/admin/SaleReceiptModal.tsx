@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { closeSaleReceiptModal } from '../../store/uiSlice';
+import { closeSaleReceiptModal, addToast } from '../../store/uiSlice';
 import { 
   formatFCFA, 
   formatDate, 
@@ -11,6 +11,8 @@ import {
   getPropertyTypeLabel
 } from '../../utils/formatters';
 import { printElement } from '../../utils/printUtils';
+import { sendSaleReceiptWhatsApp } from '../../utils/whatsappUtils';
+import { downloadElementAsPdf } from '../../utils/pdfExport';
 import { 
   X, 
   Printer, 
@@ -28,7 +30,10 @@ import {
   Phone,
   Mail,
   BadgeCheck,
-  LogOut
+  LogOut,
+  MessageCircle,
+  Download,
+  Loader2
 } from 'lucide-react';
 
 export const SaleReceiptModal: React.FC = () => {
@@ -38,6 +43,7 @@ export const SaleReceiptModal: React.FC = () => {
   const agencyConfig = useAppSelector((state) => state.agency.config);
 
   const printRef = useRef<HTMLDivElement>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   // Close with ESC key
   useEffect(() => {
@@ -69,6 +75,32 @@ export const SaleReceiptModal: React.FC = () => {
     }
   };
 
+  const handleWhatsAppShare = () => {
+    sendSaleReceiptWhatsApp(activeReceipt, agencyConfig);
+    dispatch(addToast({
+      type: 'success',
+      message: 'Discussion WhatsApp ouverte avec le reçu de vente pré-rempli.'
+    }));
+  };
+
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      const fileName = `Recu_Vente_${activeReceipt.receiptNumber}_${activeReceipt.buyerName.replace(/\s+/g, '_')}`;
+      const success = await downloadElementAsPdf(printRef.current || 'printable-sale-receipt', fileName);
+      if (success) {
+        dispatch(addToast({
+          type: 'success',
+          message: 'Téléchargement du reçu de vente PDF réussi !'
+        }));
+      } else {
+        handlePrint();
+      }
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const opLabel = getSaleOperationLabel(activeReceipt.operationType);
   const docBadge = getDocumentBadgeInfo(activeReceipt.documentType);
   const isParcelle = activeReceipt.propertyType === 'parcelle';
@@ -91,19 +123,42 @@ export const SaleReceiptModal: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={handleWhatsAppShare}
+              className="px-2.5 sm:px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              title="Envoyer le reçu de vente par WhatsApp à l'acquéreur"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="hidden md:inline">WhatsApp</span>
+            </button>
+
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+              className="px-2.5 sm:px-3.5 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              title="Télécharger le reçu au format PDF"
+            >
+              {isDownloadingPdf ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">{isDownloadingPdf ? 'Création...' : 'Télécharger PDF'}</span>
+            </button>
+
             <button
               onClick={handlePrint}
-              className="px-3 sm:px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black flex items-center gap-1.5 sm:gap-2 shadow-sm transition-all cursor-pointer"
+              className="px-2.5 sm:px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+              title="Imprimer le document"
             >
               <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">Imprimer le Reçu / PDF</span>
-              <span className="sm:hidden">Imprimer</span>
+              <span className="hidden sm:inline">Imprimer</span>
             </button>
 
             <button
               onClick={handleClose}
-              className="px-3 py-2 rounded-xl text-slate-200 hover:text-white bg-slate-800 hover:bg-rose-600 transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+              className="px-2.5 sm:px-3 py-2 rounded-xl text-slate-200 hover:text-white bg-slate-800 hover:bg-rose-600 transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer"
               title="Fermer la fenêtre (Échap)"
             >
               <X className="w-4 h-4" />
@@ -445,13 +500,36 @@ export const SaleReceiptModal: React.FC = () => {
             <span>Fermer / Quitter</span>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleWhatsAppShare}
+              className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+              title="Envoyer à l'acquéreur par WhatsApp"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Envoyer WhatsApp</span>
+            </button>
+
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+              className="px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+              title="Télécharger le document au format PDF"
+            >
+              {isDownloadingPdf ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span>{isDownloadingPdf ? 'Création...' : 'Télécharger PDF'}</span>
+            </button>
+
             <button
               onClick={handlePrint}
-              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+              className="px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimer le document</span>
+              <span>Imprimer</span>
             </button>
           </div>
         </div>

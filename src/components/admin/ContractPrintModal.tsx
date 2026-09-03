@@ -1,8 +1,9 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { closeContractPrintModal } from '../../store/uiSlice';
+import { closeContractPrintModal, addToast } from '../../store/uiSlice';
 import { formatFCFA, formatDate } from '../../utils/formatters';
 import { printElement } from '../../utils/printUtils';
+import { downloadElementAsPdf } from '../../utils/pdfExport';
 import { 
   X, 
   Printer, 
@@ -11,6 +12,7 @@ import {
   FileText, 
   CheckCircle2, 
   Download,
+  Loader2,
   Phone,
   Mail,
   MapPin
@@ -23,6 +25,7 @@ export const ContractPrintModal: React.FC = () => {
   const agencyConfig = useAppSelector((state) => state.agency.config);
 
   const printRef = useRef<HTMLDivElement>(null);
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   // Close with ESC key
   useEffect(() => {
@@ -53,6 +56,24 @@ export const ContractPrintModal: React.FC = () => {
     }
   };
 
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      const fileName = `Acte_${contract.reference}_${contract.contractType}`;
+      const success = await downloadElementAsPdf(printRef.current || 'printable-contract', fileName);
+      if (success) {
+        dispatch(addToast({
+          type: 'success',
+          message: 'Acte juridique téléchargé en PDF avec succès !'
+        }));
+      } else {
+        handlePrint();
+      }
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   return (
     <div 
       className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex items-start sm:items-center justify-center p-2 sm:p-4 md:p-6 animate-fadeIn print:p-0 print:bg-white"
@@ -71,18 +92,32 @@ export const ContractPrintModal: React.FC = () => {
             </h3>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+              className="px-2.5 sm:px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white font-black text-xs shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Télécharger l'acte au format PDF"
+            >
+              {isDownloadingPdf ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">{isDownloadingPdf ? 'Génération...' : 'Télécharger PDF'}</span>
+            </button>
+
             <button
               onClick={handlePrint}
-              className="px-3 sm:px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer"
+              className="px-2.5 sm:px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Printer className="w-4 h-4" />
-              <span className="hidden sm:inline">Imprimer / PDF</span>
-              <span className="sm:hidden">Imprimer</span>
+              <span className="hidden sm:inline">Imprimer</span>
             </button>
+
             <button
               onClick={handleClose}
-              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white transition-colors flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+              className="px-2.5 sm:px-3 py-2 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white transition-colors flex items-center gap-1 text-xs font-bold cursor-pointer"
               title="Fermer la fenêtre (Échap)"
             >
               <X className="w-4 h-4" />
@@ -259,13 +294,27 @@ export const ContractPrintModal: React.FC = () => {
             <span>Fermer / Quitter</span>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+              className="px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-blue-800 text-white text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+              title="Télécharger l'acte au format PDF"
+            >
+              {isDownloadingPdf ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span>{isDownloadingPdf ? 'Génération...' : 'Télécharger PDF'}</span>
+            </button>
+
             <button
               onClick={handlePrint}
-              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-2 transition-all cursor-pointer shadow-sm"
+              className="px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
             >
               <Printer className="w-4 h-4" />
-              <span>Imprimer l'Acte</span>
+              <span>Imprimer</span>
             </button>
           </div>
         </div>

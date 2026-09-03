@@ -110,6 +110,7 @@ export interface RentReceipt {
   receiptNumber: string; // Ex: QUITT-2024-08-004
   tenantId: string;
   tenantName: string;
+  tenantPhone?: string;
   propertyId: string;
   propertyTitle: string;
   periodMonth: string; // Ex: Août 2024

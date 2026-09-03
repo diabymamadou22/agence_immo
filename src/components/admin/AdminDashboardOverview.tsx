@@ -4,6 +4,7 @@ import { setActiveAdminTab, openPropertyForm, openPaymentModal, openRecordSaleMo
 import { setSelectedPropertyId } from '../../store/propertiesSlice';
 import { setSelectedPropertyForSale } from '../../store/salesSlice';
 import { formatFCFA, formatDate, getDocumentBadgeInfo, getStatusBadgeInfo, formatSurface } from '../../utils/formatters';
+import { RentLateAlertWidget } from './RentLateAlertWidget';
 import { 
   Building2, 
   Layers, 
@@ -181,6 +182,9 @@ export const AdminDashboardOverview: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Late Rents & Automated WhatsApp Reminders Alert Center */}
+      <RentLateAlertWidget />
 
       {/* 2-Column Split: Upcoming Visits & Recent Parcel Listings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

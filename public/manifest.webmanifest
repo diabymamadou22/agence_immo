@@ -1,0 +1,45 @@
+{
+  "name": "Mali Immo Prestige",
+  "short_name": "Mali Immo",
+  "description": "Plateforme Foncière et Agence Immobilière au Mali (Bamako, Kati). Parcelles avec Titre Foncier, gestion locative, quittances et reçus officiels.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "fr",
+  "dir": "ltr",
+  "scope": "/",
+  "categories": ["business", "finance", "productivity"],
+  "icons": [
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Espace Administration",
+      "short_name": "Admin",
+      "description": "Accéder directement au back-office de gestion",
+      "url": "/?tab=admin",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Parcelles Titre Foncier",
+      "short_name": "Parcelles",
+      "description": "Catalogue des terrains avec Titre Foncier",
+      "url": "/?filter=parcelles",
+      "icons": [{ "src": "/pwa-icon.svg", "sizes": "96x96" }]
+    }
+  ]
+}

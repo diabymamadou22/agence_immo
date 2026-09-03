@@ -18,6 +18,7 @@ import { ToastContainer } from './components/common/ToastContainer';
 import { NotaryFeeModal } from './components/common/NotaryFeeModal';
 import { FavoritesDrawer } from './components/common/FavoritesDrawer';
 import { CloudSyncModal } from './components/common/CloudSyncModal';
+import { PWAInstallBanner } from './components/common/PWAInstallBanner';
 import { HeroSearch } from './components/client/HeroSearch';
 import { PropertyGrid } from './components/client/PropertyGrid';
 import { LandPlotGuideBanner } from './components/client/LandPlotGuideBanner';
@@ -269,6 +270,7 @@ const AppContent: React.FC = () => {
       <SaleReceiptModal />
       <ContractPrintModal />
       <PayoutPrintModal />
+      <PWAInstallBanner />
       <ToastContainer />
     </div>
   );
