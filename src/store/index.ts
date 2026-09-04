@@ -9,6 +9,7 @@ import ownersReducer from './ownersSlice';
 import contractsReducer from './contractsSlice';
 import financialsReducer from './financialsSlice';
 import salesReducer from './salesSlice';
+import usersReducer from './usersSlice';
 import { firestoreSyncMiddleware } from './syncMiddleware';
 
 export const store = configureStore({
@@ -22,6 +23,7 @@ export const store = configureStore({
     contracts: contractsReducer,
     financials: financialsReducer,
     sales: salesReducer,
+    users: usersReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

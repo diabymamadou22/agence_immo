@@ -161,6 +161,19 @@ export const firestoreSyncMiddleware: Middleware = (storeAPI) => (next) => (acti
         firestoreService.saveAgencyConfig(state.agency.config).catch(handleSyncErr);
       }
     }
+
+    // 8. USERS & COLLABORATORS (RBAC)
+    else if (type === 'users/addUser' || type === 'users/updateUser') {
+      const state = storeAPI.getState();
+      const user = action.payload?.id 
+        ? state.users.items.find((u: any) => u.id === action.payload.id)
+        : state.users.items[0];
+      if (user) {
+        firestoreService.saveUser(user).catch(handleSyncErr);
+      }
+    } else if (type === 'users/deleteUser') {
+      firestoreService.deleteUser(action.payload).catch(handleSyncErr);
+    }
   } catch (err) {
     console.warn('Sync middleware error:', err);
   }

@@ -12,6 +12,7 @@ export type AdminTab =
   | 'leads' 
   | 'financials' 
   | 'simulateur' 
+  | 'team' 
   | 'agency_settings' 
   | 'backups';
 

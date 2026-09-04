@@ -180,6 +180,24 @@
       },
       "required": ["id", "receiptNumber", "saleDate", "propertyId", "buyerName", "buyerPhone", "totalAgreedPrice", "amountPaid", "remainingBalance", "status"]
     },
+    "AgencyUser": {
+      "title": "AgencyUser",
+      "description": "Collaborateurs de l'agence et contrôle d'accès par rôle (RBAC)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["directeur", "comptable", "commercial", "gestionnaire"] },
+        "pinCode": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "type": "string", "enum": ["actif", "inactif"] },
+        "createdAt": { "type": "string" },
+        "lastLoginAt": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "phone", "role", "pinCode", "status"]
+    },
     "SystemHealth": {
       "title": "SystemHealth",
       "description": "Vérification de connectivité et heartbeat Firestore",
@@ -232,6 +250,10 @@
     "/agency_config/{configId}": {
       "schema": { "$ref": "#/entities/AgencyConfig" },
       "description": "Paramètres d'agence et personnalisation"
+    },
+    "/agency_users/{userId}": {
+      "schema": { "$ref": "#/entities/AgencyUser" },
+      "description": "Comptes collaborateurs et permissions RBAC de l'agence"
     },
     "/_system_health/{checkId}": {
       "schema": { "$ref": "#/entities/SystemHealth" },

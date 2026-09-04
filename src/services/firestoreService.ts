@@ -22,7 +22,8 @@ import {
   AgencyExpense, 
   AgencyConfig,
   SaleReceipt,
-  TerrainInspectionRecord
+  TerrainInspectionRecord,
+  AgencyUser
 } from '../types';
 
 export const COLLECTIONS = {
@@ -38,6 +39,7 @@ export const COLLECTIONS = {
   AGENCY_CONFIG: 'agency_config',
   LOTISSEMENTS: 'lotissements',
   INSPECTIONS: 'inspections',
+  USERS: 'agency_users',
 };
 
 /**
@@ -450,6 +452,39 @@ export const firestoreService = {
     }
   },
 
+  // ================= USERS & COLLABORATORS (RBAC) =================
+  async fetchUsers(): Promise<AgencyUser[]> {
+    if (!db || !isConfigured) return [];
+    try {
+      const snap = await getDocs(collection(db, COLLECTIONS.USERS));
+      const list = snap.docs.map(doc => doc.data() as AgencyUser);
+      list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      return list;
+    } catch (e) {
+      console.warn('Firestore fetchUsers fallback:', e);
+      return [];
+    }
+  },
+
+  async saveUser(user: AgencyUser): Promise<void> {
+    if (!db || !isConfigured) return;
+    try {
+      const clean = sanitizeForFirestore(user);
+      await setDoc(doc(db, COLLECTIONS.USERS, clean.id), clean, { merge: true });
+    } catch (e) {
+      console.error('Firestore saveUser error:', e);
+    }
+  },
+
+  async deleteUser(userId: string): Promise<void> {
+    if (!db || !isConfigured) return;
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.USERS, userId));
+    } catch (e) {
+      console.warn('Firestore deleteUser fallback:', e);
+    }
+  },
+
   // ================= REAL-TIME LISTENERS =================
   subscribeProperties(onUpdate: (props: Property[]) => void): () => void {
     if (!db || !isConfigured) return () => {};
@@ -594,6 +629,22 @@ export const firestoreService = {
     }
   },
 
+  subscribeUsers(onUpdate: (users: AgencyUser[]) => void): () => void {
+    if (!db || !isConfigured) return () => {};
+    try {
+      const q = collection(db, COLLECTIONS.USERS);
+      const unsub = onSnapshot(q, (snapshot) => {
+        const list = snapshot.docs.map(doc => doc.data() as AgencyUser);
+        list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        onUpdate(list);
+      }, (err) => console.warn('Users subscription error:', err));
+      return unsub;
+    } catch (e) {
+      console.warn('Firestore subscribeUsers error:', e);
+      return () => {};
+    }
+  },
+
   // ================= AUTO-SEED INITIAL DATA IF CLOUD IS EMPTY =================
   async ensureInitialDataSeeded(fallbackData: {
     properties: Property[];
@@ -606,6 +657,7 @@ export const firestoreService = {
     expenses: AgencyExpense[];
     leads: Lead[];
     agencyConfig?: AgencyConfig;
+    users?: AgencyUser[];
   }): Promise<boolean> {
     if (!db || !isConfigured) return false;
     try {
@@ -635,6 +687,7 @@ export const firestoreService = {
     expenses: AgencyExpense[];
     leads: Lead[];
     agencyConfig?: AgencyConfig;
+    users?: AgencyUser[];
   }): Promise<{ success: boolean; count: number; message: string }> {
     if (!db || !isConfigured) {
       return { success: false, count: 0, message: 'Firebase non configuré.' };
@@ -703,6 +756,14 @@ export const firestoreService = {
       if (data.agencyConfig) {
         await setDoc(doc(db, COLLECTIONS.AGENCY_CONFIG, 'main_config'), sanitizeForFirestore(data.agencyConfig), { merge: true });
         totalPushed++;
+      }
+
+      // 11. Collaborators / Users (RBAC)
+      if (data.users && Array.isArray(data.users)) {
+        for (const user of data.users) {
+          await setDoc(doc(db, COLLECTIONS.USERS, user.id), sanitizeForFirestore(user), { merge: true });
+          totalPushed++;
+        }
       }
 
       return {

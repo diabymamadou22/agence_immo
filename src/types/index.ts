@@ -433,4 +433,21 @@ export interface TerrainInspectionRecord {
   createdAt?: string;
 }
 
+// Multi-utilisateurs & Rôles Agence (RBAC)
+export type AgencyUserRole = 'directeur' | 'comptable' | 'commercial' | 'gestionnaire';
+
+export interface AgencyUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: AgencyUserRole;
+  pinCode: string; // PIN d'accès sécurisé
+  title?: string; // Ex: Directeur Général, Responsable Comptable, Négociateur Foncier
+  avatar?: string;
+  status: 'actif' | 'inactif';
+  createdAt: string;
+  lastLoginAt?: string;
+}
+
 

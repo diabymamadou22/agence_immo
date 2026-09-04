@@ -153,20 +153,11 @@ export const AdminSaleReceiptsList: React.FC = () => {
       </div>
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Encaissé sur Ventes</span>
           <div className="text-xl font-black text-emerald-700 font-heading">{formatFCFA(totalVolumeEncaissé)}</div>
           <span className="text-[10px] text-slate-400 block">{sales.length} actes & quittances délivrés</span>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-rose-200 bg-rose-50/30 shadow-2xs space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-rose-800 flex items-center justify-between">
-            <span>Reliquats à Recouvrer</span>
-            <Clock className="w-3.5 h-3.5 text-rose-500" />
-          </span>
-          <div className="text-xl font-black text-rose-700 font-heading">{formatFCFA(totalReliquatRestant)}</div>
-          <span className="text-[10px] text-rose-600 font-bold block">{salesWithBalanceCount} dossier(s) avec solde restant</span>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
@@ -181,33 +172,6 @@ export const AdminSaleReceiptsList: React.FC = () => {
           <span className="text-[10px] text-slate-400 block">Résidences & Copropriétés</span>
         </div>
       </div>
-
-      {/* Actionable Banner for dossiers with remaining balance */}
-      {salesWithBalanceCount > 0 && (
-        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-slate-900 text-white shadow-md flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm shrink-0 border border-white/30">
-              <Coins className="w-5 h-5 text-amber-200" />
-            </div>
-            <div>
-              <p className="font-black text-sm text-white">
-                {salesWithBalanceCount} dossier(s) en attente de solde ({formatFCFA(totalReliquatRestant)} restant à recouvrer)
-              </p>
-              <p className="text-xs text-amber-100/90 font-medium">
-                Cliquez pour enregistrer un versement partiel (tranche) ou solder définitivement le montant restant dû.
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => dispatch(openRecordSaleInstallmentModal(null))}
-            className="px-4 py-2.5 bg-white hover:bg-amber-100 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md flex items-center gap-2 transition-all cursor-pointer shrink-0 w-full sm:w-auto justify-center border border-amber-300"
-          >
-            <Coins className="w-4 h-4 text-amber-600" />
-            <span>Régler le Solde Maintenant</span>
-          </button>
-        </div>
-      )}
 
       {/* Search & Filter Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">

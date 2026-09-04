@@ -188,35 +188,6 @@ export const SaleReceiptModal: React.FC = () => {
           id="printable-sale-receipt" 
           className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4 bg-white text-slate-900 font-sans print:p-2.5 print:space-y-2 text-xs sm:text-sm relative single-page-a4"
         >
-          {/* Direct Pay Action Banner (Visible on Screen, Hidden on Print) */}
-          {activeReceipt.remainingBalance > 0 && (
-            <div className="bg-gradient-to-r from-amber-500 via-rose-500 to-slate-900 text-white p-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md print:hidden">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                  <Coins className="w-4 h-4 text-amber-200" />
-                </div>
-                <div>
-                  <span className="font-black text-xs sm:text-sm block">
-                    Solde restant dû sur cette vente : {formatFCFA(activeReceipt.remainingBalance)}
-                  </span>
-                  <span className="text-[11px] text-amber-100/90 font-medium">
-                    Vous pouvez enregistrer un versement partiel (tranche) ou solder l'intégralité dès maintenant.
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  dispatch(closeSaleReceiptModal());
-                  dispatch(openRecordSaleInstallmentModal(activeReceipt));
-                }}
-                className="px-4 py-2 bg-white hover:bg-amber-100 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-xs flex items-center gap-2 transition-all cursor-pointer shrink-0 border border-amber-300"
-              >
-                <Coins className="w-4 h-4 text-amber-600" />
-                <span>Régler ce Solde</span>
-              </button>
-            </div>
-          )}
-
           {/* Subtle Watermark for Official Print */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] select-none print:hidden">
             <span className="text-7xl font-black uppercase transform -rotate-45 tracking-widest text-slate-900">
