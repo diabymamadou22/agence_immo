@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { Provider } from 'react-redux';
 import { store, useAppDispatch, useAppSelector } from './store';
 import { setProperties } from './store/propertiesSlice';
@@ -11,46 +11,59 @@ import { setExpenses } from './store/financialsSlice';
 import { setAgencyConfig } from './store/agencySlice';
 import { firestoreService } from './services/firestoreService';
 
-// Client Components
+// Client Direct Core Components
 import { Header } from './components/common/Header';
 import { Footer } from './components/common/Footer';
 import { ToastContainer } from './components/common/ToastContainer';
-import { NotaryFeeModal } from './components/common/NotaryFeeModal';
 import { FavoritesDrawer } from './components/common/FavoritesDrawer';
-import { CloudSyncModal } from './components/common/CloudSyncModal';
 import { PWAInstallBanner } from './components/common/PWAInstallBanner';
 import { HeroSearch } from './components/client/HeroSearch';
 import { PropertyGrid } from './components/client/PropertyGrid';
 import { LandPlotGuideBanner } from './components/client/LandPlotGuideBanner';
 import { PropertyDetailModal } from './components/client/PropertyDetailModal';
 import { VisitBookingModal } from './components/client/VisitBookingModal';
-import { MortgageCalculatorModal } from './components/client/MortgageCalculatorModal';
-import { OwnerDepositModal } from './components/client/OwnerDepositModal';
-
-// Admin Components
 import { AdminHeader } from './components/admin/AdminHeader';
-import { AdminDashboardOverview } from './components/admin/AdminDashboardOverview';
-import { AdminParcelleManager } from './components/admin/AdminParcelleManager';
-import { AdminPropertyManager } from './components/admin/AdminPropertyManager';
-import { AdminSaleReceiptsList } from './components/admin/AdminSaleReceiptsList';
-import { AdminTenantManager } from './components/admin/AdminTenantManager';
-import { AdminLeadManager } from './components/admin/AdminLeadManager';
-import { AdminNotaryFeeView } from './components/admin/AdminNotaryFeeView';
-import { AdminOwnerManager } from './components/admin/AdminOwnerManager';
-import { AdminContractGenerator } from './components/admin/AdminContractGenerator';
-import { AdminFinancials } from './components/admin/AdminFinancials';
-import { AdminAgencySettings } from './components/admin/AdminAgencySettings';
-import { AdminBackupManager } from './components/admin/AdminBackupManager';
-import { PropertyFormModal } from './components/admin/PropertyFormModal';
-import { RecordPaymentModal } from './components/admin/RecordPaymentModal';
-import { RentReceiptModal } from './components/admin/RentReceiptModal';
-import { RecordSaleModal } from './components/admin/RecordSaleModal';
-import { SaleReceiptModal } from './components/admin/SaleReceiptModal';
-import { ContractPrintModal } from './components/admin/ContractPrintModal';
-import { PayoutPrintModal } from './components/admin/PayoutPrintModal';
 import { AdminAuthModal } from './components/admin/AdminAuthModal';
-import { Lock, ShieldCheck, KeyRound, Home } from 'lucide-react';
+import { Lock, ShieldCheck, KeyRound, Home, Loader2 } from 'lucide-react';
 import { openAdminAuthModal, setViewMode } from './store/uiSlice';
+
+// Code-Splitting: Lazy-Loaded Secondary Modals
+const NotaryFeeModal = lazy(() => import('./components/common/NotaryFeeModal').then(m => ({ default: m.NotaryFeeModal })));
+const CloudSyncModal = lazy(() => import('./components/common/CloudSyncModal').then(m => ({ default: m.CloudSyncModal })));
+const MortgageCalculatorModal = lazy(() => import('./components/client/MortgageCalculatorModal').then(m => ({ default: m.MortgageCalculatorModal })));
+const OwnerDepositModal = lazy(() => import('./components/client/OwnerDepositModal').then(m => ({ default: m.OwnerDepositModal })));
+
+// Code-Splitting: Lazy-Loaded Admin Modules (Heavy Back-Office tabs)
+const AdminDashboardOverview = lazy(() => import('./components/admin/AdminDashboardOverview').then(m => ({ default: m.AdminDashboardOverview })));
+const AdminParcelleManager = lazy(() => import('./components/admin/AdminParcelleManager').then(m => ({ default: m.AdminParcelleManager })));
+const AdminPropertyManager = lazy(() => import('./components/admin/AdminPropertyManager').then(m => ({ default: m.AdminPropertyManager })));
+const AdminSaleReceiptsList = lazy(() => import('./components/admin/AdminSaleReceiptsList').then(m => ({ default: m.AdminSaleReceiptsList })));
+const AdminTenantManager = lazy(() => import('./components/admin/AdminTenantManager').then(m => ({ default: m.AdminTenantManager })));
+const AdminLeadManager = lazy(() => import('./components/admin/AdminLeadManager').then(m => ({ default: m.AdminLeadManager })));
+const AdminNotaryFeeView = lazy(() => import('./components/admin/AdminNotaryFeeView').then(m => ({ default: m.AdminNotaryFeeView })));
+const AdminOwnerManager = lazy(() => import('./components/admin/AdminOwnerManager').then(m => ({ default: m.AdminOwnerManager })));
+const AdminContractGenerator = lazy(() => import('./components/admin/AdminContractGenerator').then(m => ({ default: m.AdminContractGenerator })));
+const AdminFinancials = lazy(() => import('./components/admin/AdminFinancials').then(m => ({ default: m.AdminFinancials })));
+const AdminAgencySettings = lazy(() => import('./components/admin/AdminAgencySettings').then(m => ({ default: m.AdminAgencySettings })));
+const AdminBackupManager = lazy(() => import('./components/admin/AdminBackupManager').then(m => ({ default: m.AdminBackupManager })));
+
+// Code-Splitting: Lazy-Loaded Action Modals
+const PropertyFormModal = lazy(() => import('./components/admin/PropertyFormModal').then(m => ({ default: m.PropertyFormModal })));
+const RecordPaymentModal = lazy(() => import('./components/admin/RecordPaymentModal').then(m => ({ default: m.RecordPaymentModal })));
+const RentReceiptModal = lazy(() => import('./components/admin/RentReceiptModal').then(m => ({ default: m.RentReceiptModal })));
+const RecordSaleModal = lazy(() => import('./components/admin/RecordSaleModal').then(m => ({ default: m.RecordSaleModal })));
+const SaleReceiptModal = lazy(() => import('./components/admin/SaleReceiptModal').then(m => ({ default: m.SaleReceiptModal })));
+const RecordSaleInstallmentModal = lazy(() => import('./components/admin/RecordSaleInstallmentModal').then(m => ({ default: m.RecordSaleInstallmentModal })));
+const SaleInstallmentReceiptModal = lazy(() => import('./components/admin/SaleInstallmentReceiptModal').then(m => ({ default: m.SaleInstallmentReceiptModal })));
+const ContractPrintModal = lazy(() => import('./components/admin/ContractPrintModal').then(m => ({ default: m.ContractPrintModal })));
+const PayoutPrintModal = lazy(() => import('./components/admin/PayoutPrintModal').then(m => ({ default: m.PayoutPrintModal })));
+
+const AdminLoadingFallback: React.FC = () => (
+  <div className="py-16 flex flex-col items-center justify-center space-y-3">
+    <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+    <span className="text-xs font-bold text-slate-500">Chargement du module de gestion...</span>
+  </div>
+);
 
 const AppContent: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -233,20 +246,22 @@ const AppContent: React.FC = () => {
           {/* Admin Back-Office Navigation Tabs */}
           <AdminHeader />
 
-          {/* Admin Tab Content */}
+          {/* Admin Tab Content with Code-Splitting Suspense */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-            {activeAdminTab === 'overview' && <AdminDashboardOverview />}
-            {activeAdminTab === 'parcelles' && <AdminParcelleManager />}
-            {activeAdminTab === 'properties' && <AdminPropertyManager />}
-            {activeAdminTab === 'sales_receipts' && <AdminSaleReceiptsList />}
-            {activeAdminTab === 'locations' && <AdminTenantManager />}
-            {activeAdminTab === 'owners' && <AdminOwnerManager />}
-            {activeAdminTab === 'contracts' && <AdminContractGenerator />}
-            {activeAdminTab === 'leads' && <AdminLeadManager />}
-            {activeAdminTab === 'financials' && <AdminFinancials />}
-            {activeAdminTab === 'simulateur' && <AdminNotaryFeeView />}
-            {activeAdminTab === 'agency_settings' && <AdminAgencySettings />}
-            {activeAdminTab === 'backups' && <AdminBackupManager />}
+            <Suspense fallback={<AdminLoadingFallback />}>
+              {activeAdminTab === 'overview' && <AdminDashboardOverview />}
+              {activeAdminTab === 'parcelles' && <AdminParcelleManager />}
+              {activeAdminTab === 'properties' && <AdminPropertyManager />}
+              {activeAdminTab === 'sales_receipts' && <AdminSaleReceiptsList />}
+              {activeAdminTab === 'locations' && <AdminTenantManager />}
+              {activeAdminTab === 'owners' && <AdminOwnerManager />}
+              {activeAdminTab === 'contracts' && <AdminContractGenerator />}
+              {activeAdminTab === 'leads' && <AdminLeadManager />}
+              {activeAdminTab === 'financials' && <AdminFinancials />}
+              {activeAdminTab === 'simulateur' && <AdminNotaryFeeView />}
+              {activeAdminTab === 'agency_settings' && <AdminAgencySettings />}
+              {activeAdminTab === 'backups' && <AdminBackupManager />}
+            </Suspense>
           </div>
         </main>
       )}
@@ -254,24 +269,30 @@ const AppContent: React.FC = () => {
       {/* Footer (Public Client mode only) */}
       {viewMode === 'client' && <Footer />}
 
-      {/* Modals & Overlays */}
+      {/* Core Instant Modals */}
       <AdminAuthModal />
-      <CloudSyncModal />
       <PropertyDetailModal />
       <VisitBookingModal />
-      <NotaryFeeModal />
       <FavoritesDrawer />
-      <MortgageCalculatorModal />
-      <OwnerDepositModal />
-      <PropertyFormModal />
-      <RecordPaymentModal />
-      <RentReceiptModal />
-      <RecordSaleModal />
-      <SaleReceiptModal />
-      <ContractPrintModal />
-      <PayoutPrintModal />
       <PWAInstallBanner />
       <ToastContainer />
+
+      {/* Code-Splitted Modals (loaded on demand) */}
+      <Suspense fallback={null}>
+        <CloudSyncModal />
+        <NotaryFeeModal />
+        <MortgageCalculatorModal />
+        <OwnerDepositModal />
+        <PropertyFormModal />
+        <RecordPaymentModal />
+        <RentReceiptModal />
+        <RecordSaleModal />
+        <SaleReceiptModal />
+        <RecordSaleInstallmentModal />
+        <SaleInstallmentReceiptModal />
+        <ContractPrintModal />
+        <PayoutPrintModal />
+      </Suspense>
     </div>
   );
 };
@@ -281,5 +302,3 @@ export function App() {
 }
 
 export default App;
-
-

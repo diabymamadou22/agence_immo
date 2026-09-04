@@ -4,7 +4,7 @@ import { addExpense, deleteExpense } from '../../store/financialsSlice';
 import { addToast } from '../../store/uiSlice';
 import { firestoreService } from '../../services/firestoreService';
 import { formatFCFA, formatDate } from '../../utils/formatters';
-import { exportMonthlyFinancialsToCSV, exportExpensesToCSV, computeMonthlyFinancialBreakdown } from '../../utils/exportUtils';
+import { exportMonthlyFinancialsToCSV, exportExpensesToCSV, computeMonthlyFinancialBreakdown, exportGrandLivreComptableCSV } from '../../utils/exportUtils';
 import { AgencyExpense, PaymentMethod } from '../../types';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { FinancialChart } from './FinancialChart';
@@ -34,6 +34,7 @@ export const AdminFinancials: React.FC = () => {
   const tenants = useAppSelector((state) => state.tenants.items);
   const receipts = useAppSelector((state) => state.tenants.receipts);
   const payouts = useAppSelector((state) => state.owners.payouts);
+  const sales = useAppSelector((state) => state.sales.items);
   const expenses = useAppSelector((state) => state.financials.expenses);
   const agencyConfig = useAppSelector((state) => state.agency.config);
 
@@ -99,6 +100,32 @@ export const AdminFinancials: React.FC = () => {
         addToast({
           type: 'error',
           message: 'Erreur lors de l\'export des dépenses en CSV.',
+        })
+      );
+    }
+  };
+
+  const handleExportGrandLivreCSV = () => {
+    try {
+      exportGrandLivreComptableCSV(
+        receipts,
+        sales,
+        payouts,
+        expenses,
+        `grand_livre_comptable_agence_${new Date().toISOString().split('T')[0]}`
+      );
+      dispatch(
+        addToast({
+          type: 'success',
+          message: 'Grand Livre Comptable unifié exporté en CSV (Excel) avec succès !',
+        })
+      );
+    } catch (error) {
+      console.error('Erreur export Grand Livre CSV:', error);
+      dispatch(
+        addToast({
+          type: 'error',
+          message: 'Erreur lors de la génération du Grand Livre Comptable.',
         })
       );
     }
@@ -213,12 +240,22 @@ export const AdminFinancials: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
           <button
             type="button"
+            onClick={handleExportGrandLivreCSV}
+            className="px-4 sm:px-5 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer border border-slate-600"
+            title="Exporter le Grand Livre unifié de l'agence (flux globaux, débits, crédits et solde)"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-amber-400" />
+            <span>Grand Livre (Excel/CSV)</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleExportMonthlyReportCSV}
             className="px-4 sm:px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
             title="Télécharger le rapport des revenus et dépenses mensuelles pour la comptabilité (CSV Excel)"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Exporter en CSV</span>
+            <span>Rapport Mensuel</span>
           </button>
 
           <button

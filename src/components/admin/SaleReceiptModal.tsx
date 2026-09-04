@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../store';
-import { closeSaleReceiptModal, addToast } from '../../store/uiSlice';
+import { closeSaleReceiptModal, openRecordSaleInstallmentModal, addToast } from '../../store/uiSlice';
 import { 
   formatFCFA, 
   formatDate, 
@@ -33,7 +33,8 @@ import {
   LogOut,
   MessageCircle,
   Download,
-  Loader2
+  Loader2,
+  Coins
 } from 'lucide-react';
 
 export const SaleReceiptModal: React.FC = () => {
@@ -124,6 +125,20 @@ export const SaleReceiptModal: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {activeReceipt.remainingBalance > 0 && (
+              <button
+                onClick={() => {
+                  dispatch(closeSaleReceiptModal());
+                  dispatch(openRecordSaleInstallmentModal(activeReceipt));
+                }}
+                className="px-3 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer border border-amber-500"
+                title="Encaisser un versement partiel ou solder le montant restant"
+              >
+                <Coins className="w-4 h-4" />
+                <span>Régler Solde ({formatFCFA(activeReceipt.remainingBalance)})</span>
+              </button>
+            )}
+
             <button
               onClick={handleWhatsAppShare}
               className="px-2.5 sm:px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
@@ -173,6 +188,35 @@ export const SaleReceiptModal: React.FC = () => {
           id="printable-sale-receipt" 
           className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-4 bg-white text-slate-900 font-sans print:p-2.5 print:space-y-2 text-xs sm:text-sm relative single-page-a4"
         >
+          {/* Direct Pay Action Banner (Visible on Screen, Hidden on Print) */}
+          {activeReceipt.remainingBalance > 0 && (
+            <div className="bg-gradient-to-r from-amber-500 via-rose-500 to-slate-900 text-white p-3.5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md print:hidden">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                  <Coins className="w-4 h-4 text-amber-200" />
+                </div>
+                <div>
+                  <span className="font-black text-xs sm:text-sm block">
+                    Solde restant dû sur cette vente : {formatFCFA(activeReceipt.remainingBalance)}
+                  </span>
+                  <span className="text-[11px] text-amber-100/90 font-medium">
+                    Vous pouvez enregistrer un versement partiel (tranche) ou solder l'intégralité dès maintenant.
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  dispatch(closeSaleReceiptModal());
+                  dispatch(openRecordSaleInstallmentModal(activeReceipt));
+                }}
+                className="px-4 py-2 bg-white hover:bg-amber-100 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-xs flex items-center gap-2 transition-all cursor-pointer shrink-0 border border-amber-300"
+              >
+                <Coins className="w-4 h-4 text-amber-600" />
+                <span>Régler ce Solde</span>
+              </button>
+            </div>
+          )}
+
           {/* Subtle Watermark for Official Print */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] select-none print:hidden">
             <span className="text-7xl font-black uppercase transform -rotate-45 tracking-widest text-slate-900">
@@ -429,6 +473,51 @@ export const SaleReceiptModal: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Historical Installments Audit Trail */}
+          {activeReceipt.installments && activeReceipt.installments.length > 0 && (
+            <div className="p-2.5 bg-amber-50/50 rounded-xl border border-amber-200 text-xs space-y-1 relative z-10 print:p-1.5">
+              <div className="flex items-center justify-between border-b border-amber-200/70 pb-1">
+                <span className="text-[9.5px] font-black uppercase text-amber-950 flex items-center gap-1 print:text-[8.5px]">
+                  <Coins className="w-3 h-3 text-amber-700" />
+                  Échéancier & Historique des Tranches / Versements Échelonnés
+                </span>
+                <span className="text-[9px] font-bold text-amber-900 bg-amber-100 px-1.5 py-0.5 rounded print:text-[8px]">
+                  {activeReceipt.installments.length} Versement(s)
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[9px] font-mono print:text-[8px]">
+                  <thead>
+                    <tr className="text-slate-500 border-b border-amber-200 text-left">
+                      <th className="py-0.5 font-bold">Réf. Tranche</th>
+                      <th className="py-0.5 font-bold">Date</th>
+                      <th className="py-0.5 font-bold">Montant</th>
+                      <th className="py-0.5 font-bold">Mode</th>
+                      <th className="py-0.5 font-bold text-right">Solde Restant</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-amber-100">
+                    {activeReceipt.installments.map((inst, idx) => (
+                      <tr key={inst.id || idx} className="text-slate-800">
+                        <td className="py-0.5 font-bold">{inst.receiptNumber || `Tranche ${idx + 1}`}</td>
+                        <td className="py-0.5">{formatDate(inst.paymentDate)}</td>
+                        <td className="py-0.5 font-bold text-emerald-800">{formatFCFA(inst.amount)}</td>
+                        <td className="py-0.5">{inst.paymentMethod}</td>
+                        <td className="py-0.5 text-right font-bold">
+                          {inst.remainingBalanceAfter === 0 ? (
+                            <span className="text-emerald-700 font-bold">SOLDÉ (0 F)</span>
+                          ) : (
+                            formatFCFA(inst.remainingBalanceAfter)
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {/* Legal Clauses & Notes */}
           <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-[9px] text-slate-600 space-y-0.5 relative z-10 leading-snug print:p-1.5 print:text-[8px] print:leading-tight">

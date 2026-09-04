@@ -1,4 +1,4 @@
-import { Tenant, RentReceipt, SaleReceipt, AgencyConfig } from '../types';
+import { Tenant, RentReceipt, SaleReceipt, SaleInstallment, AgencyConfig } from '../types';
 import { formatFCFA, formatDate } from './formatters';
 
 /**
@@ -102,6 +102,51 @@ Ce reçu atteste de l'encaissement officiel des fonds par notre agence.
 Merci pour votre achat et votre confiance !
 
 _La Direction - ${agencyConfig.name}_`;
+
+  const url = phone 
+    ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
+    : `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+  window.open(url, '_blank');
+}
+
+/**
+ * Generates and triggers WhatsApp discussion for a Sale Installment / Partial Payment Receipt
+ */
+export function sendSaleInstallmentWhatsApp(
+  sale: SaleReceipt,
+  installment: SaleInstallment,
+  agencyConfig: AgencyConfig
+): void {
+  const phone = cleanPhoneNumberForWhatsApp(sale.buyerPhone || '');
+  const remaining = installment.remainingBalanceAfter;
+  const isFullyPaid = remaining <= 0;
+
+  const message = `🏢 *${agencyConfig.name.toUpperCase()}*
+📍 ${agencyConfig.address} • Bamako (Mali)
+📞 Service Commercial : ${agencyConfig.phoneDisplay}
+
+*QUITTANCE OFFICIELLE DE VERSEMENT PARTIEL / TRANCHE*
+━━━━━━━━━━━━━━━━━━━━
+📄 *N° Quittance Tranche :* ${installment.receiptNumber}
+📂 *Dossier Vente Principal :* ${sale.receiptNumber}
+📅 *Date du Versement :* ${formatDate(installment.paymentDate)}
+
+👤 *Acquéreur :* ${sale.buyerName}
+📍 *Bien / Parcelle :* ${sale.propertyTitle}
+📋 *Réf. Foncier :* ${sale.propertyReference}
+
+💵 *Prix Total Convenu :* ${formatFCFA(sale.totalAgreedPrice)}
+💰 *CUMUL VERSÉ À CE JOUR :* ${formatFCFA(sale.totalAgreedPrice - remaining)}
+✅ *MONTANT DE CETTE TRANCHE :* ${formatFCFA(installment.amount)}
+💳 *Mode de Règlement :* ${installment.paymentMethod}${installment.transactionReference ? ` (${installment.transactionReference})` : ''}
+
+${isFullyPaid ? '🎉 *STATUT : VENTE INTÉGRALEMENT SOLDÉE !*' : `⏳ *SOLDE RESTANT DÛ :* ${formatFCFA(remaining)}`}
+━━━━━━━━━━━━━━━━━━━━
+Le présent message certifie la bonne réception effective des fonds par l'agence.
+Merci pour votre confiance !
+
+_La Caisse & Direction - ${agencyConfig.name}_`;
 
   const url = phone 
     ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`

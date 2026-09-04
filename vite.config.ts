@@ -12,6 +12,21 @@ export default defineConfig(() => {
       },
       dedupe: ['react', 'react-dom', 'react-redux'],
     },
+    build: {
+      chunkSizeWarningLimit: 1200,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
+            'vendor-icons': ['lucide-react'],
+            'vendor-charts': ['recharts'],
+            'vendor-pdf': ['jspdf', 'html2canvas-pro'],
+            'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth', 'firebase/storage'],
+          },
+        },
+      },
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.

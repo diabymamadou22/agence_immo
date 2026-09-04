@@ -1,4 +1,4 @@
-import { DocumentType, PropertyType, PropertyStatus, DealType, PaymentMethod } from '../types';
+import { DocumentType, PropertyType, PropertyStatus, DealType, PaymentMethod, Tenant } from '../types';
 
 export const CLIENT_CONTACT_PHONE = '+223 76 00 11 22';
 export const CLIENT_CALL_TEL = '+22376001122';
@@ -458,3 +458,117 @@ export const MALI_LOCATIONS = {
     'Mountougoula',
   ],
 };
+
+/**
+ * Tenant overdue rent status and visual indicator (pastille)
+ */
+export interface TenantLateStatus {
+  isLate: boolean;
+  daysLate: number;
+  isOver5Days: boolean;
+  isCritical: boolean; // > 15 days
+  level: 'safe' | 'warning' | 'late_over_5' | 'late_critical';
+  dotColor: string; // Background color for the pastille dot
+  pingColor: string; // Ping ripple color for pulsing animation
+  badgeBg: string; // Badge styling
+  badgeText: string;
+  label: string;
+  description: string;
+}
+
+/**
+ * Computes overdue status and visual alert pastilles for a tenant.
+ * Analyzes rentPaymentDay, status, and pending balance.
+ */
+export function getTenantLateStatus(tenant: Tenant): TenantLateStatus {
+  const now = new Date();
+  const currentDay = now.getDate();
+  const dueDay = tenant.rentPaymentDay || 5;
+
+  const isExplicitlyLate = tenant.status === 'retard';
+  const hasPendingBalance = (tenant.pendingBalance ?? 0) > 0;
+  const isPartiel = tenant.status === 'partiel';
+
+  // If active, no balance, and not marked as late
+  if (!isExplicitlyLate && !hasPendingBalance && !isPartiel) {
+    return {
+      isLate: false,
+      daysLate: 0,
+      isOver5Days: false,
+      isCritical: false,
+      level: 'safe',
+      dotColor: 'bg-emerald-500',
+      pingColor: 'bg-emerald-400',
+      badgeBg: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+      badgeText: 'À Jour',
+      label: 'Loyer à Jour',
+      description: 'Paiement régularisé pour la période en cours.',
+    };
+  }
+
+  // Calculate days overdue
+  let daysLate = 0;
+  if (currentDay > dueDay) {
+    daysLate = currentDay - dueDay;
+  } else {
+    // Due in previous month cycle: 30 - dueDay + currentDay
+    daysLate = (30 - dueDay) + currentDay;
+  }
+
+  // If explicitly flagged as 'retard' in the database/mock data, ensure minimum 8 days overdue
+  // to reflect that the normal grace period (5 days) has already passed.
+  if (isExplicitlyLate && daysLate < 6) {
+    daysLate = Math.max(daysLate, 8);
+  }
+
+  const isOver5Days = daysLate > 5;
+  const isCritical = daysLate > 15;
+
+  if (isCritical) {
+    return {
+      isLate: true,
+      daysLate,
+      isOver5Days: true,
+      isCritical: true,
+      level: 'late_critical',
+      dotColor: 'bg-rose-700',
+      pingColor: 'bg-rose-600',
+      badgeBg: 'bg-rose-100 text-rose-950 border-rose-300 font-black ring-1 ring-rose-300',
+      badgeText: `Retard +${daysLate}j`,
+      label: `Retard Critique (+${daysLate} jours)`,
+      description: `Loyer impayé depuis plus de 15 jours. Relance WhatsApp et mise en demeure urgentes.`,
+    };
+  }
+
+  if (isOver5Days) {
+    return {
+      isLate: true,
+      daysLate,
+      isOver5Days: true,
+      isCritical: false,
+      level: 'late_over_5',
+      dotColor: 'bg-rose-500',
+      pingColor: 'bg-rose-400',
+      badgeBg: 'bg-rose-50 text-rose-800 border-rose-200 font-extrabold',
+      badgeText: `Retard > 5j (+${daysLate}j)`,
+      label: `Retard > 5 jours (+${daysLate} jours)`,
+      description: `Dépassement du délai de tolérance (5 jours). Relance WhatsApp recommandée.`,
+    };
+  }
+
+  // Delay within grace period (1 to 5 days)
+  return {
+    isLate: true,
+    daysLate,
+    isOver5Days: false,
+    isCritical: false,
+    level: 'warning',
+    dotColor: 'bg-amber-500',
+    pingColor: 'bg-amber-400',
+    badgeBg: 'bg-amber-50 text-amber-800 border-amber-200 font-bold',
+    badgeText: `Retard ${daysLate}j`,
+    label: `Retard léger (${daysLate} jour${daysLate > 1 ? 's' : ''})`,
+    description: `Délai de grâce habituel de 5 jours en cours.`,
+  };
+}
+

@@ -559,6 +559,22 @@ export const INITIAL_SALE_RECEIPTS: SaleReceipt[] = [
       'L\'acquéreur est mis en possession jouissance pleine et entière de la parcelle sous réserve de l\'accomplissement des formalités notariales de mutation.',
       'Tous les droits d\'enregistrement et frais de conservation foncière sont pris en charge conformément aux stipulations du compromis.'
     ],
+    installments: [
+      {
+        id: 'inst-001-1',
+        installmentNumber: 1,
+        receiptNumber: 'TRANCHE-01-RECU-VTE-2024-001',
+        paymentDate: '2024-08-14',
+        amount: 35000000,
+        paymentMethod: 'Virement Bancaire',
+        transactionReference: 'VIR-BDM-20240814-78921',
+        previousBalance: 35000000,
+        remainingBalanceAfter: 0,
+        issuedBy: 'Direction Commerciale & Juridique Mali Immo Prestige',
+        notes: 'Paiement intégral unique lors de la signature de l\'acte.',
+        createdAt: '2024-08-14T10:30:00Z',
+      }
+    ],
     createdAt: '2024-08-14T10:30:00Z',
   },
   {
@@ -601,6 +617,22 @@ export const INITIAL_SALE_RECEIPTS: SaleReceipt[] = [
       'Le versement de cet acompte confère à l\'acquéreur une exclusivité de réservation du bien jusqu\'à la date d\'échéance contractuelle.',
       'En cas de défaillance non imputable au vendeur ou cas de force majeure, les modalités du compromis de vente s\'appliquent.',
       'La remise définitive des clés et de l\'acte authentique aura lieu dès encaissement du solde restant dû.'
+    ],
+    installments: [
+      {
+        id: 'inst-002-1',
+        installmentNumber: 1,
+        receiptNumber: 'TRANCHE-01-RECU-VTE-2024-002',
+        paymentDate: '2024-08-20',
+        amount: 25000000,
+        paymentMethod: 'Chèque',
+        transactionReference: 'CHQ-BMS-00984321',
+        previousBalance: 55000000,
+        remainingBalanceAfter: 30000000,
+        issuedBy: 'M. Mamadou Diaby, Directeur Général',
+        notes: '1er versement : Acompte initial de réservation.',
+        createdAt: '2024-08-20T15:45:00Z',
+      }
     ],
     createdAt: '2024-08-20T15:45:00Z',
   },
@@ -647,6 +679,22 @@ export const INITIAL_SALE_RECEIPTS: SaleReceipt[] = [
       'Paiement intégral constaté et certifié par l\'agence.',
       'Le vendeur garantit la parcelle franche et quitte de toute hypothèque, servitude occulte ou litige coutumier.',
       'Délivrance de la grosse notariale et du duplicata du Titre Foncier au nom de l\'acquéreur.'
+    ],
+    installments: [
+      {
+        id: 'inst-003-1',
+        installmentNumber: 1,
+        receiptNumber: 'TRANCHE-01-RECU-VTE-2024-003',
+        paymentDate: '2024-08-28',
+        amount: 18500000,
+        paymentMethod: 'Orange Money',
+        transactionReference: 'OM-TXN-9845120394',
+        previousBalance: 18500000,
+        remainingBalanceAfter: 0,
+        issuedBy: 'Service Foncier & Transactions Mali Immo Prestige',
+        notes: 'Règlement total par Orange Money.',
+        createdAt: '2024-08-28T09:15:00Z',
+      }
     ],
     createdAt: '2024-08-28T09:15:00Z',
   }

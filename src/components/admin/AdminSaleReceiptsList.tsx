@@ -3,10 +3,13 @@ import { useAppDispatch, useAppSelector } from '../../store';
 import { 
   openSaleReceiptModal, 
   openRecordSaleModal, 
+  openRecordSaleInstallmentModal,
+  openSaleInstallmentReceiptModal,
   addToast 
 } from '../../store/uiSlice';
 import { 
   setActiveReceiptForPrint, 
+  setActiveInstallmentForPrint,
   deleteSaleReceipt,
   setSelectedPropertyForSale 
 } from '../../store/salesSlice';
@@ -32,7 +35,11 @@ import {
   Phone, 
   CheckCircle2,
   DollarSign,
-  Filter
+  Filter,
+  Coins,
+  History,
+  TrendingDown,
+  Clock
 } from 'lucide-react';
 
 export const AdminSaleReceiptsList: React.FC = () => {
@@ -42,6 +49,7 @@ export const AdminSaleReceiptsList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all'); // all, parcelle, appartement
   const [filterOp, setFilterOp] = useState<string>('all');
+  const [filterBalance, setFilterBalance] = useState<string>('all'); // all, with_balance, paid
 
   const filteredSales = sales.filter((sale) => {
     if (filterType !== 'all') {
@@ -49,6 +57,8 @@ export const AdminSaleReceiptsList: React.FC = () => {
       if (filterType === 'appartement' && sale.propertyType !== 'appartement' && sale.propertyType !== 'maison') return false;
     }
     if (filterOp !== 'all' && sale.operationType !== filterOp) return false;
+    if (filterBalance === 'with_balance' && (!sale.remainingBalance || sale.remainingBalance <= 0)) return false;
+    if (filterBalance === 'paid' && sale.remainingBalance > 0) return false;
 
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
@@ -71,6 +81,18 @@ export const AdminSaleReceiptsList: React.FC = () => {
     dispatch(openSaleReceiptModal());
   };
 
+  const handleOpenInstallment = (receipt: SaleReceipt) => {
+    dispatch(openRecordSaleInstallmentModal(receipt));
+  };
+
+  const handlePrintLatestInstallment = (receipt: SaleReceipt) => {
+    if (receipt.installments && receipt.installments.length > 0) {
+      const latest = receipt.installments[receipt.installments.length - 1];
+      dispatch(setActiveInstallmentForPrint({ sale: receipt, installment: latest }));
+      dispatch(openSaleInstallmentReceiptModal());
+    }
+  };
+
   const handleDeleteReceipt = (receipt: SaleReceipt) => {
     if (window.confirm(`Supprimer le reçu N° ${receipt.receiptNumber} pour ${receipt.buyerName} ?`)) {
       dispatch(deleteSaleReceipt(receipt.id));
@@ -83,6 +105,8 @@ export const AdminSaleReceiptsList: React.FC = () => {
 
   // Stats
   const totalVolumeEncaissé = sales.reduce((acc, s) => acc + (s.amountPaid || 0), 0);
+  const totalReliquatRestant = sales.reduce((acc, s) => acc + (s.remainingBalance || 0), 0);
+  const salesWithBalanceCount = sales.filter((s) => s.remainingBalance > 0).length;
   const totalParcellesSold = sales.filter((s) => s.propertyType === 'parcelle').length;
   const totalAppartsSold = sales.filter((s) => s.propertyType === 'appartement' || s.propertyType === 'maison').length;
 
@@ -97,35 +121,52 @@ export const AdminSaleReceiptsList: React.FC = () => {
             </div>
             <div>
               <h2 className="text-xl font-black text-slate-900 font-heading tracking-tight">
-                Registre & Impression des Reçus de Vente
+                Registre & Encaissement des Reçus de Vente
               </h2>
               <p className="text-xs text-slate-500">
-                Quittances certifiées de vente pour Parcelles de terrain et Appartements avec informations complètes du client.
+                Quittances certifiées de vente, gestion des paiements partiels (tranches) et régularisation des soldes restants.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => dispatch(openRecordSaleInstallmentModal(null))}
+            className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold text-xs uppercase tracking-wider rounded-2xl shadow-sm flex items-center gap-2 transition-all cursor-pointer border border-amber-400/30"
+          >
+            <Coins className="w-4 h-4 text-amber-400" />
+            <span>Payer un Reliquat / Tranche</span>
+          </button>
+
           <button
             onClick={() => {
               dispatch(setSelectedPropertyForSale(null));
               dispatch(openRecordSaleModal());
             }}
-            className="px-4 py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-sm flex items-center gap-2 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-sm flex items-center gap-2 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Émettre un Reçu de Vente</span>
+            <span>Émettre un Nouveau Reçu</span>
           </button>
         </div>
       </div>
 
       {/* Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Encaissé sur Ventes</span>
           <div className="text-xl font-black text-emerald-700 font-heading">{formatFCFA(totalVolumeEncaissé)}</div>
           <span className="text-[10px] text-slate-400 block">{sales.length} actes & quittances délivrés</span>
+        </div>
+
+        <div className="bg-white p-4 rounded-2xl border border-rose-200 bg-rose-50/30 shadow-2xs space-y-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-rose-800 flex items-center justify-between">
+            <span>Reliquats à Recouvrer</span>
+            <Clock className="w-3.5 h-3.5 text-rose-500" />
+          </span>
+          <div className="text-xl font-black text-rose-700 font-heading">{formatFCFA(totalReliquatRestant)}</div>
+          <span className="text-[10px] text-rose-600 font-bold block">{salesWithBalanceCount} dossier(s) avec solde restant</span>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-1">
@@ -141,8 +182,35 @@ export const AdminSaleReceiptsList: React.FC = () => {
         </div>
       </div>
 
+      {/* Actionable Banner for dossiers with remaining balance */}
+      {salesWithBalanceCount > 0 && (
+        <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-amber-500 via-rose-500 to-slate-900 text-white shadow-md flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm shrink-0 border border-white/30">
+              <Coins className="w-5 h-5 text-amber-200" />
+            </div>
+            <div>
+              <p className="font-black text-sm text-white">
+                {salesWithBalanceCount} dossier(s) en attente de solde ({formatFCFA(totalReliquatRestant)} restant à recouvrer)
+              </p>
+              <p className="text-xs text-amber-100/90 font-medium">
+                Cliquez pour enregistrer un versement partiel (tranche) ou solder définitivement le montant restant dû.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => dispatch(openRecordSaleInstallmentModal(null))}
+            className="px-4 py-2.5 bg-white hover:bg-amber-100 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md flex items-center gap-2 transition-all cursor-pointer shrink-0 w-full sm:w-auto justify-center border border-amber-300"
+          >
+            <Coins className="w-4 h-4 text-amber-600" />
+            <span>Régler le Solde Maintenant</span>
+          </button>
+        </div>
+      )}
+
       {/* Search & Filter Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           <input
@@ -153,6 +221,16 @@ export const AdminSaleReceiptsList: React.FC = () => {
             className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
           />
         </div>
+
+        <select
+          value={filterBalance}
+          onChange={(e) => setFilterBalance(e.target.value)}
+          className="bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-amber-500 focus:outline-none font-bold"
+        >
+          <option value="all">Tous les statuts de paiement</option>
+          <option value="with_balance">⚠️ Avec Reliquat Restant Dû ({salesWithBalanceCount})</option>
+          <option value="paid">✅ Intégralement Soldés (0 F restant)</option>
+        </select>
 
         <select
           value={filterType}
@@ -172,8 +250,8 @@ export const AdminSaleReceiptsList: React.FC = () => {
           <option value="all">Tous les types de règlement</option>
           <option value="vente_totale">Vente Totale (Intégral)</option>
           <option value="acompte">Acompte / Réservation</option>
+          <option value="versement_echelonne">Versement Échelonné / Tranches</option>
           <option value="solde">Solde Final</option>
-          <option value="versement_echelonne">Versement Échelonné</option>
         </select>
       </div>
 
@@ -270,12 +348,27 @@ export const AdminSaleReceiptsList: React.FC = () => {
                       {/* Remaining balance */}
                       <td className="py-3.5 px-4">
                         {sale.remainingBalance > 0 ? (
-                          <span className="font-black text-rose-700 text-xs block">
-                            {formatFCFA(sale.remainingBalance)}
-                          </span>
+                          <div className="space-y-1.5">
+                            <span className="font-black text-rose-700 text-xs block">
+                              {formatFCFA(sale.remainingBalance)}
+                            </span>
+                            <button
+                              onClick={() => handleOpenInstallment(sale)}
+                              className="px-2.5 py-1 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[11px] flex items-center gap-1.5 transition-all cursor-pointer border border-amber-500 shadow-2xs"
+                              title="Encaisser une tranche ou solder ce montant"
+                            >
+                              <Coins className="w-3.5 h-3.5 text-slate-950" />
+                              <span>Régler Solde</span>
+                            </button>
+                          </div>
                         ) : (
                           <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block">
                             Soldé Intégral
+                          </span>
+                        )}
+                        {sale.installments && sale.installments.length > 0 && (
+                          <span className="text-[9.5px] text-slate-500 font-mono block mt-1">
+                            {sale.installments.length} tranche(s) versée(s)
                           </span>
                         )}
                       </td>
@@ -283,13 +376,35 @@ export const AdminSaleReceiptsList: React.FC = () => {
                       {/* Print and delete actions */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex items-center justify-end gap-1.5">
+                          {sale.remainingBalance > 0 && (
+                            <button
+                              onClick={() => handleOpenInstallment(sale)}
+                              className="px-2.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] rounded-xl shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
+                              title="Encaisser une tranche / paiement partiel"
+                            >
+                              <Coins className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">Payer Tranche</span>
+                            </button>
+                          )}
+
+                          {sale.installments && sale.installments.length > 0 && (
+                            <button
+                              onClick={() => handlePrintLatestInstallment(sale)}
+                              className="px-2 py-1.5 bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold text-[10px] rounded-xl shadow-2xs flex items-center gap-1 transition-all cursor-pointer"
+                              title="Voir & Imprimer la quittance de la dernière tranche versée"
+                            >
+                              <History className="w-3 h-3 text-amber-400" />
+                              <span className="hidden md:inline">Reçu Tranche</span>
+                            </button>
+                          )}
+
                           <button
                             onClick={() => handlePrintReceipt(sale)}
-                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] rounded-xl shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer"
-                            title="Imprimer le Reçu Officiel / PDF"
+                            className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-black text-[11px] rounded-xl shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200"
+                            title="Imprimer l'Acte & Reçu Général / PDF"
                           >
                             <Printer className="w-3.5 h-3.5" />
-                            <span>Imprimer</span>
+                            <span>Acte</span>
                           </button>
 
                           <button

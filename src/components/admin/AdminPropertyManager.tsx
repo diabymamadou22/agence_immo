@@ -16,6 +16,7 @@ import { exportPropertiesToCSV } from '../../utils/exportUtils';
 import { PropertyExportModal } from './PropertyExportModal';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
 import { AdminSaleReceiptsList } from './AdminSaleReceiptsList';
+import { TerrainInspectionModal } from './TerrainInspectionModal';
 import { 
   Building2, 
   Plus, 
@@ -29,7 +30,8 @@ import {
   MapPin,
   FileSpreadsheet,
   Printer,
-  Receipt
+  Receipt,
+  Smartphone
 } from 'lucide-react';
 
 export const AdminPropertyManager: React.FC = () => {
@@ -44,6 +46,7 @@ export const AdminPropertyManager: React.FC = () => {
   const [filterDeal, setFilterDeal] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isTerrainModalOpen, setIsTerrainModalOpen] = useState(false);
   const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
 
   const filteredProperties = properties.filter((p) => {
@@ -120,6 +123,17 @@ export const AdminPropertyManager: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Mode Terrain Mobile Inspection */}
+          <button
+            type="button"
+            onClick={() => setIsTerrainModalOpen(true)}
+            className="px-3.5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Ouvrir l'interface mobile de relevé d'état des lieux et compteurs EDM/SOMAGEP"
+          >
+            <Smartphone className="w-4 h-4" />
+            <span>Mode Terrain / Compteurs</span>
+          </button>
+
           {/* Reçu de Vente Button */}
           <button
             onClick={() => {
@@ -429,6 +443,12 @@ export const AdminPropertyManager: React.FC = () => {
       <PropertyExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
+      />
+
+      {/* Mode Terrain Mobile - Relevé État des Lieux & Compteurs */}
+      <TerrainInspectionModal
+        isOpen={isTerrainModalOpen}
+        onClose={() => setIsTerrainModalOpen(false)}
       />
     </div>
   );

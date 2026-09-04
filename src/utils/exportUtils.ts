@@ -1,4 +1,4 @@
-import { Property, Tenant, RentReceipt, AgencyConfig, OwnerPayout, AgencyExpense } from '../types';
+import { Property, Tenant, RentReceipt, AgencyConfig, OwnerPayout, AgencyExpense, SaleReceipt } from '../types';
 import { formatFCFA, formatDate, getPropertyTypeLabel, getDocumentBadgeInfo } from './formatters';
 
 /**
@@ -394,6 +394,241 @@ export const exportExpensesToCSV = (
     `${expenses.length} enregistrements`,
     '',
     totalAmount,
+    '',
+    ''
+  ]);
+
+  exportToCSV(filename, headers, rows);
+};
+
+export interface GrandLivreEntry {
+  date: string;
+  pieceRef: string;
+  operationType: string;
+  tiers: string;
+  designation: string;
+  debit: number;   // Décaissements / Sorties
+  credit: number;  // Encaissements / Entrées
+  solde: number;   // Solde progressif
+  modeReglement: string;
+  agent: string;
+}
+
+/**
+ * Export Grand Livre Comptable unifié de l'agence (tous flux de trésorerie avec débit/crédit et solde)
+ */
+export const exportGrandLivreComptableCSV = (
+  receipts: RentReceipt[],
+  sales: SaleReceipt[],
+  payouts: OwnerPayout[],
+  expenses: AgencyExpense[],
+  filename = 'grand_livre_comptable_agence_mali'
+) => {
+  interface RawMovement {
+    rawDate: number;
+    dateFormatted: string;
+    pieceRef: string;
+    operationType: string;
+    tiers: string;
+    designation: string;
+    debit: number;
+    credit: number;
+    modeReglement: string;
+    agent: string;
+  }
+
+  const movements: RawMovement[] = [];
+
+  // 1. Quittances de loyer (Entrées / Crédit)
+  receipts.forEach((r) => {
+    const d = r.paymentDate ? new Date(r.paymentDate) : new Date();
+    movements.push({
+      rawDate: d.getTime(),
+      dateFormatted: formatDate(r.paymentDate),
+      pieceRef: r.receiptNumber,
+      operationType: 'Encaissement Loyer',
+      tiers: r.tenantName,
+      designation: `${r.propertyTitle} (${r.periodMonth})`,
+      debit: 0,
+      credit: r.amount || 0,
+      modeReglement: r.paymentMethod,
+      agent: r.issuedBy || 'Direction',
+    });
+  });
+
+  // 2. Ventes de parcelles et biens (Entrées / Crédit)
+  sales.forEach((s) => {
+    const d = s.saleDate ? new Date(s.saleDate) : new Date();
+    movements.push({
+      rawDate: d.getTime(),
+      dateFormatted: formatDate(s.saleDate),
+      pieceRef: s.receiptNumber,
+      operationType: `Vente Immobilière (${s.operationType === 'vente_totale' ? 'Comptant' : 'Acompte'})`,
+      tiers: s.buyerName,
+      designation: `${s.propertyTitle} (${s.neighborhood})`,
+      debit: 0,
+      credit: s.amountPaid || 0,
+      modeReglement: s.paymentMethod,
+      agent: s.issuedBy || 'Direction',
+    });
+  });
+
+  // 3. Reversements aux propriétaires (Sorties / Débit)
+  payouts.forEach((p) => {
+    const d = p.payoutDate ? new Date(p.payoutDate) : new Date();
+    movements.push({
+      rawDate: d.getTime(),
+      dateFormatted: formatDate(p.payoutDate),
+      pieceRef: p.payoutNumber,
+      operationType: 'Reversement Bailleur (Net Loyer)',
+      tiers: p.ownerName,
+      designation: `Mois: ${p.periodMonth} (Comm. retenue: ${p.agencyCommissionAmount} FCFA)`,
+      debit: p.netPaidToOwner || 0,
+      credit: 0,
+      modeReglement: p.paymentMethod,
+      agent: 'Comptabilité Agence',
+    });
+  });
+
+  // 4. Dépenses d'exploitation agence (Sorties / Débit)
+  expenses.forEach((e) => {
+    const d = e.date ? new Date(e.date) : new Date();
+    movements.push({
+      rawDate: d.getTime(),
+      dateFormatted: formatDate(e.date),
+      pieceRef: e.receiptNumber || 'DEP-EXP',
+      operationType: `Charge: ${e.category.toUpperCase()}`,
+      tiers: 'Fournisseur / Prestataire',
+      designation: e.title,
+      debit: e.amount || 0,
+      credit: 0,
+      modeReglement: e.paymentMethod,
+      agent: 'Agence',
+    });
+  });
+
+  // Trier par date chronologique
+  movements.sort((a, b) => a.rawDate - b.rawDate);
+
+  // Calcul du solde progressif
+  let soldeProgressif = 0;
+  const rows: (string | number)[][] = movements.map((m) => {
+    soldeProgressif += (m.credit - m.debit);
+    return [
+      m.dateFormatted,
+      m.pieceRef,
+      m.operationType,
+      m.tiers,
+      m.designation,
+      m.debit,
+      m.credit,
+      soldeProgressif,
+      m.modeReglement,
+      m.agent,
+    ];
+  });
+
+  // Ligne de total
+  const totalDebit = movements.reduce((acc, m) => acc + m.debit, 0);
+  const totalCredit = movements.reduce((acc, m) => acc + m.credit, 0);
+  rows.push([
+    'TOTAL CUMULÉ DU GRAND LIVRE',
+    `${movements.length} écritures`,
+    '',
+    '',
+    '',
+    totalDebit,
+    totalCredit,
+    soldeProgressif,
+    '',
+    ''
+  ]);
+
+  const headers = [
+    'Date Écriture',
+    'N° Pièce / Réf Quittance',
+    'Type d\'Opération',
+    'Tiers (Locataire/Acheteur/Bailleur)',
+    'Désignation / Bien',
+    'Débit (Décaissements FCFA)',
+    'Crédit (Encaissements FCFA)',
+    'Solde Trésorerie Cumulatif (FCFA)',
+    'Mode de Règlement',
+    'Agent Comptable'
+  ];
+
+  exportToCSV(filename, headers, rows);
+};
+
+/**
+ * Export État Récapitulatif des Impayés & Retards Locatifs pour mise en demeure
+ */
+export const exportImpayesLocatifsCSV = (
+  tenants: Tenant[],
+  filename = 'etat_nominatif_impayes_et_retards_locatifs'
+) => {
+  const currentMonthDate = new Date();
+  const currentMonthName = currentMonthDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+  // Filter tenants who are in delay or have pending balance
+  const overdueTenants = tenants.filter((t) => {
+    const isExplicitRetard = t.status === 'retard' || t.status === 'partiel';
+    const hasPendingBalance = (t.pendingBalance || 0) > 0;
+    const isNotPaidThisMonth = t.lastPaymentMonth && !t.lastPaymentMonth.toLowerCase().includes(currentMonthName.toLowerCase());
+    return isExplicitRetard || hasPendingBalance || isNotPaidThisMonth;
+  });
+
+  const headers = [
+    'Nom du Locataire',
+    'Téléphone Principal',
+    'Email',
+    'N° Pièce / NINA',
+    'Logement Loué',
+    'Porte / N° Unité',
+    'Loyer Mensuel (FCFA)',
+    'Dernier Mois Payé',
+    'Reliquat Partiel Restant Dû (FCFA)',
+    'Estimation Dette Totale (FCFA)',
+    'Jour Échéance Prévu au Bail',
+    'Statut Bail',
+    'Contact d\'Urgence / Caution'
+  ];
+
+  const rows: (string | number)[][] = overdueTenants.map((t) => {
+    const monthlyRent = t.monthlyRent || 0;
+    const pending = t.pendingBalance || 0;
+    const totalDue = pending > 0 ? pending : monthlyRent;
+
+    return [
+      t.name,
+      t.phone,
+      t.email || '',
+      t.ninaNumber || 'Non renseigné',
+      t.propertyTitle,
+      t.unitNumber || 'Principal',
+      monthlyRent,
+      t.lastPaymentMonth || 'Aucun versement récent',
+      pending,
+      totalDue,
+      `Le ${t.rentPaymentDay || 5} du mois`,
+      t.status === 'retard' ? 'En Retard' : t.status === 'partiel' ? 'Paiement Partiel' : 'Échéance Non Réglée',
+      t.emergencyContact || 'Non renseigné'
+    ];
+  });
+
+  const totalDette = rows.reduce((acc, r) => acc + (Number(r[9]) || 0), 0);
+  rows.push([
+    'TOTAL DES CRÉANCES DUES',
+    `${overdueTenants.length} locataires en défaut`,
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    totalDette,
+    '',
     '',
     ''
   ]);

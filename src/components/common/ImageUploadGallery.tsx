@@ -243,6 +243,11 @@ export const ImageUploadGallery: React.FC<ImageUploadGalleryProps> = ({
                 <span>Coller un lien URL</span>
               </button>
             </div>
+
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-bold">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Optimisation automatique WebP/JPEG active (~85% d'économie de données pour le Mali)</span>
+            </div>
           </div>
         )}
       </div>

@@ -21,7 +21,8 @@ import {
   LegalContract, 
   AgencyExpense, 
   AgencyConfig,
-  SaleReceipt
+  SaleReceipt,
+  TerrainInspectionRecord
 } from '../types';
 
 export const COLLECTIONS = {
@@ -36,6 +37,7 @@ export const COLLECTIONS = {
   EXPENSES: 'expenses',
   AGENCY_CONFIG: 'agency_config',
   LOTISSEMENTS: 'lotissements',
+  INSPECTIONS: 'inspections',
 };
 
 /**
@@ -96,6 +98,15 @@ export const firestoreService = {
       await deleteDoc(doc(db, COLLECTIONS.PROPERTIES, propertyId));
     } catch (e) {
       console.warn('Firestore deleteProperty fallback:', e);
+    }
+  },
+
+  async updatePropertyStatus(propertyId: string, status: string): Promise<void> {
+    if (!db || !isConfigured) return;
+    try {
+      await updateDoc(doc(db, COLLECTIONS.PROPERTIES, propertyId), { status });
+    } catch (e) {
+      console.warn('Firestore updatePropertyStatus fallback:', e);
     }
   },
 
@@ -378,6 +389,39 @@ export const firestoreService = {
       await deleteDoc(doc(db, COLLECTIONS.EXPENSES, expenseId));
     } catch (e) {
       console.warn('Firestore deleteExpense fallback:', e);
+    }
+  },
+
+  // ================= TERRAIN INSPECTIONS =================
+  async fetchInspections(): Promise<TerrainInspectionRecord[]> {
+    if (!db || !isConfigured) return [];
+    try {
+      const snap = await getDocs(collection(db, COLLECTIONS.INSPECTIONS));
+      const list = snap.docs.map(doc => doc.data() as TerrainInspectionRecord);
+      list.sort((a, b) => (b.inspectionDate || '').localeCompare(a.inspectionDate || ''));
+      return list;
+    } catch (e) {
+      console.warn('Firestore fetchInspections fallback:', e);
+      return [];
+    }
+  },
+
+  async saveInspection(inspection: TerrainInspectionRecord): Promise<void> {
+    if (!db || !isConfigured) return;
+    try {
+      const clean = sanitizeForFirestore(inspection);
+      await setDoc(doc(db, COLLECTIONS.INSPECTIONS, clean.id), clean, { merge: true });
+    } catch (e) {
+      console.error('Firestore saveInspection error:', e);
+    }
+  },
+
+  async deleteInspection(inspectionId: string): Promise<void> {
+    if (!db || !isConfigured) return;
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.INSPECTIONS, inspectionId));
+    } catch (e) {
+      console.warn('Firestore deleteInspection fallback:', e);
     }
   },
 

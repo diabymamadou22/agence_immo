@@ -55,6 +55,9 @@ export interface Property {
   documentNumber?: string; // Ex: TF N° 12458/BKO
   documentDetails?: string;
 
+  // Land plot & legal security checklist (Mali)
+  foncierChecklist?: FoncierChecklist;
+
   // Media
   images: string[];
   featuredImage: string;
@@ -233,6 +236,22 @@ export interface AgencyExpense {
 // Sales Receipts & Purchase Deeds (Reçus de Vente Foncier & Bâti)
 export type SaleOperationType = 'vente_totale' | 'acompte' | 'solde' | 'versement_echelonne';
 
+// Tranche de paiement / Versement partiel sur vente de parcelle ou bien
+export interface SaleInstallment {
+  id: string;
+  installmentNumber: number; // N° de tranche (1, 2, 3...)
+  receiptNumber: string; // Ex: TRANCHE-VTE-2024-001
+  paymentDate: string; // ISO date YYYY-MM-DD
+  amount: number; // Montant versé pour cette tranche en FCFA
+  paymentMethod: PaymentMethod;
+  transactionReference?: string;
+  previousBalance: number; // Solde dû avant ce versement
+  remainingBalanceAfter: number; // Solde restant après ce versement
+  issuedBy: string; // Caissier ou agent encaisseur
+  notes?: string;
+  createdAt: string;
+}
+
 export interface SaleReceipt {
   id: string;
   receiptNumber: string; // Ex: RECU-VTE-2024-001
@@ -282,6 +301,9 @@ export interface SaleReceipt {
   transactionReference?: string; // N° Chèque, Référence Virement, TxID Orange Money/Wave
   notaryOffice?: string; // Étude Notariale (ex: Étude Me Mamadou Diaby, Notaire à Bamako)
   
+  // Tranches & Versements Échelonnés / Partiels
+  installments?: SaleInstallment[];
+
   // Agent & Agency
   issuedBy: string; // Nom de l'agent / Gestionnaire
   status: 'valide' | 'annule';
@@ -335,6 +357,7 @@ export interface AgencyConfig {
 
   // Security / Back-Office Access Password
   adminPassword?: string; // Default: 00223
+  managerName?: string;
 }
 
 export interface PropertyFilterState {
@@ -352,4 +375,62 @@ export interface PropertyFilterState {
   amenities: string[];
   onlyWithTF: boolean;
 }
+
+// Checklist de conformité foncière spécifique au Mali
+export interface FoncierChecklist {
+  hasTitreFoncierVerified?: boolean; // TF vérifié aux Domaines / Conservation Foncière
+  tfNumber?: string; // N° Titre Foncier
+  cercleArrondissement?: string; // Cercle (Kati, Bamako, Sanankoroba, Kangaba, etc.)
+  hasGeometrePlan?: boolean; // Plan de situation certifié par géomètre-expert agréé (IGM)
+  hasAttributionLetter?: boolean; // Lettre d'attribution / CUH visée par la mairie ou préfecture
+  hasNonGageCertificate?: boolean; // Certificat de non-gage ou réquisition foncière vierge
+  hasBornageContradictoire?: boolean; // Bornage physique contradictoire effectué
+  isPurgerCoutumiere?: boolean; // Droits coutumiers purgés
+  notaryAssigned?: string; // Étude notariale associée
+  verificationNotes?: string; // Observations juridiques
+}
+
+// Relevé et fiche de visite terrain pour agents
+export interface TerrainInspectionRecord {
+  id: string;
+  propertyId: string;
+  propertyTitle: string;
+  agentName: string;
+  agentPhone?: string;
+  inspectionType?: 'visite_prospect' | 'etat_lieux_entree' | 'etat_lieux_sortie' | 'constat_terrain';
+  inspectionDate: string;
+  clientName?: string;
+  clientPhone?: string;
+  clientPresentName?: string;
+  
+  // Relevé compteurs
+  edmType?: 'isago' | 'classique' | 'aucun';
+  edmCounterNumber?: string;
+  edmIndexOrCredit?: string;
+  electricityMeterIndex?: number;
+  isElectricityFunctional?: boolean;
+  electricityMeterStatus?: string;
+  somagepCounterNumber?: string;
+  somagepIndex?: string;
+  waterMeterIndex?: number;
+  isWaterMeterFunctional?: boolean;
+  waterMeterStatus?: string;
+
+  // Clés & Équipements
+  keyCount?: number;
+  cleanlinessStatus?: 'excellent' | 'bon' | 'moyen' | 'a_renover';
+  generalState?: 'excellent' | 'bon' | 'moyen' | 'a_renover';
+  paintStatus?: 'neuf' | 'bon' | 'degrade';
+  fixturesNotes?: string;
+  observations?: string;
+
+  // Photos & Localisation
+  photos: string[];
+  gpsCoordinates?: { latitude: number; longitude: number };
+  notes?: string;
+  signedByAgent?: boolean;
+  signedByClient?: boolean;
+  createdAt?: string;
+}
+
 

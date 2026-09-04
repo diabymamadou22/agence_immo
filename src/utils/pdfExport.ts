@@ -1,4 +1,4 @@
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
 
 /**
@@ -30,19 +30,28 @@ export async function downloadElementAsPdf(
       .replace(/[^a-zA-Z0-9_\-]/g, '_')
       .replace(/_+/g, '_');
 
-    // Run html2canvas with optimal settings for sharp vector-like text
+    // Run html2canvas-pro with optimal settings for sharp vector-like text
+    // html2canvas-pro natively parses and renders modern CSS color functions including oklch(), oklab(), lch(), lab()
     const canvas = await html2canvas(targetEl, {
       scale: 2, // High resolution for retina/crisp prints
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
       logging: false,
+      imageTimeout: 15000,
       ignoreElements: (element) => {
         return (
           element.classList.contains('print:hidden') ||
           element.classList.contains('no-print') ||
           element.tagName === 'BUTTON'
         );
+      },
+      onclone: (clonedDoc) => {
+        // Ensure buttons and non-printable elements in cloned DOM tree are safely hidden
+        const noPrintEls = clonedDoc.querySelectorAll('.no-print, .print\\:hidden, button');
+        noPrintEls.forEach((el) => {
+          (el as HTMLElement).style.display = 'none';
+        });
       },
     });
 

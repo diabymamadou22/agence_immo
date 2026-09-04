@@ -31,23 +31,30 @@ export const AdminBackupManager: React.FC = () => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [isPushingCloud, setIsPushingCloud] = useState(false);
 
-  const state = useAppSelector((state) => state);
+  const properties = useAppSelector((state) => state.properties);
+  const tenants = useAppSelector((state) => state.tenants);
+  const sales = useAppSelector((state) => state.sales);
+  const owners = useAppSelector((state) => state.owners);
+  const contracts = useAppSelector((state) => state.contracts);
+  const financials = useAppSelector((state) => state.financials);
+  const leads = useAppSelector((state) => state.leads);
+  const agency = useAppSelector((state) => state.agency);
   const isCloudLive = firestoreService.isLive();
 
   const handlePushAllDataToCloud = async () => {
     setIsPushingCloud(true);
     try {
       const res = await firestoreService.pushAllLocalDataToCloud({
-        properties: state.properties.items,
-        tenants: state.tenants.items,
-        receipts: state.tenants.receipts,
-        sales: state.sales.items,
-        owners: state.owners.items,
-        payouts: state.owners.payouts,
-        contracts: state.contracts.items,
-        expenses: state.financials.expenses,
-        leads: state.leads.items,
-        agencyConfig: state.agency.config,
+        properties: properties.items,
+        tenants: tenants.items,
+        receipts: tenants.receipts,
+        sales: sales.items,
+        owners: owners.items,
+        payouts: owners.payouts,
+        contracts: contracts.items,
+        expenses: financials.expenses,
+        leads: leads.items,
+        agencyConfig: agency.config,
       });
 
       if (res.success) {
@@ -84,14 +91,14 @@ export const AdminBackupManager: React.FC = () => {
       exportDate: new Date().toISOString(),
       version: '2.0.0',
       data: {
-        agency: state.agency,
-        properties: state.properties,
-        tenants: state.tenants,
-        sales: state.sales,
-        owners: state.owners,
-        contracts: state.contracts,
-        leads: state.leads,
-        financials: state.financials,
+        agency,
+        properties,
+        tenants,
+        sales,
+        owners,
+        contracts,
+        leads,
+        financials,
       },
     };
 

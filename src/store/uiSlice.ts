@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Property, Owner, LegalContract, OwnerPayout } from '../types';
+import { Property, Owner, LegalContract, OwnerPayout, SaleReceipt } from '../types';
 
 export type AdminTab = 
   | 'overview' 
@@ -50,6 +50,9 @@ interface UiState {
   selectedPayoutForPrint: OwnerPayout | null;
   isSaleReceiptModalOpen: boolean;
   isRecordSaleModalOpen: boolean;
+  isRecordSaleInstallmentModalOpen: boolean;
+  selectedSaleForInstallment: SaleReceipt | null;
+  isSaleInstallmentReceiptModalOpen: boolean;
 
   // Admin Authentication / Password Protection
   isAdminAuthenticated: boolean;
@@ -63,7 +66,10 @@ interface UiState {
 
 const getInitialAdminAuth = (): boolean => {
   try {
-    return sessionStorage.getItem('mali_immo_admin_auth') === 'true';
+    if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+      return sessionStorage.getItem('mali_immo_admin_auth') === 'true';
+    }
+    return false;
   } catch {
     return false;
   }
@@ -96,6 +102,9 @@ const initialState: UiState = {
   selectedPayoutForPrint: null,
   isSaleReceiptModalOpen: false,
   isRecordSaleModalOpen: false,
+  isRecordSaleInstallmentModalOpen: false,
+  selectedSaleForInstallment: null,
+  isSaleInstallmentReceiptModalOpen: false,
 
   isAdminAuthenticated: getInitialAdminAuth(),
   isAdminAuthModalOpen: false,
@@ -238,6 +247,24 @@ export const uiSlice = createSlice({
       state.isRecordSaleModalOpen = false;
     },
 
+    // Record Sale Installment / Partial Payment Modal
+    openRecordSaleInstallmentModal: (state, action: PayloadAction<SaleReceipt | null | undefined>) => {
+      state.selectedSaleForInstallment = action.payload || null;
+      state.isRecordSaleInstallmentModalOpen = true;
+    },
+    closeRecordSaleInstallmentModal: (state) => {
+      state.isRecordSaleInstallmentModalOpen = false;
+      state.selectedSaleForInstallment = null;
+    },
+
+    // Sale Installment Receipt Modal
+    openSaleInstallmentReceiptModal: (state) => {
+      state.isSaleInstallmentReceiptModalOpen = true;
+    },
+    closeSaleInstallmentReceiptModal: (state) => {
+      state.isSaleInstallmentReceiptModalOpen = false;
+    },
+
     // Admin Authentication
     setAdminAuthenticated: (state, action: PayloadAction<boolean>) => {
       state.isAdminAuthenticated = action.payload;
@@ -245,13 +272,17 @@ export const uiSlice = createSlice({
         state.viewMode = 'admin';
         state.isAdminAuthModalOpen = false;
         try {
-          sessionStorage.setItem('mali_immo_admin_auth', 'true');
+          if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem('mali_immo_admin_auth', 'true');
+          }
         } catch (e) {
           console.error(e);
         }
       } else {
         try {
-          sessionStorage.removeItem('mali_immo_admin_auth');
+          if (typeof window !== 'undefined' && typeof sessionStorage !== 'undefined') {
+            sessionStorage.removeItem('mali_immo_admin_auth');
+          }
         } catch (e) {
           console.error(e);
         }
@@ -325,6 +356,10 @@ export const {
   closeSaleReceiptModal,
   openRecordSaleModal,
   closeRecordSaleModal,
+  openRecordSaleInstallmentModal,
+  closeRecordSaleInstallmentModal,
+  openSaleInstallmentReceiptModal,
+  closeSaleInstallmentReceiptModal,
   setAdminAuthenticated,
   openAdminAuthModal,
   closeAdminAuthModal,

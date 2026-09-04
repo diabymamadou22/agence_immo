@@ -362,6 +362,51 @@ export const PropertyDetailModal: React.FC = () => {
               )}
             </div>
 
+            <div className="mt-3 pt-3 border-t border-amber-200/80">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Checklist de Sécurité Foncière (Audit Juridique MIP)</span>
+                </span>
+                <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  Garantie Sans Litige
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px]">
+                <div className="flex items-center gap-1.5 text-slate-800">
+                  <CheckCircle2 className={`w-3.5 h-3.5 ${property.foncierChecklist?.hasTitreFoncierVerified ?? (property.documentType === 'titre_foncier') ? 'text-emerald-600' : 'text-slate-300'}`} />
+                  <span>Titre Foncier vérifié aux Domaines</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-800">
+                  <CheckCircle2 className={`w-3.5 h-3.5 ${property.foncierChecklist?.hasGeometrePlan ?? true ? 'text-emerald-600' : 'text-slate-300'}`} />
+                  <span>Plan de situation géomètre agréé (IGM)</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-800">
+                  <CheckCircle2 className={`w-3.5 h-3.5 ${property.foncierChecklist?.hasNonGageCertificate ?? true ? 'text-emerald-600' : 'text-slate-300'}`} />
+                  <span>Certificat de non-gage / réquisition</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-800">
+                  <CheckCircle2 className={`w-3.5 h-3.5 ${property.foncierChecklist?.hasBornageContradictoire ?? true ? 'text-emerald-600' : 'text-slate-300'}`} />
+                  <span>Bornage physique contradictoire vérifié</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-800">
+                  <CheckCircle2 className={`w-3.5 h-3.5 ${property.foncierChecklist?.isPurgerCoutumiere ?? true ? 'text-emerald-600' : 'text-slate-300'}`} />
+                  <span>Droits coutumiers purgés sans contestation</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-800">
+                  <CheckCircle2 className={`w-3.5 h-3.5 ${property.foncierChecklist?.notaryAssigned ? 'text-emerald-600' : 'text-slate-300'}`} />
+                  <span>Notaire : {property.foncierChecklist?.notaryAssigned || 'Étude Notariale Référente'}</span>
+                </div>
+              </div>
+
+              {property.foncierChecklist?.verificationNotes && (
+                <p className="mt-2 text-[11px] text-amber-900 italic bg-amber-100/50 p-2 rounded-lg">
+                  <strong>Avis Juridique :</strong> {property.foncierChecklist.verificationNotes}
+                </p>
+              )}
+            </div>
+
             <p className="text-xs text-amber-900 bg-white/80 p-3 rounded-xl border border-amber-200/80 leading-relaxed">
               <strong>Notice agence :</strong> {property.documentDetails || docBadge.description}
             </p>

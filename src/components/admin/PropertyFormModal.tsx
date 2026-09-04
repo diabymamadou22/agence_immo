@@ -3,7 +3,7 @@ import { useAppDispatch, useAppSelector } from '../../store';
 import { closePropertyForm, addToast } from '../../store/uiSlice';
 import { addProperty, updateProperty } from '../../store/propertiesSlice';
 import { firestoreService } from '../../services/firestoreService';
-import { Property, PropertyType, DealType, DocumentType, PropertyStatus } from '../../types';
+import { Property, PropertyType, DealType, DocumentType, PropertyStatus, FoncierChecklist } from '../../types';
 import { AMENITY_DEFINITIONS, MALI_LOCATIONS, formatFCFA } from '../../utils/formatters';
 import { ImageUploadGallery } from '../common/ImageUploadGallery';
 import { 
@@ -62,6 +62,18 @@ export const PropertyFormModal: React.FC = () => {
     'acces_goudron',
   ]);
 
+  // Foncier Checklist (Mali legal security)
+  const [foncierChecklist, setFoncierChecklist] = useState<FoncierChecklist>({
+    hasTitreFoncierVerified: true,
+    hasGeometrePlan: true,
+    hasAttributionLetter: false,
+    hasNonGageCertificate: true,
+    hasBornageContradictoire: true,
+    isPurgerCoutumiere: true,
+    notaryAssigned: 'Étude Me Mamadou Diaby, Notaire à Bamako',
+    verificationNotes: '',
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -89,9 +101,29 @@ export const PropertyFormModal: React.FC = () => {
       setStatus(editingProperty.status);
       setImages(editingProperty.images && editingProperty.images.length > 0 ? editingProperty.images : (editingProperty.featuredImage ? [editingProperty.featuredImage] : []));
       setSelectedAmenities(editingProperty.amenities || []);
+      setFoncierChecklist(editingProperty.foncierChecklist || {
+        hasTitreFoncierVerified: editingProperty.documentType === 'titre_foncier',
+        hasGeometrePlan: true,
+        hasAttributionLetter: editingProperty.documentType === 'lettre_attribution',
+        hasNonGageCertificate: true,
+        hasBornageContradictoire: true,
+        isPurgerCoutumiere: true,
+        notaryAssigned: 'Étude Me Mamadou Diaby, Notaire à Bamako',
+        verificationNotes: '',
+      });
     } else {
       // Default reset
       setImages([]); // Fresh empty photos so user imports their real photos
+      setFoncierChecklist({
+        hasTitreFoncierVerified: true,
+        hasGeometrePlan: true,
+        hasAttributionLetter: false,
+        hasNonGageCertificate: true,
+        hasBornageContradictoire: true,
+        isPurgerCoutumiere: true,
+        notaryAssigned: 'Étude Me Mamadou Diaby, Notaire à Bamako',
+        verificationNotes: '',
+      });
       if (formType === 'parcelle') {
         setPropertyType('parcelle');
         setTitle('Parcelle Titre Foncier');
@@ -151,6 +183,7 @@ export const PropertyFormModal: React.FC = () => {
       section: section.trim() || undefined,
       lotissement: lotissement.trim() || undefined,
       dimensions: dimensions.trim() || undefined,
+      foncierChecklist: foncierChecklist,
       bedrooms: propertyType !== 'parcelle' ? Number(bedrooms) : undefined,
       bathrooms: propertyType !== 'parcelle' ? Number(bathrooms) : undefined,
       featuredImage: images[0] || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80',
@@ -477,6 +510,104 @@ export const PropertyFormModal: React.FC = () => {
                 onChange={(e) => setLotissement(e.target.value)}
                 className="w-full px-3 py-2 text-xs bg-white border border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
               />
+            </div>
+
+            {/* Checklist de Conformité & Sécurité Foncière Malienne */}
+            <div className="mt-4 pt-4 border-t border-amber-200/80 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-extrabold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Checklist Sécurité & Conformité Foncière (Mali)</span>
+                </span>
+                <span className="text-[11px] font-bold text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-md">
+                  Vérification Agence
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <label className="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200/70 text-xs font-medium text-slate-800 cursor-pointer hover:bg-amber-50/50">
+                  <input
+                    type="checkbox"
+                    checked={!!foncierChecklist.hasTitreFoncierVerified}
+                    onChange={(e) => setFoncierChecklist({ ...foncierChecklist, hasTitreFoncierVerified: e.target.checked })}
+                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                  />
+                  <span>Titre Foncier vérifié aux Domaines</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200/70 text-xs font-medium text-slate-800 cursor-pointer hover:bg-amber-50/50">
+                  <input
+                    type="checkbox"
+                    checked={!!foncierChecklist.hasGeometrePlan}
+                    onChange={(e) => setFoncierChecklist({ ...foncierChecklist, hasGeometrePlan: e.target.checked })}
+                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                  />
+                  <span>Plan de situation certifié géomètre agréé (IGM)</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200/70 text-xs font-medium text-slate-800 cursor-pointer hover:bg-amber-50/50">
+                  <input
+                    type="checkbox"
+                    checked={!!foncierChecklist.hasNonGageCertificate}
+                    onChange={(e) => setFoncierChecklist({ ...foncierChecklist, hasNonGageCertificate: e.target.checked })}
+                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                  />
+                  <span>Certificat de non-gage / réquisition vierge</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200/70 text-xs font-medium text-slate-800 cursor-pointer hover:bg-amber-50/50">
+                  <input
+                    type="checkbox"
+                    checked={!!foncierChecklist.hasBornageContradictoire}
+                    onChange={(e) => setFoncierChecklist({ ...foncierChecklist, hasBornageContradictoire: e.target.checked })}
+                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                  />
+                  <span>Bornage physique contradictoire vérifié</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200/70 text-xs font-medium text-slate-800 cursor-pointer hover:bg-amber-50/50">
+                  <input
+                    type="checkbox"
+                    checked={!!foncierChecklist.isPurgerCoutumiere}
+                    onChange={(e) => setFoncierChecklist({ ...foncierChecklist, isPurgerCoutumiere: e.target.checked })}
+                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                  />
+                  <span>Droits coutumiers purgés sans litige</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2 bg-white rounded-xl border border-amber-200/70 text-xs font-medium text-slate-800 cursor-pointer hover:bg-amber-50/50">
+                  <input
+                    type="checkbox"
+                    checked={!!foncierChecklist.hasAttributionLetter}
+                    onChange={(e) => setFoncierChecklist({ ...foncierChecklist, hasAttributionLetter: e.target.checked })}
+                    className="w-4 h-4 rounded text-amber-600 focus:ring-amber-500"
+                  />
+                  <span>Lettre d'attribution visée par la Mairie/Cercle</span>
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-700">Étude Notariale Référente</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Étude Notariale Me Mamadou Diaby..."
+                    value={foncierChecklist.notaryAssigned || ''}
+                    onChange={(e) => setFoncierChecklist({ ...foncierChecklist, notaryAssigned: e.target.value })}
+                    className="w-full px-3 py-1.5 text-xs bg-white border border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="block text-[11px] font-bold text-slate-700">Observations Juridiques</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Dossier réquisitionné sans opposition, prêt pour vente..."
+                    value={foncierChecklist.verificationNotes || ''}
+                    onChange={(e) => setFoncierChecklist({ ...foncierChecklist, verificationNotes: e.target.value })}
+                    className="w-full px-3 py-1.5 text-xs bg-white border border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

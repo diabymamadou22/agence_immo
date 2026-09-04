@@ -158,6 +158,28 @@
       },
       "required": ["name", "phone", "email"]
     },
+    "SaleReceipt": {
+      "title": "SaleReceipt",
+      "description": "Actes, quittances de vente et versements échelonnés / tranches de parcelles et biens",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "receiptNumber": { "type": "string" },
+        "saleDate": { "type": "string" },
+        "operationType": { "type": "string", "enum": ["vente_totale", "acompte", "solde", "versement_echelonne"] },
+        "propertyId": { "type": "string" },
+        "propertyReference": { "type": "string" },
+        "propertyTitle": { "type": "string" },
+        "buyerName": { "type": "string" },
+        "buyerPhone": { "type": "string" },
+        "totalAgreedPrice": { "type": "number" },
+        "amountPaid": { "type": "number" },
+        "remainingBalance": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "status": { "type": "string", "enum": ["valide", "annule"] }
+      },
+      "required": ["id", "receiptNumber", "saleDate", "propertyId", "buyerName", "buyerPhone", "totalAgreedPrice", "amountPaid", "remainingBalance", "status"]
+    },
     "SystemHealth": {
       "title": "SystemHealth",
       "description": "Vérification de connectivité et heartbeat Firestore",
@@ -186,6 +208,10 @@
     "/receipts/{receiptId}": {
       "schema": { "$ref": "#/entities/RentReceipt" },
       "description": "Quittances de loyer et encaissements"
+    },
+    "/sales/{saleId}": {
+      "schema": { "$ref": "#/entities/SaleReceipt" },
+      "description": "Actes de vente de parcelles et quittances de paiement"
     },
     "/owners/{ownerId}": {
       "schema": { "$ref": "#/entities/Owner" },
