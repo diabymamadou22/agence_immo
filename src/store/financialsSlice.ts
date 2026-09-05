@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AgencyExpense } from '../types';
+import { getStorageItem, setStorageItem } from '../utils/safeStorage';
 
 const LOCAL_STORAGE_EXPENSES_KEY = 'mali_immo_expenses';
 
@@ -47,7 +48,7 @@ export const INITIAL_EXPENSES: AgencyExpense[] = [
 
 const loadSavedExpenses = (): AgencyExpense[] => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_EXPENSES_KEY);
+    const saved = getStorageItem(LOCAL_STORAGE_EXPENSES_KEY);
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) return parsed;
@@ -60,7 +61,7 @@ const loadSavedExpenses = (): AgencyExpense[] => {
 
 const saveExpenses = (expenses: AgencyExpense[]) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_EXPENSES_KEY, JSON.stringify(expenses));
+    setStorageItem(LOCAL_STORAGE_EXPENSES_KEY, JSON.stringify(expenses));
   } catch (e) {
     console.error('Error saving expenses:', e);
   }

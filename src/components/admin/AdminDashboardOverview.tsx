@@ -4,6 +4,7 @@ import { setActiveAdminTab, openPropertyForm, openPaymentModal, openRecordSaleMo
 import { setSelectedPropertyId } from '../../store/propertiesSlice';
 import { setSelectedPropertyForSale } from '../../store/salesSlice';
 import { formatFCFA, formatDate, getDocumentBadgeInfo, getStatusBadgeInfo, formatSurface } from '../../utils/formatters';
+import { canViewMargins, ROLES_CONFIG } from '../../utils/rbac';
 import { RentLateAlertWidget } from './RentLateAlertWidget';
 import { 
   Building2, 
@@ -17,9 +18,12 @@ import {
   Clock, 
   AlertCircle, 
   ArrowUpRight, 
-  Receipt,
-  Eye,
-  Plus
+  Receipt, 
+  Eye, 
+  Plus,
+  Shield,
+  MapPin,
+  Compass
 } from 'lucide-react';
 
 export const AdminDashboardOverview: React.FC = () => {
@@ -28,6 +32,11 @@ export const AdminDashboardOverview: React.FC = () => {
   const leads = useAppSelector((state) => state.leads.items);
   const tenants = useAppSelector((state) => state.tenants.items);
   const receipts = useAppSelector((state) => state.tenants.receipts);
+  const currentUser = useAppSelector((state) => state.users.currentUser);
+
+  const role = currentUser?.role || 'directeur';
+  const roleConfig = ROLES_CONFIG[role];
+  const marginsVisible = canViewMargins(role);
 
   // Metrics Calculations
   const parcelles = properties.filter((p) => p.propertyType === 'parcelle');
@@ -65,79 +74,158 @@ export const AdminDashboardOverview: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={() => {
-              dispatch(setSelectedPropertyForSale(null));
-              dispatch(openRecordSaleModal());
-            }}
-            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
-          >
-            <Receipt className="w-4 h-4 text-slate-950" />
-            <span>Émettre Reçu de Vente</span>
-          </button>
-          <button
-            onClick={() => dispatch(openPropertyForm({ type: 'parcelle' }))}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs border border-slate-700 transition-all flex items-center gap-2 cursor-pointer"
-          >
-            <Plus className="w-4 h-4 text-amber-400" />
-            <span>Nouvelle Parcelle</span>
-          </button>
-          <button
-            onClick={() => dispatch(setActiveAdminTab('locations'))}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs border border-slate-700 transition-all flex items-center gap-2 cursor-pointer"
-          >
-            <Receipt className="w-4 h-4 text-amber-400" />
-            <span>Quittance Loyer</span>
-          </button>
+          {roleConfig.canIssueSalesReceipts && (
+            <button
+              onClick={() => {
+                dispatch(setSelectedPropertyForSale(null));
+                dispatch(openRecordSaleModal());
+              }}
+              className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Receipt className="w-4 h-4 text-slate-950" />
+              <span>Émettre Reçu de Vente</span>
+            </button>
+          )}
+          {roleConfig.canManageProperties && (
+            <button
+              onClick={() => dispatch(openPropertyForm({ type: 'parcelle' }))}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs border border-slate-700 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4 text-amber-400" />
+              <span>Nouvelle Parcelle</span>
+            </button>
+          )}
+          {roleConfig.canManageRentals && (
+            <button
+              onClick={() => dispatch(setActiveAdminTab('locations'))}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs border border-slate-700 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Receipt className="w-4 h-4 text-amber-400" />
+              <span>Quittance Loyer</span>
+            </button>
+          )}
+          {roleConfig.canManageLeadsAndVisits && (
+            <button
+              onClick={() => dispatch(setActiveAdminTab('leads'))}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-xs border border-slate-700 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Calendar className="w-4 h-4 text-amber-400" />
+              <span>Planning Visites</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* 4 Main Key Performance Cards in FCFA */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {/* Card 1: Portefeuille Parcelles & Ventes */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Valeur du Portefeuille
+      {/* Role Confidentiality Banner if Margins Masked */}
+      {!marginsVisible && (
+        <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-between gap-3 text-xs text-blue-900">
+          <div className="flex items-center gap-2.5">
+            <Shield className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>
+              <strong>Profil {roleConfig.label} actif :</strong> Vue terrain opérationnelle. Les marges globales, dépenses internes et bilans financiers de l'agence sont masqués par politique de confidentialité.
             </span>
-            <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
-              <TrendingUp className="w-5 h-5" />
-            </div>
           </div>
-          <div>
-            <div className="text-xl font-black text-slate-900 font-heading">
-              {formatFCFA(totalPortfolioValueFCFA)}
-            </div>
-            <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-              <span>{propertiesForSale.length} biens en vente</span>
-              <span>•</span>
-              <span className="text-emerald-600 font-semibold">{parcellesWithTF.length} Parcelles TF</span>
-            </p>
-          </div>
+          <button
+            onClick={() => dispatch(setActiveAdminTab('leads'))}
+            className="px-3 py-1 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11px] shrink-0 transition-colors"
+          >
+            Accéder aux Visites
+          </button>
         </div>
+      )}
 
-        {/* Card 2: Recouvrement Loyers Mensuels */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Loyers Mensuels Actifs
-            </span>
-            <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold">
-              <Users className="w-5 h-5" />
+      {/* 4 Main Key Performance Cards in FCFA (or Operational Metrics for Commercial) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {marginsVisible ? (
+          <>
+            {/* Card 1: Portefeuille Parcelles & Ventes */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Valeur du Portefeuille
+                </span>
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+              </div>
+              <div>
+                <div className="text-xl font-black text-slate-900 font-heading">
+                  {formatFCFA(totalPortfolioValueFCFA)}
+                </div>
+                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                  <span>{propertiesForSale.length} biens en vente</span>
+                  <span>•</span>
+                  <span className="text-emerald-600 font-semibold">{parcellesWithTF.length} Parcelles TF</span>
+                </p>
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="text-xl font-black text-slate-900 font-heading">
-              {formatFCFA(totalMonthlyRentsFCFA)} <span className="text-xs font-normal text-slate-500">/ mois</span>
+
+            {/* Card 2: Recouvrement Loyers Mensuels */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Loyers Mensuels Actifs
+                </span>
+                <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold">
+                  <Users className="w-5 h-5" />
+                </div>
+              </div>
+              <div>
+                <div className="text-xl font-black text-slate-900 font-heading">
+                  {formatFCFA(totalMonthlyRentsFCFA)} <span className="text-xs font-normal text-slate-500">/ mois</span>
+                </div>
+                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                  <span>{activeTenantsCount} locataires actifs</span>
+                  {tenantsInLateCount > 0 && (
+                    <span className="text-rose-600 font-bold">({tenantsInLateCount} retard)</span>
+                  )}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-              <span>{activeTenantsCount} locataires actifs</span>
-              {tenantsInLateCount > 0 && (
-                <span className="text-rose-600 font-bold">({tenantsInLateCount} retard)</span>
-              )}
-            </p>
-          </div>
-        </div>
+          </>
+        ) : (
+          <>
+            {/* Card 1 Commercial: Mandats & Biens en Vente */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Mandats & Biens à la Vente
+                </span>
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                  <Building2 className="w-5 h-5" />
+                </div>
+              </div>
+              <div>
+                <div className="text-2xl font-black text-slate-900 font-heading">
+                  {propertiesForSale.length} Biens
+                </div>
+                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                  <span className="text-emerald-600 font-semibold">{parcellesWithTF.length} Parcelles Titre Foncier</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Card 2 Commercial: Visites Terrain à Réaliser */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Visites Terrain Planifiées
+                </span>
+                <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 flex items-center justify-center font-bold">
+                  <Calendar className="w-5 h-5" />
+                </div>
+              </div>
+              <div>
+                <div className="text-2xl font-black text-slate-900 font-heading">
+                  {upcomingVisits.length} Visites
+                </div>
+                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                  <span>Sur les parcelles & villas Bamako</span>
+                </p>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Card 3: Parcelles & Terrains Lotis */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
@@ -183,8 +271,8 @@ export const AdminDashboardOverview: React.FC = () => {
         </div>
       </div>
 
-      {/* Late Rents & Automated WhatsApp Reminders Alert Center */}
-      <RentLateAlertWidget />
+      {/* Late Rents Alert Center - Visible only for rental managers */}
+      {roleConfig.canManageRentals && <RentLateAlertWidget />}
 
       {/* 2-Column Split: Upcoming Visits & Recent Parcel Listings */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

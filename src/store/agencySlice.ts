@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AgencyConfig } from '../types';
 import { firestoreService } from '../services/firestoreService';
+import { getStorageItem, setStorageItem } from '../utils/safeStorage';
 
 const LOCAL_STORAGE_AGENCY_KEY = 'mali_immo_agency_config';
 
@@ -155,7 +156,7 @@ export const INITIAL_AGENCY_CONFIG: AgencyConfig = AGENCY_PRESETS[0].config;
 
 const loadSavedAgencyConfig = (): AgencyConfig => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_AGENCY_KEY);
+    const saved = getStorageItem(LOCAL_STORAGE_AGENCY_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.name) {
@@ -179,7 +180,7 @@ const loadSavedAgencyConfig = (): AgencyConfig => {
 
 const saveAgencyConfig = (config: AgencyConfig) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_AGENCY_KEY, JSON.stringify(config));
+    setStorageItem(LOCAL_STORAGE_AGENCY_KEY, JSON.stringify(config));
   } catch (e) {
     console.error('Error saving agency config:', e);
   }

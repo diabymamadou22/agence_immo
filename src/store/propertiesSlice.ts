@@ -1,12 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Property, PropertyFilterState, PropertyStatus } from '../types';
 import { INITIAL_PROPERTIES } from '../data/mockData';
+import { getStorageItem, setStorageItem } from '../utils/safeStorage';
 
 const LOCAL_STORAGE_KEY = 'mali_immo_properties';
 
 const loadSavedProperties = (): Property[] => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const saved = getStorageItem(LOCAL_STORAGE_KEY);
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) {
@@ -21,7 +22,7 @@ const loadSavedProperties = (): Property[] => {
 
 const saveToLocalStorage = (properties: Property[]) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(properties));
+    setStorageItem(LOCAL_STORAGE_KEY, JSON.stringify(properties));
   } catch (e) {
     console.error('Error saving properties to localStorage:', e);
   }
@@ -54,7 +55,7 @@ interface PropertiesState {
 
 const loadSavedFavorites = (): string[] => {
   try {
-    const favs = localStorage.getItem('mali_immo_favorites');
+    const favs = getStorageItem('mali_immo_favorites');
     if (favs) return JSON.parse(favs);
   } catch (e) {
     console.error('Error loading favorites:', e);
@@ -144,7 +145,7 @@ export const propertiesSlice = createSlice({
         state.favorites.push(id);
       }
       try {
-        localStorage.setItem('mali_immo_favorites', JSON.stringify(state.favorites));
+        setStorageItem('mali_immo_favorites', JSON.stringify(state.favorites));
       } catch (e) {
         console.error('Error saving favorites:', e);
       }

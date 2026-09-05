@@ -10,22 +10,10 @@ export default defineConfig(() => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       },
-      dedupe: ['react', 'react-dom', 'react-redux'],
+      dedupe: ['react', 'react-dom'],
     },
     build: {
-      chunkSizeWarningLimit: 1200,
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            'vendor-react': ['react', 'react-dom'],
-            'vendor-redux': ['@reduxjs/toolkit', 'react-redux'],
-            'vendor-icons': ['lucide-react'],
-            'vendor-charts': ['recharts'],
-            'vendor-pdf': ['jspdf', 'html2canvas-pro'],
-            'vendor-firebase': ['firebase/app', 'firebase/firestore', 'firebase/auth', 'firebase/storage'],
-          },
-        },
-      },
+      chunkSizeWarningLimit: 1500,
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.

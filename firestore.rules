@@ -57,6 +57,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Agency Users & RBAC Collaborators
+    match /agency_users/{userId} {
+      allow read, write: if true;
+    }
+
     // System Health & Connection Test
     match /_system_health/{checkId} {
       allow read, write: if true;

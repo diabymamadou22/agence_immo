@@ -46,6 +46,7 @@ const AdminContractGenerator = lazy(() => import('./components/admin/AdminContra
 const AdminFinancials = lazy(() => import('./components/admin/AdminFinancials').then(m => ({ default: m.AdminFinancials })));
 const AdminAgencySettings = lazy(() => import('./components/admin/AdminAgencySettings').then(m => ({ default: m.AdminAgencySettings })));
 const AdminBackupManager = lazy(() => import('./components/admin/AdminBackupManager').then(m => ({ default: m.AdminBackupManager })));
+const AdminTeamManager = lazy(() => import('./components/admin/AdminTeamManager').then(m => ({ default: m.AdminTeamManager })));
 
 // Code-Splitting: Lazy-Loaded Action Modals
 const PropertyFormModal = lazy(() => import('./components/admin/PropertyFormModal').then(m => ({ default: m.PropertyFormModal })));
@@ -261,6 +262,7 @@ const AppContent: React.FC = () => {
               {activeAdminTab === 'simulateur' && <AdminNotaryFeeView />}
               {activeAdminTab === 'agency_settings' && <AdminAgencySettings />}
               {activeAdminTab === 'backups' && <AdminBackupManager />}
+              {activeAdminTab === 'team' && <AdminTeamManager />}
             </Suspense>
           </div>
         </main>
@@ -298,7 +300,11 @@ const AppContent: React.FC = () => {
 };
 
 export function App() {
-  return <AppContent />;
+  return (
+    <Provider store={store}>
+      <AppContent />
+    </Provider>
+  );
 }
 
 export default App;

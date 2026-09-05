@@ -1,13 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Tenant, RentReceipt, PaymentMethod } from '../types';
 import { INITIAL_TENANTS, INITIAL_RECEIPTS } from '../data/mockData';
+import { getStorageItem, setStorageItem } from '../utils/safeStorage';
 
 const LOCAL_STORAGE_KEY_TENANTS = 'mali_immo_tenants';
 const LOCAL_STORAGE_KEY_RECEIPTS = 'mali_immo_receipts';
 
 const loadSavedTenants = (): Tenant[] => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_TENANTS);
+    const saved = getStorageItem(LOCAL_STORAGE_KEY_TENANTS);
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) {
@@ -22,7 +23,7 @@ const loadSavedTenants = (): Tenant[] => {
 
 const loadSavedReceipts = (): RentReceipt[] => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY_RECEIPTS);
+    const saved = getStorageItem(LOCAL_STORAGE_KEY_RECEIPTS);
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) {
@@ -37,8 +38,8 @@ const loadSavedReceipts = (): RentReceipt[] => {
 
 const saveToLocalStorage = (tenants: Tenant[], receipts: RentReceipt[]) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_KEY_TENANTS, JSON.stringify(tenants));
-    localStorage.setItem(LOCAL_STORAGE_KEY_RECEIPTS, JSON.stringify(receipts));
+    setStorageItem(LOCAL_STORAGE_KEY_TENANTS, JSON.stringify(tenants));
+    setStorageItem(LOCAL_STORAGE_KEY_RECEIPTS, JSON.stringify(receipts));
   } catch (e) {
     console.error('Error saving tenants/receipts:', e);
   }

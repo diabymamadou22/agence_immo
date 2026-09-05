@@ -1,12 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { SaleReceipt, SaleInstallment, PaymentMethod } from '../types';
 import { INITIAL_SALE_RECEIPTS } from '../data/mockData';
+import { getStorageItem, setStorageItem } from '../utils/safeStorage';
 
 const LOCAL_STORAGE_KEY = 'mali_immo_sale_receipts';
 
 const loadSavedSales = (): SaleReceipt[] => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const saved = getStorageItem(LOCAL_STORAGE_KEY);
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -21,7 +22,7 @@ const loadSavedSales = (): SaleReceipt[] => {
 
 const saveToLocalStorage = (sales: SaleReceipt[]) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sales));
+    setStorageItem(LOCAL_STORAGE_KEY, JSON.stringify(sales));
   } catch (e) {
     console.error('Error saving sales receipts to localStorage:', e);
   }

@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { LegalContract } from '../types';
+import { getStorageItem, setStorageItem } from '../utils/safeStorage';
 
 const LOCAL_STORAGE_CONTRACTS_KEY = 'mali_immo_contracts';
 
@@ -76,7 +77,7 @@ export const INITIAL_CONTRACTS: LegalContract[] = [
 
 const loadSavedContracts = (): LegalContract[] => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_CONTRACTS_KEY);
+    const saved = getStorageItem(LOCAL_STORAGE_CONTRACTS_KEY);
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) return parsed;
@@ -89,7 +90,7 @@ const loadSavedContracts = (): LegalContract[] => {
 
 const saveContracts = (contracts: LegalContract[]) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_CONTRACTS_KEY, JSON.stringify(contracts));
+    setStorageItem(LOCAL_STORAGE_CONTRACTS_KEY, JSON.stringify(contracts));
   } catch (e) {
     console.error('Error saving contracts:', e);
   }

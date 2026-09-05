@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Owner, OwnerPayout } from '../types';
+import { getStorageItem, setStorageItem } from '../utils/safeStorage';
 
 const LOCAL_STORAGE_OWNERS_KEY = 'mali_immo_owners';
 const LOCAL_STORAGE_PAYOUTS_KEY = 'mali_immo_payouts';
@@ -113,7 +114,7 @@ export const INITIAL_PAYOUTS: OwnerPayout[] = [
 
 const loadSavedOwners = (): Owner[] => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_OWNERS_KEY);
+    const saved = getStorageItem(LOCAL_STORAGE_OWNERS_KEY);
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) return parsed;
@@ -126,7 +127,7 @@ const loadSavedOwners = (): Owner[] => {
 
 const loadSavedPayouts = (): OwnerPayout[] => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_PAYOUTS_KEY);
+    const saved = getStorageItem(LOCAL_STORAGE_PAYOUTS_KEY);
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) return parsed;
@@ -139,7 +140,7 @@ const loadSavedPayouts = (): OwnerPayout[] => {
 
 const saveOwners = (owners: Owner[]) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_OWNERS_KEY, JSON.stringify(owners));
+    setStorageItem(LOCAL_STORAGE_OWNERS_KEY, JSON.stringify(owners));
   } catch (e) {
     console.error('Error saving owners:', e);
   }
@@ -147,7 +148,7 @@ const saveOwners = (owners: Owner[]) => {
 
 const savePayouts = (payouts: OwnerPayout[]) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_PAYOUTS_KEY, JSON.stringify(payouts));
+    setStorageItem(LOCAL_STORAGE_PAYOUTS_KEY, JSON.stringify(payouts));
   } catch (e) {
     console.error('Error saving payouts:', e);
   }

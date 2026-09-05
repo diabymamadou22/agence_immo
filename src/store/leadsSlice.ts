@@ -1,12 +1,13 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Lead, LeadStatus } from '../types';
 import { INITIAL_LEADS } from '../data/mockData';
+import { getStorageItem, setStorageItem } from '../utils/safeStorage';
 
 const LOCAL_STORAGE_KEY = 'mali_immo_leads';
 
 const loadSavedLeads = (): Lead[] => {
   try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const saved = getStorageItem(LOCAL_STORAGE_KEY);
     if (saved !== null) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed)) {
@@ -21,7 +22,7 @@ const loadSavedLeads = (): Lead[] => {
 
 const saveToLocalStorage = (leads: Lead[]) => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(leads));
+    setStorageItem(LOCAL_STORAGE_KEY, JSON.stringify(leads));
   } catch (e) {
     console.error('Error saving leads:', e);
   }
