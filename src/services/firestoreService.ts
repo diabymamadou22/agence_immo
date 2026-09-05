@@ -667,11 +667,46 @@ export const firestoreService = {
         console.info('Base Firestore cloud database is empty. Auto-seeding initial master catalog...');
         await this.pushAllLocalDataToCloud(fallbackData);
         return true;
+      } else if (fallbackData.users && fallbackData.users.length > 0) {
+        // Ensure USERS collection is seeded if properties were already present
+        const usersSnap = await getDocs(collection(db, COLLECTIONS.USERS));
+        if (usersSnap.empty) {
+          console.info('Seeding initial agency users to Firestore...');
+          for (const user of fallbackData.users) {
+            await setDoc(doc(db, COLLECTIONS.USERS, user.id), sanitizeForFirestore(user), { merge: true });
+          }
+        }
       }
       return false;
     } catch (e) {
       console.warn('Auto-seed check note:', e);
       return false;
+    }
+  },
+
+  // Synchroniser explicitement l'équipe vers Firestore
+  async syncUsersToCloud(users: AgencyUser[]): Promise<{ success: boolean; count: number; message: string }> {
+    if (!db || !isConfigured) {
+      return { success: false, count: 0, message: 'Firebase non configuré.' };
+    }
+    try {
+      let count = 0;
+      for (const user of users) {
+        await setDoc(doc(db, COLLECTIONS.USERS, user.id), sanitizeForFirestore(user), { merge: true });
+        count++;
+      }
+      return {
+        success: true,
+        count,
+        message: `${count} collaborateur(s) synchronisé(s) en temps réel sur Firebase !`,
+      };
+    } catch (e: any) {
+      console.error('syncUsersToCloud error:', e);
+      return {
+        success: false,
+        count: 0,
+        message: e?.message || 'Erreur de synchronisation Firebase.',
+      };
     }
   },
 

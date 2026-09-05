@@ -9,6 +9,7 @@ import { setOwners, setPayouts } from './store/ownersSlice';
 import { setContracts } from './store/contractsSlice';
 import { setExpenses } from './store/financialsSlice';
 import { setAgencyConfig } from './store/agencySlice';
+import { setUsers } from './store/usersSlice';
 import { firestoreService } from './services/firestoreService';
 
 // Client Direct Core Components
@@ -81,6 +82,7 @@ const AppContent: React.FC = () => {
   const contracts = useAppSelector((state) => state.contracts.items);
   const expenses = useAppSelector((state) => state.financials.expenses);
   const leads = useAppSelector((state) => state.leads.items);
+  const users = useAppSelector((state) => state.users.items);
 
   // Initialize Firestore listeners for multi-device real-time sync across all collections
   useEffect(() => {
@@ -96,6 +98,7 @@ const AppContent: React.FC = () => {
       expenses,
       leads,
       agencyConfig,
+      users,
     }).catch((err) => console.warn('Auto-seed check notice:', err));
 
     // 1. Properties & Parcelles
@@ -168,6 +171,13 @@ const AppContent: React.FC = () => {
       }
     });
 
+    // 10. Agency Users & RBAC Collaborators
+    const unsubscribeUsers = firestoreService.subscribeUsers((cloudUsers) => {
+      if (cloudUsers && Array.isArray(cloudUsers) && cloudUsers.length > 0) {
+        dispatch(setUsers(cloudUsers));
+      }
+    });
+
     return () => {
       unsubscribeProps();
       unsubscribeLeads();
@@ -179,6 +189,7 @@ const AppContent: React.FC = () => {
       unsubscribeContracts();
       unsubscribeExpenses();
       unsubscribeAgency();
+      unsubscribeUsers();
     };
   }, [dispatch]);
 

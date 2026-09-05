@@ -22,6 +22,7 @@ export const firestoreSyncMiddleware: Middleware = (storeApi) => (next) => (acti
     type.startsWith('owners/set') ||
     type.startsWith('contracts/set') ||
     type.startsWith('financials/set') ||
+    type.startsWith('users/set') ||
     type.startsWith('ui/') ||
     action.meta?.fromCloud
   ) {
@@ -134,6 +135,21 @@ export const firestoreSyncMiddleware: Middleware = (storeApi) => (next) => (acti
   } else if (type === 'agency/setAgencyConfig') {
     if (action.payload && !action.meta?.fromCloud) {
       firestoreService.saveAgencyConfig(action.payload);
+    }
+  }
+
+  // 9. Agency Collaborators & RBAC Users
+  else if (type === 'users/addUser') {
+    if (action.payload) {
+      firestoreService.saveUser(action.payload);
+    }
+  } else if (type === 'users/updateUser') {
+    if (action.payload) {
+      firestoreService.saveUser(action.payload);
+    }
+  } else if (type === 'users/deleteUser') {
+    if (action.payload) {
+      firestoreService.deleteUser(action.payload);
     }
   }
 
