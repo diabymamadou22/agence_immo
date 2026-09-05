@@ -1,37 +1,85 @@
 import { DocumentType, PropertyType, PropertyStatus, DealType, PaymentMethod, Tenant } from '../types';
 
-export const CLIENT_CONTACT_PHONE = '+223 76 00 11 22';
-export const CLIENT_CALL_TEL = '+22376001122';
-export const CLIENT_WHATSAPP_NUMBER = '22376001122';
-export const CLIENT_PHONE_DISPLAY = '+223 76 00 11 22';
+export const CLIENT_CONTACT_PHONE = '+223 90 07 03 21';
+export const CLIENT_CALL_TEL = '+22390070321';
+export const CLIENT_WHATSAPP_NUMBER = '22390070321';
+export const CLIENT_PHONE_DISPLAY = '+223 90 07 03 21';
 
 /**
- * Clean a phone string for use in tel: href (preserves leading +, strips spaces)
+ * Clean a phone string for use in tel: href.
+ * Detects 8-digit Malian numbers (e.g. "90070321" -> "+22390070321"),
+ * strips spaces, brackets, hyphens, and correctly formats international prefixes.
  */
 export function cleanPhoneNumberForTel(phone?: string): string {
   if (!phone || !phone.trim()) return CLIENT_CALL_TEL;
   const trimmed = phone.trim();
-  const hasPlus = trimmed.startsWith('+');
   const digits = trimmed.replace(/[^0-9]/g, '');
-  return hasPlus ? `+${digits}` : `+${digits}`;
+  if (!digits) return CLIENT_CALL_TEL;
+
+  // Mali national numbers are 8 digits (e.g., 90070321, 76001122, etc.)
+  if (digits.length === 8) {
+    return `+223${digits}`;
+  }
+  // Starts with 00223: e.g. 0022390070321 -> +22390070321
+  if (digits.startsWith('00223')) {
+    return `+${digits.slice(2)}`;
+  }
+  // Starts with 223 (11 digits: country code 223 + 8-digit phone)
+  if (digits.startsWith('223') && digits.length === 11) {
+    return `+${digits}`;
+  }
+  // Already has explicit + prefix
+  if (trimmed.startsWith('+')) {
+    return `+${digits}`;
+  }
+  return `+${digits}`;
 }
 
 /**
- * Clean a WhatsApp number for use in wa.me URL (only digits)
+ * Clean a WhatsApp number for use in wa.me URL (strictly digits with country code, no +)
+ * If an 8-digit Malian number is provided (e.g. "90070321"), prepends Mali country code 223 ("22390070321")
  */
 export function cleanWhatsAppNumber(phone?: string): string {
   if (!phone || !phone.trim()) return CLIENT_WHATSAPP_NUMBER;
-  const digits = phone.replace(/[^0-9]/g, '');
-  return digits || CLIENT_WHATSAPP_NUMBER;
+  const digits = phone.trim().replace(/[^0-9]/g, '');
+  if (!digits) return CLIENT_WHATSAPP_NUMBER;
+
+  // Mali 8-digit number -> prepend 223
+  if (digits.length === 8) {
+    return `223${digits}`;
+  }
+  // Starts with 00223 -> strip leading 00
+  if (digits.startsWith('00223')) {
+    return digits.slice(2);
+  }
+  return digits;
+}
+
+/**
+ * Formats a phone number into an elegant readable Malian format
+ * Example: "90070321" -> "+223 90 07 03 21"
+ */
+export function formatMaliPhoneDisplay(phone?: string): string {
+  if (!phone || !phone.trim()) return CLIENT_PHONE_DISPLAY;
+  const trimmed = phone.trim();
+  const digits = trimmed.replace(/[^0-9]/g, '');
+  if (digits.length === 8) {
+    return `+223 ${digits.slice(0, 2)} ${digits.slice(2, 4)} ${digits.slice(4, 6)} ${digits.slice(6, 8)}`;
+  }
+  if (digits.length === 11 && digits.startsWith('223')) {
+    const d8 = digits.slice(3);
+    return `+223 ${d8.slice(0, 2)} ${d8.slice(2, 4)} ${d8.slice(4, 6)} ${d8.slice(6, 8)}`;
+  }
+  return trimmed;
 }
 
 export const AGENCY_INFO = {
   name: 'Mali Immo Prestige',
   slogan: 'L\'Excellence Foncière & Immobilière au Mali',
   tagline: 'L\'Excellence Foncière & Immobilière au Mali',
-  phone: '+223 76 00 11 22',
-  phoneDisplay: '+223 76 00 11 22',
-  whatsappNumber: '22376001122',
+  phone: '+223 90 07 03 21',
+  phoneDisplay: '+223 90 07 03 21',
+  whatsappNumber: '22390070321',
   email: 'contact@mali-immoprestige.ml',
   address: 'Hamdallaye ACI 2000, Près du Monument de l\'Obélisque, Bamako, Mali',
   rccm: 'MA-BKO-2022-B-12890',

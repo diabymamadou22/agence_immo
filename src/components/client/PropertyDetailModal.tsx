@@ -52,15 +52,15 @@ export const PropertyDetailModal: React.FC = () => {
   const property = properties.find((p) => p.id === selectedId);
   if (!property) return null;
 
-  const isFavorite = favorites.includes(property.id);
+  const isFavorite = (favorites || []).includes(property.id);
   const docBadge = getDocumentBadgeInfo(property.documentType);
   const statusBadge = getStatusBadgeInfo(property.status);
   const images = property.images && property.images.length > 0 ? property.images : [property.featuredImage];
   const notaryEstimate = calculateNotaryFeesMali(property.price, property.documentType);
   
-  const agencyPhoneDisplay = agencyConfig.phoneDisplay || agencyConfig.phone || '+223 76 00 11 22';
-  const agencyCallTel = cleanPhoneNumberForTel(agencyConfig.phone || agencyConfig.phoneDisplay);
-  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber);
+  const agencyPhoneDisplay = agencyConfig.phoneDisplay || agencyConfig.phone || '+223 90 07 03 21';
+  const agencyCallTel = cleanPhoneNumberForTel(agencyConfig.phoneDisplay || agencyConfig.phone);
+  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber || agencyConfig.phoneDisplay || agencyConfig.phone);
 
   const waLink = generateWhatsAppLink(
     property.title, 
@@ -428,7 +428,7 @@ export const PropertyDetailModal: React.FC = () => {
               Viabilisation & Équipements Disponibles
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-              {property.amenities.map((amenityKey) => {
+              {(property.amenities || []).map((amenityKey) => {
                 const def = AMENITY_DEFINITIONS[amenityKey] || { label: amenityKey, category: 'Général' };
                 return (
                   <div

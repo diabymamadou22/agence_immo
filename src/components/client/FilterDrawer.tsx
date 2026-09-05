@@ -18,7 +18,7 @@ export const FilterDrawer: React.FC = () => {
   };
 
   const handleAmenityToggle = (amenityKey: string) => {
-    const current = [...filters.amenities];
+    const current = [...(filters.amenities || [])];
     const exists = current.includes(amenityKey);
     const updated = exists ? current.filter((a) => a !== amenityKey) : [...current, amenityKey];
     dispatch(setFilters({ amenities: updated }));
@@ -162,7 +162,7 @@ export const FilterDrawer: React.FC = () => {
         </label>
         <div className="grid grid-cols-1 gap-1.5">
           {Object.entries(AMENITY_DEFINITIONS).slice(0, 6).map(([key, def]) => {
-            const isChecked = filters.amenities.includes(key);
+            const isChecked = (filters.amenities || []).includes(key);
             return (
               <label
                 key={key}

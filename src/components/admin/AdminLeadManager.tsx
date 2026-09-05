@@ -36,10 +36,10 @@ export const AdminLeadManager: React.FC = () => {
 
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      const matchesName = lead.clientName.toLowerCase().includes(q);
-      const matchesPhone = lead.clientPhone.toLowerCase().includes(q);
-      const matchesProp = lead.propertyTitle?.toLowerCase().includes(q) || false;
-      const matchesRef = lead.propertyRef?.toLowerCase().includes(q) || false;
+      const matchesName = lead.clientName?.toLowerCase()?.includes(q) || false;
+      const matchesPhone = lead.clientPhone?.toLowerCase()?.includes(q) || false;
+      const matchesProp = lead.propertyTitle?.toLowerCase()?.includes(q) || false;
+      const matchesRef = lead.propertyRef?.toLowerCase()?.includes(q) || false;
       if (!matchesName && !matchesPhone && !matchesProp && !matchesRef) {
         return false;
       }

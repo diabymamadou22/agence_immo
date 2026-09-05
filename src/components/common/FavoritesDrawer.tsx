@@ -14,8 +14,8 @@ export const FavoritesDrawer: React.FC = () => {
 
   if (!isOpen) return null;
 
-  const favoriteProperties = allProperties.filter((p) => favoriteIds.includes(p.id));
-  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber);
+  const favoriteProperties = allProperties.filter((p) => (favoriteIds || []).includes(p.id));
+  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber || agencyConfig.phoneDisplay || agencyConfig.phone);
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">

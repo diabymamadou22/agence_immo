@@ -28,8 +28,8 @@ export const HeroSearch: React.FC = () => {
   const properties = useAppSelector((state) => state.properties.items);
   const agencyConfig = useAppSelector((state) => state.agency.config);
 
-  const specialties = agencyConfig.specialties || ['vente', 'location', 'gestion'];
-  const primarySpecialty = agencyConfig.primarySpecialty || 'toutes';
+  const specialties = Array.isArray(agencyConfig?.specialties) ? agencyConfig.specialties : ['vente', 'location', 'gestion'];
+  const primarySpecialty = agencyConfig?.primarySpecialty || 'toutes';
 
   const [activeTab, setActiveTab] = useState<'parcelle_tf' | 'acheter' | 'louer' | 'all'>('parcelle_tf');
   const [selectedCity, setSelectedCity] = useState<string>(filters.city || 'all');

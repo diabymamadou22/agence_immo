@@ -225,7 +225,7 @@ export const TenantReportModal: React.FC<TenantReportModalProps> = ({
               </p>
               <div className="text-[11px] text-slate-500 flex flex-wrap gap-x-3 gap-y-0.5 pt-1">
                 <span>📍 {agencyConfig.address || AGENCY_INFO.address}</span>
-                <span>📞 {agencyConfig.phone || AGENCY_INFO.phone}</span>
+                <span>📞 {agencyConfig.phoneDisplay || agencyConfig.phone || AGENCY_INFO.phone}</span>
                 <span>✉️ {agencyConfig.email || AGENCY_INFO.email}</span>
               </div>
               <div className="text-[10px] text-slate-400 font-mono">

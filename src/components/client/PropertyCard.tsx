@@ -9,7 +9,8 @@ import {
   getDocumentBadgeInfo, 
   getPropertyTypeLabel, 
   getStatusBadgeInfo, 
-  generateWhatsAppLink 
+  generateWhatsAppLink,
+  cleanWhatsAppNumber
 } from '../../utils/formatters';
 import { 
   MapPin, 
@@ -37,7 +38,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   const dispatch = useAppDispatch();
   const favorites = useAppSelector((state) => state.properties.favorites);
   const agencyConfig = useAppSelector((state) => state.agency.config);
-  const isFavorite = favorites.includes(property.id);
+  const isFavorite = (favorites || []).includes(property.id);
 
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
@@ -49,7 +50,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
     property.price,
     property.dealType,
     undefined,
-    agencyConfig.whatsappNumber,
+    cleanWhatsAppNumber(agencyConfig.whatsappNumber || agencyConfig.phoneDisplay || agencyConfig.phone),
     agencyConfig.name
   );
 
@@ -217,8 +218,8 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
 
             {/* Micro amenities icons */}
             <div className="ml-auto flex items-center gap-1.5 text-slate-400">
-              {property.amenities.includes('eau_somagep') && <Droplet className="w-3.5 h-3.5 text-blue-500" title="Eau SOMAGEP" />}
-              {property.amenities.includes('electricite_edm') && <Zap className="w-3.5 h-3.5 text-amber-500" title="Électricité EDM-SA" />}
+              {property.amenities?.includes('eau_somagep') && <Droplet className="w-3.5 h-3.5 text-blue-500" title="Eau SOMAGEP" />}
+              {property.amenities?.includes('electricite_edm') && <Zap className="w-3.5 h-3.5 text-amber-500" title="Électricité EDM-SA" />}
               {property.hasSolar && <Sun className="w-3.5 h-3.5 text-amber-600" title="Solaire / Forage" />}
             </div>
           </div>

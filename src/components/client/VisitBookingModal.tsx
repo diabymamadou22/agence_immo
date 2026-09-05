@@ -13,9 +13,9 @@ export const VisitBookingModal: React.FC = () => {
   const properties = useAppSelector((state) => state.properties.items);
   const agencyConfig = useAppSelector((state) => state.agency.config);
 
-  const agencyPhoneDisplay = agencyConfig.phoneDisplay || agencyConfig.phone || '+223 76 00 11 22';
-  const agencyCallTel = cleanPhoneNumberForTel(agencyConfig.phone || agencyConfig.phoneDisplay);
-  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber);
+  const agencyPhoneDisplay = agencyConfig.phoneDisplay || agencyConfig.phone || '+223 90 07 03 21';
+  const agencyCallTel = cleanPhoneNumberForTel(agencyConfig.phoneDisplay || agencyConfig.phone);
+  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber || agencyConfig.phoneDisplay || agencyConfig.phone);
 
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('+223 ');

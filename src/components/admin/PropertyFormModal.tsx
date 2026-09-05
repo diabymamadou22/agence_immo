@@ -143,10 +143,11 @@ export const PropertyFormModal: React.FC = () => {
   if (!isOpen) return null;
 
   const toggleAmenity = (key: string) => {
-    if (selectedAmenities.includes(key)) {
-      setSelectedAmenities(selectedAmenities.filter((a) => a !== key));
+    const safeAmenities = selectedAmenities || [];
+    if (safeAmenities.includes(key)) {
+      setSelectedAmenities(safeAmenities.filter((a) => a !== key));
     } else {
-      setSelectedAmenities([...selectedAmenities, key]);
+      setSelectedAmenities([...safeAmenities, key]);
     }
   };
 
@@ -630,7 +631,7 @@ export const PropertyFormModal: React.FC = () => {
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {Object.entries(AMENITY_DEFINITIONS).map(([key, def]) => {
-                const isChecked = selectedAmenities.includes(key);
+                const isChecked = (selectedAmenities || []).includes(key);
                 return (
                   <button
                     key={key}

@@ -56,10 +56,10 @@ export const AdminPropertyManager: React.FC = () => {
 
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      const matchesTitle = p.title.toLowerCase().includes(q);
-      const matchesRef = p.reference.toLowerCase().includes(q);
-      const matchesNeigh = p.neighborhood.toLowerCase().includes(q);
-      const matchesCity = p.city.toLowerCase().includes(q);
+      const matchesTitle = p.title?.toLowerCase()?.includes(q) || false;
+      const matchesRef = p.reference?.toLowerCase()?.includes(q) || false;
+      const matchesNeigh = p.neighborhood?.toLowerCase()?.includes(q) || false;
+      const matchesCity = p.city?.toLowerCase()?.includes(q) || false;
       if (!matchesTitle && !matchesRef && !matchesNeigh && !matchesCity) {
         return false;
       }

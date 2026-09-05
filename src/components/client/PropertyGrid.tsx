@@ -41,7 +41,7 @@ export const PropertyGrid: React.FC = () => {
       }
 
       // Neighborhood filter
-      if (filters.neighborhood !== 'all' && filters.neighborhood && !prop.neighborhood.toLowerCase().includes(filters.neighborhood.toLowerCase())) {
+      if (filters.neighborhood !== 'all' && filters.neighborhood && !prop.neighborhood?.toLowerCase()?.includes(filters.neighborhood.toLowerCase())) {
         return false;
       }
 
@@ -72,20 +72,20 @@ export const PropertyGrid: React.FC = () => {
       }
 
       // Amenities filter (must have all selected amenities)
-      if (filters.amenities.length > 0) {
-        const hasAllAmenities = filters.amenities.every((a) => prop.amenities.includes(a));
+      if (filters.amenities && filters.amenities.length > 0) {
+        const hasAllAmenities = filters.amenities.every((a) => (prop.amenities || []).includes(a));
         if (!hasAllAmenities) return false;
       }
 
       // Keyword query
-      if (filters.searchQuery.trim()) {
+      if (filters.searchQuery && filters.searchQuery.trim()) {
         const q = filters.searchQuery.toLowerCase();
-        const matchesTitle = prop.title.toLowerCase().includes(q);
-        const matchesDesc = prop.description.toLowerCase().includes(q);
-        const matchesRef = prop.reference.toLowerCase().includes(q);
-        const matchesNeigh = prop.neighborhood.toLowerCase().includes(q);
-        const matchesLot = prop.lotNumber?.toLowerCase().includes(q);
-        const matchesTF = prop.documentNumber?.toLowerCase().includes(q);
+        const matchesTitle = prop.title?.toLowerCase()?.includes(q) || false;
+        const matchesDesc = prop.description?.toLowerCase()?.includes(q) || false;
+        const matchesRef = prop.reference?.toLowerCase()?.includes(q) || false;
+        const matchesNeigh = prop.neighborhood?.toLowerCase()?.includes(q) || false;
+        const matchesLot = prop.lotNumber?.toLowerCase()?.includes(q) || false;
+        const matchesTF = prop.documentNumber?.toLowerCase()?.includes(q) || false;
         if (!matchesTitle && !matchesDesc && !matchesRef && !matchesNeigh && !matchesLot && !matchesTF) {
           return false;
         }

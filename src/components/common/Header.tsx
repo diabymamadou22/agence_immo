@@ -37,9 +37,9 @@ export const Header: React.FC = () => {
 
   const pendingLeadsCount = leads.filter((l) => l.status === 'nouveau').length;
 
-  const agencyPhoneDisplay = agencyConfig.phoneDisplay || agencyConfig.phone || '+223 76 00 11 22';
-  const agencyCallTel = cleanPhoneNumberForTel(agencyConfig.phone || agencyConfig.phoneDisplay);
-  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber);
+  const agencyPhoneDisplay = agencyConfig.phoneDisplay || agencyConfig.phone || '+223 90 07 03 21';
+  const agencyCallTel = cleanPhoneNumberForTel(agencyConfig.phoneDisplay || agencyConfig.phone);
+  const agencyWhatsAppNumber = cleanWhatsAppNumber(agencyConfig.whatsappNumber || agencyConfig.phoneDisplay || agencyConfig.phone);
 
   const handleWhatsAppClick = () => {
     window.open(`https://wa.me/${agencyWhatsAppNumber}?text=${encodeURIComponent(`Bonjour ${agencyConfig.name}, je vous contacte depuis votre site internet.`)}`, '_blank');

@@ -4,6 +4,7 @@ import { updateAgencyConfig, resetAgencyConfig } from '../../store/agencySlice';
 import { addToast } from '../../store/uiSlice';
 import { compressImageFile } from '../../utils/imageUtils';
 import { ConfirmDeleteModal } from '../common/ConfirmDeleteModal';
+import { cleanPhoneNumberForTel, cleanWhatsAppNumber, formatMaliPhoneDisplay } from '../../utils/formatters';
 import { 
   Building2, 
   Sparkles, 
@@ -61,10 +62,33 @@ export const AdminAgencySettings: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
+    setFormData((prev) => {
+      const updated = {
+        ...prev,
+        [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      };
+      if (name === 'phoneDisplay') {
+        updated.phone = value;
+      } else if (name === 'phone') {
+        updated.phoneDisplay = value;
+      }
+      return updated;
+    });
+  };
+
+  const handleSyncPhoneToWhatsApp = () => {
+    const sourcePhone = formData.phoneDisplay || formData.phone || '';
+    const formattedWa = cleanWhatsAppNumber(sourcePhone);
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      whatsappNumber: formattedWa,
     }));
+    dispatch(
+      addToast({
+        type: 'info',
+        message: `Numéro WhatsApp mis à jour avec le code pays Mali (+223) : ${formattedWa}`,
+      })
+    );
   };
 
   const handleToggleSpecialty = (item: 'vente' | 'location' | 'gestion') => {
@@ -189,11 +213,20 @@ export const AdminAgencySettings: React.FC = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(updateAgencyConfig(formData));
+    const sourcePhone = (formData.phoneDisplay || formData.phone || '').trim();
+    const unifiedPhone = sourcePhone || '+223 90 07 03 21';
+    const finalData = {
+      ...formData,
+      phone: unifiedPhone,
+      phoneDisplay: unifiedPhone,
+      whatsappNumber: cleanWhatsAppNumber(formData.whatsappNumber || unifiedPhone),
+    };
+    setFormData(finalData);
+    dispatch(updateAgencyConfig(finalData));
     dispatch(
       addToast({
         type: 'success',
-        message: 'Vos paramètres d\'agence ont été enregistrés avec succès !',
+        message: 'Vos paramètres d\'agence et numéros de téléphone ont été enregistrés avec succès !',
       })
     );
   };
@@ -712,63 +745,81 @@ export const AdminAgencySettings: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2 flex items-center justify-between">
-                  <span>Numéro WhatsApp de l'Agence *</span>
-                  <span className="text-[10px] text-emerald-600 font-bold lowercase">Format international sans '+'</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="whatsappNumber"
-                    value={formData.whatsappNumber}
-                    onChange={handleChange}
-                    placeholder="Ex: 22376001122"
-                    className="w-full pl-4 pr-12 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono text-slate-900 text-sm font-bold"
-                  />
-                  {formData.whatsappNumber && (
-                    <a
-                      href={`https://wa.me/${formData.whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Test de contact WhatsApp pour l'agence ${formData.name}`)}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
-                      title="Tester l'ouverture de WhatsApp"
-                    >
-                      <span>Tester</span>
-                      <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
-                  )}
-                </div>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  Exemple : <strong className="font-mono text-slate-700">22376001122</strong>. Ce numéro recevra automatiquement les messages WhatsApp pré-remplis pour chaque parcelle ou bien immobilier.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2 flex items-center justify-between">
-                  <span>Numéros de Téléphone d'Appel (Affichage & Appel) *</span>
-                  <span className="text-[10px] text-amber-600 font-bold lowercase">Visible sur tout le site</span>
+                  <span>Numéro de Téléphone d'Appel (Direct & Fiches) *</span>
+                  <span className="text-[10px] text-amber-600 font-bold lowercase">Configuré pour tout le site</span>
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     name="phoneDisplay"
-                    value={formData.phoneDisplay}
+                    value={formData.phoneDisplay || ''}
                     onChange={handleChange}
-                    placeholder="Ex: +223 76 00 11 22"
-                    className="w-full pl-4 pr-12 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900 text-sm font-bold"
+                    placeholder="Ex: 90070321 ou +223 90 07 03 21"
+                    className="w-full pl-4 pr-24 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-900 text-sm font-bold"
                   />
-                  {formData.phoneDisplay && (
+                  {(formData.phoneDisplay || formData.phone) && (
                     <a
-                      href={`tel:${formData.phoneDisplay.replace(/[^0-9+]/g, '')}`}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all"
-                      title="Tester le lien d'appel"
+                      href={`tel:${cleanPhoneNumberForTel(formData.phoneDisplay || formData.phone)}`}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition-all cursor-pointer shadow-sm"
+                      title="Tester l'appel immédiat"
                     >
                       <span>Appeler</span>
                       <Phone className="w-2.5 h-2.5" />
                     </a>
                   )}
                 </div>
+                <div className="mt-1.5 flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-500">
+                  <span>
+                    Lien d'appel : <strong className="font-mono text-slate-800">{cleanPhoneNumberForTel(formData.phoneDisplay || formData.phone)}</strong>
+                  </span>
+                  <span>
+                    Affichage : <strong className="text-slate-800">{formatMaliPhoneDisplay(formData.phoneDisplay || formData.phone)}</strong>
+                  </span>
+                </div>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Exemple : <strong className="font-mono text-slate-700">+223 76 00 11 22</strong>. Utilisé dans le Header, le Footer et les boutons "Appeler l'Agence".
+                  Exemple : <strong className="font-mono text-slate-700">90070321</strong> ou <strong className="font-mono text-slate-700">+223 90 07 03 21</strong>.
+                  Ce numéro est instantanément utilisé sur l'en-tête (Header), le pied de page (Footer), et tous les boutons "Appeler l'Agence".
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-700 mb-2 flex items-center justify-between">
+                  <span>Numéro WhatsApp de l'Agence *</span>
+                  <button
+                    type="button"
+                    onClick={handleSyncPhoneToWhatsApp}
+                    className="text-[10px] text-emerald-700 hover:text-emerald-800 font-bold underline cursor-pointer"
+                  >
+                    Copier depuis le tél d'appel
+                  </button>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    name="whatsappNumber"
+                    value={formData.whatsappNumber || ''}
+                    onChange={handleChange}
+                    placeholder="Ex: 22390070321 ou 90070321"
+                    className="w-full pl-4 pr-20 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono text-slate-900 text-sm font-bold"
+                  />
+                  {(formData.whatsappNumber || formData.phoneDisplay) && (
+                    <a
+                      href={`https://wa.me/${cleanWhatsAppNumber(formData.whatsappNumber || formData.phoneDisplay)}?text=${encodeURIComponent(`Test de contact WhatsApp pour l'agence ${formData.name}`)}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 transition-all cursor-pointer shadow-sm"
+                      title="Tester l'ouverture de WhatsApp"
+                    >
+                      <span>WhatsApp</span>
+                      <ExternalLink className="w-2.5 h-2.5" />
+                    </a>
+                  )}
+                </div>
+                <div className="mt-1.5 text-[11px] text-slate-500">
+                  Lien WhatsApp généré : <strong className="font-mono text-slate-800">https://wa.me/{cleanWhatsAppNumber(formData.whatsappNumber || formData.phoneDisplay)}</strong>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Reçoit automatiquement les messages WhatsApp pré-remplis pour chaque bien immobilier ou parcelle foncière.
                 </p>
               </div>
 

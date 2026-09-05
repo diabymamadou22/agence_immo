@@ -48,7 +48,7 @@ export const AdminDashboardOverview: React.FC = () => {
   const activeTenantsCount = tenants.filter((t) => t.status === 'actif').length;
   const tenantsInLateCount = tenants.filter((t) => t.status === 'retard').length;
 
-  const currentMonthReceipts = receipts.filter((r) => r.periodMonth.includes('Août') || r.periodMonth.includes('2024'));
+  const currentMonthReceipts = receipts.filter((r) => r.periodMonth?.includes('Août') || r.periodMonth?.includes('2024') || false);
   const collectedThisMonthFCFA = currentMonthReceipts.reduce((acc, r) => acc + (r.amount || 0), 0);
 
   const pendingLeads = leads.filter((l) => l.status === 'nouveau');

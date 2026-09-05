@@ -62,13 +62,13 @@ export const AdminSaleReceiptsList: React.FC = () => {
 
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      const matchesNum = sale.receiptNumber.toLowerCase().includes(q);
-      const matchesBuyer = sale.buyerName.toLowerCase().includes(q);
-      const matchesPhone = sale.buyerPhone.toLowerCase().includes(q);
-      const matchesNina = sale.buyerNinaOrId?.toLowerCase().includes(q);
-      const matchesProp = sale.propertyTitle.toLowerCase().includes(q);
-      const matchesRef = sale.propertyReference.toLowerCase().includes(q);
-      const matchesTF = sale.documentNumber?.toLowerCase().includes(q);
+      const matchesNum = sale.receiptNumber?.toLowerCase()?.includes(q) || false;
+      const matchesBuyer = sale.buyerName?.toLowerCase()?.includes(q) || false;
+      const matchesPhone = sale.buyerPhone?.toLowerCase()?.includes(q) || false;
+      const matchesNina = sale.buyerNinaOrId?.toLowerCase()?.includes(q) || false;
+      const matchesProp = sale.propertyTitle?.toLowerCase()?.includes(q) || false;
+      const matchesRef = sale.propertyReference?.toLowerCase()?.includes(q) || false;
+      const matchesTF = sale.documentNumber?.toLowerCase()?.includes(q) || false;
       if (!matchesNum && !matchesBuyer && !matchesPhone && !matchesNina && !matchesProp && !matchesRef && !matchesTF) {
         return false;
       }

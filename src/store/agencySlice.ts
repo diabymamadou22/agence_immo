@@ -14,9 +14,9 @@ export const AGENCY_PRESETS: { id: string; label: string; city: string; config: 
       name: 'Mali Immo Prestige',
       slogan: 'L\'Excellence Foncière & Immobilière au Mali',
       tagline: 'Vente de Parcelles avec Titre Foncier, Gestion Locative & Villas de Standing',
-      phone: '+223 76 00 11 22',
-      phoneDisplay: '+223 76 00 11 22',
-      whatsappNumber: '22376001122',
+      phone: '+223 90 07 03 21',
+      phoneDisplay: '+223 90 07 03 21',
+      whatsappNumber: '22390070321',
       email: 'contact@mali-immoprestige.ml',
       address: 'Hamdallaye ACI 2000, Rue 318, Face Immeuble BNDA, Bamako, Mali',
       city: 'Bamako',
@@ -160,9 +160,17 @@ const loadSavedAgencyConfig = (): AgencyConfig => {
     if (saved) {
       const parsed = JSON.parse(saved);
       if (parsed && parsed.name) {
+        // If phone was the old placeholder +223 76 00 11 22 and user didn't customize it, default to the new +223 90 07 03 21
+        const rawPhone = parsed.phoneDisplay || parsed.phone;
+        const phoneToUse = rawPhone && rawPhone.includes('76 00 11 22') ? '+223 90 07 03 21' : (rawPhone || '+223 90 07 03 21');
+        const waToUse = parsed.whatsappNumber && parsed.whatsappNumber.includes('76001122') ? '22390070321' : (parsed.whatsappNumber || '22390070321');
+
         return {
           ...AGENCY_PRESETS[0].config,
           ...parsed,
+          phone: phoneToUse,
+          phoneDisplay: phoneToUse,
+          whatsappNumber: waToUse,
           specialties: parsed.specialties && Array.isArray(parsed.specialties) && parsed.specialties.length > 0
             ? parsed.specialties
             : (AGENCY_PRESETS[0].config.specialties || ['vente', 'location', 'gestion']),
@@ -201,15 +209,26 @@ export const agencySlice = createSlice({
   initialState,
   reducers: {
     updateAgencyConfig: (state, action: PayloadAction<Partial<AgencyConfig>>) => {
+      const payload = { ...action.payload };
+      // Always synchronize phone and phoneDisplay so neither can hold stale data
+      if (payload.phoneDisplay !== undefined) {
+        payload.phone = payload.phoneDisplay;
+      } else if (payload.phone !== undefined) {
+        payload.phoneDisplay = payload.phone;
+      }
       state.config = {
         ...state.config,
-        ...action.payload,
+        ...payload,
         isCustomBranding: true,
       };
       saveAgencyConfig(state.config);
     },
     setAgencyConfig: (state, action: PayloadAction<AgencyConfig>) => {
-      state.config = action.payload;
+      const payload = { ...action.payload };
+      const unifiedPhone = payload.phoneDisplay || payload.phone || '+223 90 07 03 21';
+      payload.phone = unifiedPhone;
+      payload.phoneDisplay = unifiedPhone;
+      state.config = payload;
       saveAgencyConfig(state.config);
     },
     setAgencyPreset: (state, action: PayloadAction<string>) => {

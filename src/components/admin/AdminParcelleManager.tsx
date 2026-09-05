@@ -123,16 +123,16 @@ export const AdminParcelleManager: React.FC = () => {
       // 7. General Keyword Search (TF N°, Lot, Section, Neighborhood, City, Commune, Lotissement, Reference, Title)
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
-        const matchesTitle = parcel.title?.toLowerCase().includes(q);
-        const matchesRef = parcel.reference?.toLowerCase().includes(q);
-        const matchesLot = parcel.lotNumber?.toLowerCase().includes(q);
-        const matchesTF = parcel.documentNumber?.toLowerCase().includes(q);
-        const matchesNeigh = parcel.neighborhood?.toLowerCase().includes(q);
-        const matchesCity = parcel.city?.toLowerCase().includes(q);
-        const matchesCommune = parcel.commune?.toLowerCase().includes(q);
-        const matchesLotiss = parcel.lotissement?.toLowerCase().includes(q);
-        const matchesSection = parcel.section?.toLowerCase().includes(q);
-        const matchesIlot = parcel.ilotNumber?.toLowerCase().includes(q);
+        const matchesTitle = parcel.title?.toLowerCase()?.includes(q) || false;
+        const matchesRef = parcel.reference?.toLowerCase()?.includes(q) || false;
+        const matchesLot = parcel.lotNumber?.toLowerCase()?.includes(q) || false;
+        const matchesTF = parcel.documentNumber?.toLowerCase()?.includes(q) || false;
+        const matchesNeigh = parcel.neighborhood?.toLowerCase()?.includes(q) || false;
+        const matchesCity = parcel.city?.toLowerCase()?.includes(q) || false;
+        const matchesCommune = parcel.commune?.toLowerCase()?.includes(q) || false;
+        const matchesLotiss = parcel.lotissement?.toLowerCase()?.includes(q) || false;
+        const matchesSection = parcel.section?.toLowerCase()?.includes(q) || false;
+        const matchesIlot = parcel.ilotNumber?.toLowerCase()?.includes(q) || false;
         
         if (
           !matchesTitle && 

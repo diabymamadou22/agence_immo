@@ -72,7 +72,7 @@ export const AdminContractGenerator: React.FC = () => {
     title: '',
     propertyId: properties[0]?.id || '',
     partyAName: owners[0]?.name || agencyConfig.name,
-    partyAPhone: owners[0]?.phone || agencyConfig.phone,
+    partyAPhone: owners[0]?.phone || agencyConfig.phoneDisplay || agencyConfig.phone,
     partyBName: tenants[0]?.name || '',
     partyBPhone: tenants[0]?.phone || '',
     amountFCFA: properties[0]?.price || 500000,
@@ -167,11 +167,12 @@ export const AdminContractGenerator: React.FC = () => {
   };
 
   const filteredContracts = contracts.filter((c) => {
+    const sTerm = searchTerm.toLowerCase();
     const matchesSearch =
-      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.reference.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.partyAName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.partyBName.toLowerCase().includes(searchTerm.toLowerCase());
+      (c.title?.toLowerCase() || '').includes(sTerm) ||
+      (c.reference?.toLowerCase() || '').includes(sTerm) ||
+      (c.partyAName?.toLowerCase() || '').includes(sTerm) ||
+      (c.partyBName?.toLowerCase() || '').includes(sTerm);
     const matchesType = selectedTypeFilter === 'all' || c.contractType === selectedTypeFilter;
     return matchesSearch && matchesType;
   });
